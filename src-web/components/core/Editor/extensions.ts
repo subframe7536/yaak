@@ -3,7 +3,6 @@ import {
   closeBrackets,
   closeBracketsKeymap,
   completionKeymap,
-  moveCompletionSelection,
   startCompletion,
 } from '@codemirror/autocomplete';
 import { history, historyKeymap } from '@codemirror/commands';
@@ -162,20 +161,14 @@ export const baseExtensions = [
   }),
   syntaxHighlighting(syntaxHighlightStyle),
   syntaxTheme,
-  keymap.of([...historyKeymap, ...completionKeymap, {
-    key: "Alt-Enter",
-    run: startCompletion,
-  },
-  {
-    key: "Tab",
-    run: moveCompletionSelection(true),
-    preventDefault: true,
-  },
-  {
-    key: "Shift-Tab",
-    run: moveCompletionSelection(false),
-    preventDefault: true,
-  }]),
+  keymap.of([
+    ...historyKeymap,
+    ...completionKeymap,
+    {
+      key: "Alt-Enter",
+      run: startCompletion,
+    },
+  ]),
 ];
 
 export const readonlyExtensions = [
