@@ -2,6 +2,12 @@ name: Generate Artifacts
 on:
   push:
     tags: [ v* ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release'
+        required: true
+        default: 'v0.0.0-dev'
 
 jobs:
   build-artifacts:
@@ -81,7 +87,7 @@ jobs:
       - name: Set version
         run: npm run replace-version
         env:
-          YAAK_VERSION: ${{ github.ref_name }}
+          YAAK_VERSION: ${{ github.ref_name || github.event.inputs.version || 'v0.0.0-dev' }}
 
       - uses: tauri-apps/tauri-action@v0
         env:
