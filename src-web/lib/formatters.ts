@@ -1,5 +1,5 @@
 import xmlFormat from 'xml-formatter';
-import { Node, parseTree, stripComments } from "jsonc-parser";
+import { type Node, parseTree, stripComments } from "jsonc-parser";
 
 const INDENT = '  ';
 
@@ -76,7 +76,7 @@ function convertNodeToJSON(node: Node): string {
       return `{${node.children
         .map((child) => convertNodeToJSON(child))
         .join(",")}}`
-    case "property":
+    case "property": {
       if (!node.children || node.children.length !== 2) {
         throw new InvalidJSONCNodeError()
       }
@@ -85,6 +85,7 @@ function convertNodeToJSON(node: Node): string {
 
       // If the valueNode configuration is wrong, this will return an error, which will propagate up
       return `${JSON.stringify(keyNode)}:${convertNodeToJSON(valueNode!)}`
+    }
   }
 }
 
