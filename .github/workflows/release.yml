@@ -22,12 +22,12 @@ jobs:
           - platform: 'macos-latest' # for Arm-based Macs (M1 and above).
             args: '--target aarch64-apple-darwin'
             yaak_arch: 'arm64'
-          - platform: 'macos-latest' # for Intel-based Macs.
-            args: '--target x86_64-apple-darwin'
-            yaak_arch: 'x64'
-          - platform: 'ubuntu-22.04'
-            args: ''
-            yaak_arch: 'x64'
+          # - platform: 'macos-latest' # for Intel-based Macs.
+          #   args: '--target x86_64-apple-darwin'
+          #   yaak_arch: 'x64'
+          # - platform: 'ubuntu-22.04'
+          #   args: ''
+          #   yaak_arch: 'x64'
           - platform: 'windows-latest'
             args: ''
             yaak_arch: 'x64'
@@ -93,23 +93,23 @@ jobs:
         env:
           YAAK_TARGET_ARCH: ${{ matrix.yaak_arch }}
 
-          ENABLE_CODE_SIGNING: ${{ secrets.APPLE_CERTIFICATE }}
+          # ENABLE_CODE_SIGNING: ${{ secrets.APPLE_CERTIFICATE }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+          # TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          # TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
 
-          # Apple signing stuff
-          APPLE_CERTIFICATE: ${{ matrix.platform == 'macos-latest' && secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ matrix.platform == 'macos-latest' && secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_ID: ${{ matrix.platform == 'macos-latest' && secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ matrix.platform == 'macos-latest' && secrets.APPLE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ matrix.platform == 'macos-latest' && secrets.APPLE_SIGNING_IDENTITY }}
-          APPLE_TEAM_ID: ${{ matrix.platform == 'macos-latest' && secrets.APPLE_TEAM_ID }}
+          # # Apple signing stuff
+          # APPLE_CERTIFICATE: ${{ matrix.platform == 'macos-latest' && secrets.APPLE_CERTIFICATE }}
+          # APPLE_CERTIFICATE_PASSWORD: ${{ matrix.platform == 'macos-latest' && secrets.APPLE_CERTIFICATE_PASSWORD }}
+          # APPLE_ID: ${{ matrix.platform == 'macos-latest' && secrets.APPLE_ID }}
+          # APPLE_PASSWORD: ${{ matrix.platform == 'macos-latest' && secrets.APPLE_PASSWORD }}
+          # APPLE_SIGNING_IDENTITY: ${{ matrix.platform == 'macos-latest' && secrets.APPLE_SIGNING_IDENTITY }}
+          # APPLE_TEAM_ID: ${{ matrix.platform == 'macos-latest' && secrets.APPLE_TEAM_ID }}
 
-          # Windows signing stuff
-          AZURE_CLIENT_ID: ${{ matrix.platform == 'windows-latest' && secrets.AZURE_CLIENT_ID }}
-          AZURE_CLIENT_SECRET: ${{ matrix.platform == 'windows-latest' && secrets.AZURE_CLIENT_SECRET }}
-          AZURE_TENANT_ID: ${{ matrix.platform == 'windows-latest' && secrets.AZURE_TENANT_ID }}
+          # # Windows signing stuff
+          # AZURE_CLIENT_ID: ${{ matrix.platform == 'windows-latest' && secrets.AZURE_CLIENT_ID }}
+          # AZURE_CLIENT_SECRET: ${{ matrix.platform == 'windows-latest' && secrets.AZURE_CLIENT_SECRET }}
+          # AZURE_TENANT_ID: ${{ matrix.platform == 'windows-latest' && secrets.AZURE_TENANT_ID }}
         with:
           tagName: 'v__VERSION__'
           releaseName: 'Release __VERSION__'
