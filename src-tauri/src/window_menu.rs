@@ -129,7 +129,7 @@ pub fn app_menu<R: Runtime>(app_handle: &AppHandle<R>) -> tauri::Result<Menu<R>>
             )?,
             &window_menu,
             &help_menu,
-            #[cfg(dev)]
+            // #[cfg(dev)]
             &Submenu::with_items(
                 app_handle,
                 "Develop",
