@@ -1,0 +1,11 @@
+{
+  "name": "@yaak/template-function-datetime",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "build": "yaakcli build"
+  },
+  "dependencies": {
+    "dayjs": "^1.11.13"
+  }
+}
