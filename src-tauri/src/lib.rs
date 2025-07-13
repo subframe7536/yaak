@@ -1346,34 +1346,34 @@ pub fn run() {
                         let _ = db.cancel_pending_websocket_connections();
                     });
                 }
-                RunEvent::WindowEvent {
-                    event: WindowEvent::Focused(true),
-                    label,
-                    ..
-                } => {
-                    let w = app_handle.get_webview_window(&label).unwrap();
-                    let h = app_handle.clone();
-                    // Run update check whenever the window is focused
-                    tauri::async_runtime::spawn(async move {
-                        let val: State<'_, Mutex<YaakUpdater>> = h.state();
-                        let update_mode = get_update_mode(&w).await.unwrap();
-                        if let Err(e) = val.lock().await.maybe_check(&w, update_mode).await {
-                            warn!("Failed to check for updates {e:?}");
-                        };
-                    });
+                // RunEvent::WindowEvent {
+                //     event: WindowEvent::Focused(true),
+                //     label,
+                //     ..
+                // } => {
+                //     let w = app_handle.get_webview_window(&label).unwrap();
+                //     let h = app_handle.clone();
+                //     // Run update check whenever the window is focused
+                //     tauri::async_runtime::spawn(async move {
+                //         let val: State<'_, Mutex<YaakUpdater>> = h.state();
+                //         let update_mode = get_update_mode(&w).await.unwrap();
+                //         if let Err(e) = val.lock().await.maybe_check(&w, update_mode).await {
+                //             warn!("Failed to check for updates {e:?}");
+                //         };
+                //     });
 
-                    let h = app_handle.clone();
-                    tauri::async_runtime::spawn(async move {
-                        let windows = h.webview_windows();
-                        let w = windows.values().next().unwrap();
-                        tokio::time::sleep(Duration::from_millis(4000)).await;
-                        let val: State<'_, Mutex<YaakNotifier>> = w.state();
-                        let mut n = val.lock().await;
-                        if let Err(e) = n.maybe_check(&w).await {
-                            warn!("Failed to check for notifications {}", e)
-                        }
-                    });
-                }
+                //     let h = app_handle.clone();
+                //     tauri::async_runtime::spawn(async move {
+                //         let windows = h.webview_windows();
+                //         let w = windows.values().next().unwrap();
+                //         tokio::time::sleep(Duration::from_millis(4000)).await;
+                //         let val: State<'_, Mutex<YaakNotifier>> = w.state();
+                //         let mut n = val.lock().await;
+                //         if let Err(e) = n.maybe_check(&w).await {
+                //             warn!("Failed to check for notifications {}", e)
+                //         }
+                //     });
+                // }
                 RunEvent::WindowEvent {
                     event: WindowEvent::CloseRequested { .. },
                     ..
