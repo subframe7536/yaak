@@ -1,5 +1,5 @@
 import xmlFormat from 'xml-formatter';
-import { type Node, parseTree, stripComments } from "jsonc-parser";
+import { jsonrepair } from "jsonrepair";
 
 const INDENT = '  ';
 
@@ -7,29 +7,14 @@ export async function tryFormatJson(text: string): Promise<string> {
   if (text === '') return text;
 
   try {
-    const tree = parseTree(stripComments(text), undefined, {
-      allowEmptyContent: true,
-      allowTrailingComma: true,
-    })
-
-    // If we couldn't parse the tree, return the original text
-    if (tree) {
-      return convertNodeToJSON(tree)
-    }
-    // convertNodeToJSON can throw an error if the tree is invalid
-  } catch (err) {
-    console.warn('Failed to format JSON', err);
-    // Nothing
+    const jsonObject = jsonrepair(
+      text.replace(/(^|\n)\s*[\u3000\u2000-\u200F\u2028-\u202F]+/g, '$1    ')
+    );
+    return JSON.stringify(JSON.parse(jsonObject), null, 2);
+  } catch (error) {
+    console.error('Failed to format JSON:', error);
+    return text;
   }
-
-  try {
-    return JSON.stringify(JSON.parse(text), null, 2);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (err) {
-    // Nothing
-  }
-
-  return text;
 }
 
 export async function tryFormatXml(text: string): Promise<string> {
@@ -37,55 +22,10 @@ export async function tryFormatXml(text: string): Promise<string> {
 
   try {
     return xmlFormat(text, { throwOnFailure: true, strictMode: false, indentation: INDENT });
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (err) {
+  } catch (error) {
+    console.error('Failed to format XML:', error);
     return text;
   }
 }
 
-class InvalidJSONCNodeError extends Error {
-  constructor() {
-    super()
-    this.message = "Invalid JSONC node"
-  }
-}
-
-function convertNodeToJSON(node: Node): string {
-  switch (node.type) {
-    case "string":
-      return JSON.stringify(node.value)
-    case "null":
-      return "null"
-    case "array":
-      if (!node.children) {
-        throw new InvalidJSONCNodeError()
-      }
-
-      return `[${node.children
-        .map((child) => convertNodeToJSON(child))
-        .join(",")}]`
-    case "number":
-      return JSON.stringify(node.value)
-    case "boolean":
-      return JSON.stringify(node.value)
-    case "object":
-      if (!node.children) {
-        throw new InvalidJSONCNodeError()
-      }
-
-      return `{${node.children
-        .map((child) => convertNodeToJSON(child))
-        .join(",")}}`
-    case "property": {
-      if (!node.children || node.children.length !== 2) {
-        throw new InvalidJSONCNodeError()
-      }
-
-      const [keyNode, valueNode] = node.children
-
-      // If the valueNode configuration is wrong, this will return an error, which will propagate up
-      return `${JSON.stringify(keyNode)}:${convertNodeToJSON(valueNode!)}`
-    }
-  }
-}
 
