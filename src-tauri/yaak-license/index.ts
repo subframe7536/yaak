@@ -31,12 +31,21 @@ export function useLicense() {
   }, []);
 
   const CHECK_QUERY_KEY = ['license.check'];
-  const check = useQuery<void, string, LicenseCheckStatus>({
-    refetchInterval: 1000 * 60 * 60 * 12, // Refetch every 12 hours
-    refetchOnWindowFocus: false,
-    queryKey: CHECK_QUERY_KEY,
-    queryFn: () => invoke('plugin:yaak-license|check'),
-  });
+  // const check = useQuery<void, string, LicenseCheckStatus>({
+  //   refetchInterval: 1000 * 60 * 60 * 12, // Refetch every 12 hours
+  //   refetchOnWindowFocus: false,
+  //   queryKey: CHECK_QUERY_KEY,
+  //   queryFn: () => invoke('plugin:yaak-license|check'),
+  // });
+  const check = {
+    error: null,
+    isPending: false,
+    data: {
+      type: 'personal_use' as 'personal_use' | 'trialing' | 'commercial_use' | 'invalid_license',
+      trial_ended: '2099-12-31T23:59:59Z',
+      end: '2099-12-31T23:59:59Z',
+    },
+  } as const
 
   return {
     activate,
