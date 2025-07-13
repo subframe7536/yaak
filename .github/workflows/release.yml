@@ -1,7 +1,7 @@
 name: Generate Artifacts
 on:
-  push:
-    tags: [ v* ]
+  # push:
+  #   tags: [ v* ]
   workflow_dispatch:
     inputs:
       version:
