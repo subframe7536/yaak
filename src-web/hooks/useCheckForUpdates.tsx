@@ -2,8 +2,8 @@ import { useMutation } from '@tanstack/react-query';
 import { InlineCode } from '../components/core/InlineCode';
 import { showAlert } from '../lib/alert';
 import { appInfo } from '../lib/appInfo';
-import { minPromiseMillis } from '../lib/minPromiseMillis';
-import { invokeCmd } from '../lib/tauri';
+// import { minPromiseMillis } from '../lib/minPromiseMillis';
+// import { invokeCmd } from '../lib/tauri';
 import { Link } from '../components/core/Link';
 
 export function useCheckForUpdates() {
