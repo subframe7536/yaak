@@ -41,7 +41,7 @@ import { text } from './text/extension';
 import type { TwigCompletionOption } from './twig/completion';
 import { twig } from './twig/extension';
 import { pathParametersPlugin } from './twig/pathParameters';
-import { json } from '@codemirror/lang-json';
+import { jsonc } from '@shopify/lang-jsonc';
 import { xml } from '@codemirror/lang-xml';
 import { pairs } from './pairs/extension';
 import { url } from './url/extension';
@@ -80,7 +80,7 @@ const syntaxExtensions: Record<
   null | (() => LanguageSupport)
 > = {
   graphql: null,
-  json: json,
+  json: jsonc,
   javascript: javascript,
   // HTML as XML because HTML is oddly slow
   html: xml,
