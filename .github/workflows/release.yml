@@ -72,9 +72,6 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run JS build
-        run: npm run build
-
       - name: Run lint
         run: npm run lint
 

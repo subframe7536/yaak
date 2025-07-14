@@ -7,7 +7,6 @@ import { domAnimation, LazyMotion, MotionConfig } from 'motion/react';
 import React, { Suspense } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { HelmetProvider } from 'react-helmet-async';
 import { Dialogs } from '../components/Dialogs';
 import { GlobalHooks } from '../components/GlobalHooks';
 import RouteError from '../components/RouteError';
@@ -26,16 +25,14 @@ function RouteComponent() {
       <QueryClientProvider client={queryClient}>
         <LazyMotion features={domAnimation}>
           <MotionConfig transition={{ duration: 0.1 }}>
-            <HelmetProvider>
-              <DndProvider backend={HTML5Backend}>
-                <Suspense>
-                  <GlobalHooks />
-                  <Toasts />
-                  <Dialogs />
-                  <Layout />
-                </Suspense>
-              </DndProvider>
-            </HelmetProvider>
+            <DndProvider backend={HTML5Backend}>
+              <Suspense>
+                <GlobalHooks />
+                <Toasts />
+                <Dialogs />
+                <Layout />
+              </Suspense>
+            </DndProvider>
           </MotionConfig>
         </LazyMotion>
       </QueryClientProvider>

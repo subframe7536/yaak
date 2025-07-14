@@ -4,7 +4,7 @@ const Downloader = require('nodejs-file-downloader');
 const { rmSync, cpSync, mkdirSync, existsSync } = require('node:fs');
 const { execSync } = require('node:child_process');
 
-const NODE_VERSION = 'v22.9.0';
+const NODE_VERSION = 'v24.4.0';
 
 // `${process.platform}_${process.arch}`
 const MAC_ARM = 'darwin_arm64';
