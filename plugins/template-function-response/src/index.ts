@@ -159,7 +159,8 @@ function filterJSONPath(body: string, path: string): string {
 }
 
 function filterXPath(body: string, path: string): string {
-  const doc = new DOMParser().parseFromString(body, 'text/xml');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const doc: any = new DOMParser().parseFromString(body, 'text/xml');
   const items = xpath.select(path, doc, false);
 
   if (Array.isArray(items)) {

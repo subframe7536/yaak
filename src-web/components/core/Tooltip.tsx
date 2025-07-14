@@ -23,7 +23,7 @@ export function Tooltip({ children, content, tabIndex, size = 'md' }: TooltipPro
   const [isOpen, setIsOpen] = useState<CSSProperties>();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
-  const showTimeout = useRef<NodeJS.Timeout>();
+  const showTimeout = useRef<NodeJS.Timeout>(undefined);
 
   const handleOpenImmediate = () => {
     if (triggerRef.current == null || tooltipRef.current == null) return;

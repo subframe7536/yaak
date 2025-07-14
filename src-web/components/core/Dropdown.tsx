@@ -266,7 +266,7 @@ interface MenuProps {
   fullWidth?: boolean;
   isOpen: boolean;
   items: DropdownItem[];
-  triggerRef?: RefObject<HTMLButtonElement>;
+  triggerRef?: RefObject<HTMLButtonElement | null>;
 }
 
 const Menu = forwardRef<Omit<DropdownRef, 'open' | 'isOpen' | 'toggle' | 'items'>, MenuProps>(
@@ -555,7 +555,10 @@ const Menu = forwardRef<Omit<DropdownRef, 'open' | 'isOpen' | 'toggle' | 'items'
                   }
                   if (item.type === 'separator') {
                     return (
-                      <Separator key={i} className={classNames('my-1.5', item.label && 'ml-2')}>
+                      <Separator
+                        key={i}
+                        className={classNames('my-1.5', item.label ? 'ml-2' : null)}
+                      >
                         {item.label}
                       </Separator>
                     );

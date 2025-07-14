@@ -7,7 +7,8 @@ export const plugin: PluginDefinition = {
     name: 'XPath',
     description: 'Filter XPath',
     onFilter(_ctx, args) {
-      const doc = new DOMParser().parseFromString(args.payload, 'text/xml');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const doc: any = new DOMParser().parseFromString(args.payload, 'text/xml');
       try {
         const result = xpath.select(args.filter, doc, false);
         if (Array.isArray(result)) {

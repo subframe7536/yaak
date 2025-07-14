@@ -530,10 +530,12 @@ export const Editor = forwardRef<EditorView | undefined, EditorProps>(function E
     }
     results.push(
       Children.map(actions, (existingChild) => {
-        if (!isValidElement(existingChild)) return null;
+        if (!isValidElement<{ className?: string }>(existingChild)) return null;
+        const existingProps = existingChild.props;
+
         return cloneElement(existingChild, {
-          ...existingChild.props,
-          className: classNames(existingChild.props.className, actionClassName),
+          ...existingProps,
+          className: classNames(existingProps.className, actionClassName),
         });
       }),
     );

@@ -7,7 +7,7 @@ interface Props {
 
 export function HttpResponseDurationTag({ response }: Props) {
   const [fallbackElapsed, setFallbackElapsed] = useState<number>(0);
-  const timeout = useRef<NodeJS.Timeout>();
+  const timeout = useRef<NodeJS.Timeout>(undefined);
 
   // Calculate the duration of the response for use when the response hasn't finished yet
   useEffect(() => {
