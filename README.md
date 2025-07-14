@@ -1,8 +1,3 @@
-# Todo
-
-- [ ] better curl generator, using https://www.npmjs.com/package/@hoppscotch/httpsnippet
-
-
 # Yaak API Client
 
 Yaak is a desktop API client for interacting with REST, GraphQL, Server Sent Events (SSE), WebSocket, and gRPC

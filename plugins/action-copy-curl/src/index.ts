@@ -44,7 +44,7 @@ export async function convertToCurl(request: Partial<HttpRequest>) {
     } catch (e) {
       // Build manually
       const [base, hash] = finalUrl.split('#');
-      const separator = base.includes('?') ? '&' : '?';
+      const separator = base!.includes('?') ? '&' : '?';
       const queryString = urlParams
         .map(p => `${encodeURIComponent(p.name)}=${encodeURIComponent(p.value)}`)
         .join('&');
