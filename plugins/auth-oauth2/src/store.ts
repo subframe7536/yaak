@@ -1,4 +1,4 @@
-import { Context } from '@yaakapp/api';
+import type { Context } from '@yaakapp/api';
 
 export async function storeToken(
   ctx: Context,

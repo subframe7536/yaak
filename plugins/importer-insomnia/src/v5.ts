@@ -1,8 +1,16 @@
-import { PartialImportResources } from '@yaakapp/api';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import type { PartialImportResources } from '@yaakapp/api';
 import { convertId, convertSyntax, isJSObject } from './common';
 
-export function convertInsomniaV5(parsed: Record<string, any>) {
-  if (!Array.isArray(parsed.collection)) return null;
+export function convertInsomniaV5(parsed: any) {
+  // Assert parsed is object
+  if (parsed == null || typeof parsed !== 'object') {
+    return null;
+  }
+
+  if (!('collection' in parsed) || !Array.isArray(parsed.collection)) {
+    return null;
+  }
 
   const resources: PartialImportResources = {
     environments: [],
@@ -14,7 +22,7 @@ export function convertInsomniaV5(parsed: Record<string, any>) {
   };
 
   // Import workspaces
-  const meta: Record<string, any> = parsed.meta ?? {};
+  const meta = ('meta' in parsed ? parsed.meta : {}) as Record<string, any>;
   resources.workspaces.push({
     id: convertId(meta.id ?? 'collection'),
     createdAt: meta.created ? new Date(meta.created).toISOString().replace('Z', '') : undefined,
@@ -36,17 +44,11 @@ export function convertInsomniaV5(parsed: Record<string, any>) {
         resources.folders.push(importFolder(child, meta.id, parentId));
         nextFolder(child.children, child.meta.id);
       } else if (child.method) {
-        resources.httpRequests.push(
-          importHttpRequest(child, meta.id, parentId),
-        );
+        resources.httpRequests.push(importHttpRequest(child, meta.id, parentId));
       } else if (child.protoFileId) {
-        resources.grpcRequests.push(
-          importGrpcRequest(child, meta.id, parentId),
-        );
+        resources.grpcRequests.push(importGrpcRequest(child, meta.id, parentId));
       } else if (child.url) {
-        resources.websocketRequests.push(
-          importWebsocketRequest(child, meta.id, parentId),
-        );
+        resources.websocketRequests.push(importWebsocketRequest(child, meta.id, parentId));
       }
     }
   };
@@ -219,7 +221,11 @@ function importAuthentication(r: any) {
   return { authenticationType, authentication } as const;
 }
 
-function importFolder(f: any, workspaceId: string, parentId: string): PartialImportResources['folders'][0] {
+function importFolder(
+  f: any,
+  workspaceId: string,
+  parentId: string,
+): PartialImportResources['folders'][0] {
   const id = f.meta?.id ?? f._id;
   const created = f.meta?.created ?? f.created;
   const updated = f.meta?.modified ?? f.updated;
@@ -238,8 +244,11 @@ function importFolder(f: any, workspaceId: string, parentId: string): PartialImp
   };
 }
 
-
-function importEnvironment(e: any, workspaceId: string, isParent?: boolean): PartialImportResources['environments'][0] {
+function importEnvironment(
+  e: any,
+  workspaceId: string,
+  isParent?: boolean,
+): PartialImportResources['environments'][0] {
   const id = e.meta?.id ?? e._id;
   const created = e.meta?.created ?? e.created;
   const updated = e.meta?.modified ?? e.updated;
@@ -251,7 +260,8 @@ function importEnvironment(e: any, workspaceId: string, isParent?: boolean): Par
     updatedAt: updated ? new Date(updated).toISOString().replace('Z', '') : undefined,
     workspaceId: convertId(workspaceId),
     public: !e.isPrivate,
-    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
     sortPriority: sortKey, // Will be added to Yaak later
     base: isParent ?? e.parentId === workspaceId,
     model: 'environment',

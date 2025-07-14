@@ -47,13 +47,13 @@ import type { TabItem } from './core/Tabs/Tabs';
 import { EmptyStateText } from './EmptyStateText';
 import { FormMultipartEditor } from './FormMultipartEditor';
 import { FormUrlencodedEditor } from './FormUrlencodedEditor';
-import { GraphQLEditor } from './GraphQLEditor';
 import { HeadersEditor } from './HeadersEditor';
 import { HttpAuthenticationEditor } from './HttpAuthenticationEditor';
 import { MarkdownEditor } from './MarkdownEditor';
 import { RequestMethodDropdown } from './RequestMethodDropdown';
 import { UrlBar } from './UrlBar';
 import { UrlParametersEditor } from './UrlParameterEditor';
+import { GraphQLEditor } from './graphql/GraphQLEditor';
 
 interface Props {
   style: CSSProperties;

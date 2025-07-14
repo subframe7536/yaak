@@ -3,11 +3,11 @@ import classNames from 'classnames';
 import { useAtomValue } from 'jotai';
 import type { CSSProperties } from 'react';
 import React from 'react';
-import { showGraphQLDocExplorerAtom } from '../atoms/graphqlSchemaAtom';
 import { useCurrentGraphQLSchema } from '../hooks/useIntrospectGraphQL';
 import type { SlotProps } from './core/SplitLayout';
 import { SplitLayout } from './core/SplitLayout';
-import { GraphQLDocsExplorer } from './GraphQLDocsExplorer';
+import { GraphQLDocsExplorer } from './graphql/GraphQLDocsExplorer';
+import { showGraphQLDocExplorerAtom } from './graphql/graphqlAtoms';
 import { HttpRequestPane } from './HttpRequestPane';
 import { HttpResponsePane } from './HttpResponsePane';
 
@@ -17,7 +17,6 @@ interface Props {
 }
 
 export function HttpRequestLayout({ activeRequest, style }: Props) {
-  const { bodyType } = activeRequest;
   const showGraphQLDocExplorer = useAtomValue(showGraphQLDocExplorerAtom);
   const graphQLSchema = useCurrentGraphQLSchema(activeRequest);
 
@@ -39,11 +38,11 @@ export function HttpRequestLayout({ activeRequest, style }: Props) {
     />
   );
 
-  if (bodyType === 'graphql' && showGraphQLDocExplorer && graphQLSchema != null) {
+  if (activeRequest.bodyType === 'graphql' && showGraphQLDocExplorer && graphQLSchema != null) {
     return (
       <SplitLayout
         name="graphql_layout"
-        defaultRatio={1/3}
+        defaultRatio={1 / 3}
         firstSlot={requestResponseSplit}
         secondSlot={({ style, orientation }) => (
           <GraphQLDocsExplorer

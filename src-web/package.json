@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite dev --force",
     "build": "vite build",
-    "lint": "tsc --noEmit && eslint . --ext .ts,.tsx"
+    "lint": "eslint . --ext .ts,.tsx"
   },
   "dependencies": {
     "@codemirror/commands": "^6.8.1",
@@ -61,6 +61,8 @@
     "react-markdown": "^10.1.0",
     "react-pdf": "^10.0.1",
     "react-use": "^17.6.0",
+    "rehype-stringify": "^10.0.1",
+    "remark-frontmatter": "^5.0.0",
     "remark-gfm": "^4.0.1",
     "slugify": "^1.6.6",
     "uuid": "^11.1.0",

@@ -7,7 +7,7 @@ export const plugin: PluginDefinition = {
       name: 'uuid.v1',
       description: 'Generate a UUID V1',
       args: [],
-      async onRender(_ctx: Context, _args: CallTemplateFunctionArgs): Promise<string | null> {
+      async onRender(): Promise<string | null> {
         return v1();
       },
     },
@@ -32,7 +32,7 @@ export const plugin: PluginDefinition = {
       name: 'uuid.v4',
       description: 'Generate a UUID V4',
       args: [],
-      async onRender(_ctx: Context, _args: CallTemplateFunctionArgs): Promise<string | null> {
+      async onRender(): Promise<string | null> {
         return v4();
       },
     },
@@ -68,7 +68,7 @@ export const plugin: PluginDefinition = {
       name: 'uuid.v7',
       description: 'Generate a UUID V7',
       args: [],
-      async onRender(_ctx: Context, _args: CallTemplateFunctionArgs): Promise<string | null> {
+      async onRender(): Promise<string | null> {
         return v7();
       },
     },

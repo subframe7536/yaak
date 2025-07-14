@@ -6,7 +6,9 @@ import {
 } from '@codemirror/autocomplete';
 import { history, historyKeymap } from '@codemirror/commands';
 import { javascript } from '@codemirror/lang-javascript';
+import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';
+import { xml } from '@codemirror/lang-xml';
 import type { LanguageSupport } from '@codemirror/language';
 import {
   codeFolding,
@@ -35,15 +37,15 @@ import {
 import { tags as t } from '@lezer/highlight';
 import type { EnvironmentVariable } from '@yaakapp-internal/models';
 import { graphql } from 'cm6-graphql';
+import { renderMarkdown } from '../../../lib/markdown';
 import { pluralizeCount } from '../../../lib/pluralize';
+import { showInGraphQLDocsExplorer } from '../../graphql/useGraphQLDocsExplorer';
 import type { EditorProps } from './Editor';
+import { pairs } from './pairs/extension';
 import { text } from './text/extension';
 import type { TwigCompletionOption } from './twig/completion';
 import { twig } from './twig/extension';
 import { pathParametersPlugin } from './twig/pathParameters';
-import { json } from '@codemirror/lang-json';
-import { xml } from '@codemirror/lang-xml';
-import { pairs } from './pairs/extension';
 import { url } from './url/extension';
 
 export const syntaxHighlightStyle = HighlightStyle.define([
@@ -123,7 +125,22 @@ export function getLanguageExtension({
 
   // GraphQL is a special exception
   if (language === 'graphql') {
-    return [graphql(), extraExtensions];
+    return [
+      graphql(undefined, {
+        async onCompletionInfoRender(gqlCompletionItem): Promise<Node | null> {
+          if (!gqlCompletionItem.documentation) return null;
+          const innerHTML = await renderMarkdown(gqlCompletionItem.documentation);
+          const span = document.createElement('span');
+          span.innerHTML = innerHTML;
+          return span;
+        },
+        onShowInDocs(field, type, parentType) {
+          console.log("SHOW IN DOCS", field);
+          showInGraphQLDocsExplorer(field, type, parentType).catch(console.error);
+        },
+      }),
+      extraExtensions,
+    ];
   }
 
   const base_ = syntaxExtensions[language ?? 'text'] ?? text();
@@ -229,7 +246,6 @@ export const multiLineExtensions = ({ hideGutter }: { hideGutter?: boolean }) =>
       }
     },
   }),
-  EditorState.allowMultipleSelections.of(true),
   indentOnInput(),
   rectangularSelection(),
   crosshairCursor(),

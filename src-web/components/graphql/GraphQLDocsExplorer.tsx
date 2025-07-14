@@ -23,17 +23,18 @@ import {
 } from 'graphql';
 import type { CSSProperties, HTMLAttributes, KeyboardEvent, ReactNode } from 'react';
 import { Fragment, memo, useCallback, useMemo, useRef, useState } from 'react';
-import { showGraphQLDocExplorerAtom } from '../atoms/graphqlSchemaAtom';
-import { useClickOutside } from '../hooks/useClickOutside';
-import { useContainerSize } from '../hooks/useContainerQuery';
-import { useDebouncedValue } from '../hooks/useDebouncedValue';
-import { useStateWithDeps } from '../hooks/useStateWithDeps';
-import { jotaiStore } from '../lib/jotai';
-import { CountBadge } from './core/CountBadge';
-import { Icon } from './core/Icon';
-import { IconButton } from './core/IconButton';
-import { PlainInput } from './core/PlainInput';
-import { Markdown } from './Markdown';
+import { useClickOutside } from '../../hooks/useClickOutside';
+import { useContainerSize } from '../../hooks/useContainerQuery';
+import { useDebouncedValue } from '../../hooks/useDebouncedValue';
+import { useStateWithDeps } from '../../hooks/useStateWithDeps';
+import { jotaiStore } from '../../lib/jotai';
+import { CountBadge } from '../core/CountBadge';
+import { Icon } from '../core/Icon';
+import { IconButton } from '../core/IconButton';
+import { PlainInput } from '../core/PlainInput';
+import { Markdown } from '../Markdown';
+import { showGraphQLDocExplorerAtom } from './graphqlAtoms';
+import { useGraphQLDocsExplorerEvent } from './useGraphQLDocsExplorer';
 
 interface Props {
   style?: CSSProperties;
@@ -57,6 +58,17 @@ export const GraphQLDocsExplorer = memo(function GraphQLDocsExplorer({
   const qryType = schema.getQueryType();
   const mutType = schema.getMutationType();
   const subType = schema.getSubscriptionType();
+
+  useGraphQLDocsExplorerEvent('gql_docs_explorer.show_in_docs', ({ field }) => {
+    walkTypeGraph(schema, null, (t) => {
+      if (t.name === field) {
+        setActiveItem(toExplorerItem(t, null));
+        return false;
+      } else {
+        return true;
+      }
+    });
+  });
 
   const qryItem: ExplorerItem = qryType ? { kind: 'type', type: qryType, from: null } : null;
   const mutItem: ExplorerItem = mutType ? { kind: 'type', type: mutType, from: null } : null;
@@ -642,22 +654,20 @@ function GqlSchemaSearch({
 
   const results = useMemo(() => {
     const results: SearchResult[] = [];
-    walkTypeGraph(
-      currentItem?.type ?? null,
-      (type, from, depth) => {
-        if (type === currentItem?.type) {
-          return null; // Remove the current type from results
-        }
+    walkTypeGraph(schema, currentItem?.type ?? null, (type, from, depth) => {
+      if (type === currentItem?.type) {
+        return true; // Skip the current type and continue
+      }
 
-        const match = fuzzyMatch(type.name, debouncedValue);
-        if (match == null) {
-          // Do nothing
-        } else {
-          results.push({ name: type.name, type, score: match.score, from, depth });
-        }
-      },
-      schema,
-    );
+      const match = fuzzyMatch(type.name, debouncedValue);
+      if (match == null) {
+        // Do nothing
+      } else {
+        results.push({ name: type.name, type, score: match.score, from, depth });
+      }
+
+      return true; // Continue searching
+    });
     results.sort((a, b) => {
       if (value == '') {
         if (a.name.startsWith('_') && !b.name.startsWith('_')) {
@@ -831,13 +841,13 @@ function DocMarkdown({ children, className }: { children: string | null; classNa
 }
 
 function walkTypeGraph(
+  schema: GraphQLSchema,
   start: GraphQLType | GraphQLField<any, any> | GraphQLInputField | null,
   cb: (
     type: GraphQLNamedType | GraphQLField<any, any> | GraphQLInputField,
     from: GraphQLNamedType | null,
     path: string[],
-  ) => void,
-  schema: GraphQLSchema,
+  ) => boolean,
 ) {
   const visited = new Set<string>();
   const queue: Array<{
@@ -867,7 +877,8 @@ function walkTypeGraph(
     if (visited.has(name)) continue;
     visited.add(name);
 
-    cb(current, from, path);
+    const cont = cb(current, from, path);
+    if (!cont) break;
 
     if (isObjectType(current) || isInterfaceType(current)) {
       for (const field of Object.values(current.getFields())) {
