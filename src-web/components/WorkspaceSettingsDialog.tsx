@@ -64,7 +64,7 @@ export function WorkspaceSettingsDialog({ workspaceId, hide, tab }: Props) {
       value={activeTab}
       onChangeValue={setActiveTab}
       label="Folder Settings"
-      className="px-1.5 pb-2"
+      className="px-4 pb-2"
       addBorders
       tabs={[
         {
@@ -75,10 +75,10 @@ export function WorkspaceSettingsDialog({ workspaceId, hide, tab }: Props) {
         ...headersTab,
       ]}
     >
-      <TabContent value={TAB_AUTH} className="pt-3 overflow-y-auto h-full px-4">
+      <TabContent value={TAB_AUTH} className="pt-3 overflow-y-auto h-full px-2">
         <HttpAuthenticationEditor model={workspace} />
       </TabContent>
-      <TabContent value={TAB_HEADERS} className="pt-3 overflow-y-auto h-full px-4">
+      <TabContent value={TAB_HEADERS} className="pt-3 overflow-y-auto h-full px-2">
         <HeadersEditor
           inheritedHeaders={inheritedHeaders}
           forceUpdateKey={workspace.id}
@@ -87,7 +87,7 @@ export function WorkspaceSettingsDialog({ workspaceId, hide, tab }: Props) {
           stateKey={`headers.${workspace.id}`}
         />
       </TabContent>
-      <TabContent value={TAB_GENERAL} className="pt-3 overflow-y-auto h-full px-4 !flex gap-8">
+      <TabContent value={TAB_GENERAL} className="pt-3 overflow-y-auto h-full px-2 gap-8 !data-[state=active]:flex">
         <VStack space={4} alignItems="start" className="pb-3 h-full flex-1">
           <PlainInput
             required
@@ -110,7 +110,7 @@ export function WorkspaceSettingsDialog({ workspaceId, hide, tab }: Props) {
           />
         </VStack>
         <VStack space={4} alignItems="start" justifyContent="between" className="pb-3 h-full flex-1">
-          <div>
+          <div className="w-full flex flex-col gap-4">
             <SyncToFilesystemSetting
               value={{ filePath: workspaceMeta.settingSyncDir }}
               onCreateNewWorkspace={hide}
@@ -118,7 +118,7 @@ export function WorkspaceSettingsDialog({ workspaceId, hide, tab }: Props) {
             />
             <WorkspaceEncryptionSetting size="xs" />
           </div>
-          <div>
+          <div className="w-full">
             <Separator className="my-4" />
             <HStack alignItems="center" justifyContent="between" className="w-full">
               <Button
