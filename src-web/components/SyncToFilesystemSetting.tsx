@@ -20,7 +20,7 @@ export function SyncToFilesystemSetting({
 }: SyncToFilesystemSettingProps) {
   const [syncDir, setSyncDir] = useState<string | null>(null);
   return (
-    <VStack className="w-full my-2" space={3}>
+    <VStack className="w-full" space={3}>
       {syncDir && (
         <Banner color="notice" className="flex flex-col gap-1.5">
           <p>Directory is not empty. Do you want to open it instead?</p>

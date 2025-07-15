@@ -26,17 +26,15 @@ interface Props {
 }
 
 const TAB_AUTH = 'auth';
-const TAB_DESCRIPTION = 'description';
 const TAB_HEADERS = 'headers';
 const TAB_GENERAL = 'general';
 
 export type WorkspaceSettingsTab =
   | typeof TAB_AUTH
   | typeof TAB_HEADERS
-  | typeof TAB_GENERAL
-  | typeof TAB_DESCRIPTION;
+  | typeof TAB_GENERAL;
 
-const DEFAULT_TAB: WorkspaceSettingsTab = TAB_DESCRIPTION;
+const DEFAULT_TAB: WorkspaceSettingsTab = TAB_GENERAL;
 
 export function WorkspaceSettingsDialog({ workspaceId, hide, tab }: Props) {
   const workspace = useAtomValue(workspacesAtom).find((w) => w.id === workspaceId);
@@ -89,8 +87,8 @@ export function WorkspaceSettingsDialog({ workspaceId, hide, tab }: Props) {
           stateKey={`headers.${workspace.id}`}
         />
       </TabContent>
-      <TabContent value={TAB_GENERAL} className="pt-3 overflow-y-auto h-full px-4">
-        <VStack space={4} alignItems="start" className="pb-3 h-full">
+      <TabContent value={TAB_GENERAL} className="pt-3 overflow-y-auto h-full px-4 !flex gap-8">
+        <VStack space={4} alignItems="start" className="pb-3 h-full flex-1">
           <PlainInput
             required
             hideLabel
@@ -111,33 +109,35 @@ export function WorkspaceSettingsDialog({ workspaceId, hide, tab }: Props) {
             heightMode="auto"
           />
         </VStack>
-        <VStack space={4} alignItems="start" className="pb-3 h-full">
-          <SyncToFilesystemSetting
-            value={{ filePath: workspaceMeta.settingSyncDir }}
-            onCreateNewWorkspace={hide}
-            onChange={({ filePath }) => patchModel(workspaceMeta, { settingSyncDir: filePath })}
-          />
-          <WorkspaceEncryptionSetting size="xs" />
-
-          <Separator className="my-4" />
-
-          <HStack alignItems="center" justifyContent="between" className="w-full">
-            <Button
-              onClick={async () => {
-                const didDelete = await deleteModelWithConfirm(workspace);
-                if (didDelete) {
-                  hide(); // Only hide if actually deleted workspace
-                  await router.navigate({ to: '/' });
-                }
-              }}
-              color="danger"
-              variant="border"
-              size="xs"
-            >
-              Delete Workspace
-            </Button>
-            <InlineCode className="select-text cursor-text">{workspaceId}</InlineCode>
-          </HStack>
+        <VStack space={4} alignItems="start" justifyContent="between" className="pb-3 h-full flex-1">
+          <div>
+            <SyncToFilesystemSetting
+              value={{ filePath: workspaceMeta.settingSyncDir }}
+              onCreateNewWorkspace={hide}
+              onChange={({ filePath }) => patchModel(workspaceMeta, { settingSyncDir: filePath })}
+            />
+            <WorkspaceEncryptionSetting size="xs" />
+          </div>
+          <div>
+            <Separator className="my-4" />
+            <HStack alignItems="center" justifyContent="between" className="w-full">
+              <Button
+                onClick={async () => {
+                  const didDelete = await deleteModelWithConfirm(workspace);
+                  if (didDelete) {
+                    hide(); // Only hide if actually deleted workspace
+                    await router.navigate({ to: '/' });
+                  }
+                }}
+                color="danger"
+                variant="border"
+                size="xs"
+              >
+                Delete Workspace
+              </Button>
+              <InlineCode className="select-text cursor-text">{workspaceId}</InlineCode>
+            </HStack>
+          </div>
         </VStack>
       </TabContent>
     </Tabs>
