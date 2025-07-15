@@ -40,9 +40,8 @@ function applyDateOp(d: Date, sign: string, amount: number, unit: string): Date 
 function parseOp(op: string): { sign: string; amount: number; unit: string } | null {
   const match = op.match(/^([+-])(\d+)([a-zA-Z]+)$/);
   if (!match) return null;
-  const [, sign, amount, unitRaw] = match;
-  if (!unitRaw) return null;
-  const unit = unitRaw.toLowerCase();
+  const [, sign, amount, unit] = match;
+  if (!unit) return null;
   if (!['y', 'M', 'd', 'h', 'm', 's'].includes(unit)) {
     throw new Error(`Invalid unit: ${unit}`);
   }
