@@ -3,6 +3,8 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "build": "yaakcli build"
+    "build": "yaakcli build",
+    "dev": "yaakcli dev",
+    "lint": "eslint . --ext .ts,.tsx"
   }
 }

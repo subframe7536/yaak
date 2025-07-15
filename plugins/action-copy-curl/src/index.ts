@@ -41,7 +41,7 @@ export async function convertToCurl(request: Partial<HttpRequest>) {
         urlObj.searchParams.append(p.name, p.value);
       });
       finalUrl = urlObj.toString();
-    } catch (e) {
+    } catch {
       // Build manually
       const [base, hash] = finalUrl.split('#');
       const separator = base!.includes('?') ? '&' : '?';
