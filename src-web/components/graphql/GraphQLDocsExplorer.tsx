@@ -67,17 +67,16 @@ export const GraphQLDocsExplorer = memo(function GraphQLDocsExplorer({
     if (showField === null) {
       setActiveItem(null);
     } else {
+      const isRootParentType =
+        showField.parentType === 'Query' ||
+        showField.parentType === 'Mutation' ||
+        showField.parentType === 'Subscription';
       walkTypeGraph(schema, null, (t, from) => {
-        const isRootParentType =
-          showField.parentType === 'Query' ||
-          showField.parentType === 'Mutation' ||
-          showField.parentType === 'Subscription';
         if (
           showField.field === t.name &&
           // For input fields, CodeMirror seems to set parentType to the root type of the field they belong to.
           (isRootParentType || from?.name === showField.parentType)
         ) {
-          console.log('SET FIELD', t, from);
           setActiveItem(toExplorerItem(t, toExplorerItem(from, null)));
           return false;
         } else if (showField.type === t.name && from?.name === showField.parentType) {
