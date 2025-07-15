@@ -69,7 +69,6 @@ export function WorkspaceSettingsDialog({ workspaceId, hide, tab }: Props) {
       className="px-1.5 pb-2"
       addBorders
       tabs={[
-        { value: TAB_DESCRIPTION, label: 'Description' },
         {
           value: TAB_GENERAL,
           label: 'General',
@@ -90,7 +89,7 @@ export function WorkspaceSettingsDialog({ workspaceId, hide, tab }: Props) {
           stateKey={`headers.${workspace.id}`}
         />
       </TabContent>
-      <TabContent value={TAB_DESCRIPTION} className="pt-3 overflow-y-auto h-full px-4">
+      <TabContent value={TAB_GENERAL} className="pt-3 overflow-y-auto h-full px-4">
         <VStack space={4} alignItems="start" className="pb-3 h-full">
           <PlainInput
             required
@@ -112,8 +111,6 @@ export function WorkspaceSettingsDialog({ workspaceId, hide, tab }: Props) {
             heightMode="auto"
           />
         </VStack>
-      </TabContent>
-      <TabContent value={TAB_GENERAL} className="pt-3 overflow-y-auto h-full px-4">
         <VStack space={4} alignItems="start" className="pb-3 h-full">
           <SyncToFilesystemSetting
             value={{ filePath: workspaceMeta.settingSyncDir }}
