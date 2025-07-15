@@ -48,7 +48,8 @@ export function GraphQLEditor({ request, onChange, baseRequest, ...extraEditorPr
 
     return { query: request.body.query ?? '', variables: request.body.variables ?? '' };
   }, [extraEditorProps.forceUpdateKey]);
-  const [isDocOpen, setGraphqlDocStateAtomValue] = useAtom(showGraphQLDocExplorerAtom);
+  const [isDocOpenRecord, setGraphqlDocStateAtomValue] = useAtom(showGraphQLDocExplorerAtom);
+  const isDocOpen = isDocOpenRecord[request.id] !== undefined;
 
   const handleChangeQuery = (query: string) => {
     const newBody = { query, variables: currentBody.variables || undefined };
@@ -132,7 +133,10 @@ export function GraphQLEditor({ request, onChange, baseRequest, ...extraEditorPr
                   label: `${isDocOpen ? 'Hide' : 'Show'} Documentation`,
                   leftSlot: <Icon icon="book_open_text" />,
                   onSelect: () => {
-                    setGraphqlDocStateAtomValue(!isDocOpen);
+                    setGraphqlDocStateAtomValue((v) => ({
+                      ...v,
+                      [request.id]: isDocOpen ? undefined : null,
+                    }));
                   },
                 },
                 {
@@ -178,16 +182,17 @@ export function GraphQLEditor({ request, onChange, baseRequest, ...extraEditorPr
       </div>,
     ],
     [
+      schema,
+      clear,
+      error,
+      isDocOpen,
       isLoading,
       refetch,
-      error,
       autoIntrospectDisabled,
       baseRequest.id,
-      clear,
-      schema,
-      setAutoIntrospectDisabled,
-      isDocOpen,
       setGraphqlDocStateAtomValue,
+      request.id,
+      setAutoIntrospectDisabled,
     ],
   );
 

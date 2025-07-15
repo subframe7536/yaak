@@ -37,9 +37,11 @@ import {
 import { tags as t } from '@lezer/highlight';
 import type { EnvironmentVariable } from '@yaakapp-internal/models';
 import { graphql } from 'cm6-graphql';
+import { activeRequestIdAtom } from '../../../hooks/useActiveRequestId';
+import { jotaiStore } from '../../../lib/jotai';
 import { renderMarkdown } from '../../../lib/markdown';
 import { pluralizeCount } from '../../../lib/pluralize';
-import { showInGraphQLDocsExplorer } from '../../graphql/useGraphQLDocsExplorer';
+import { showGraphQLDocExplorerAtom } from '../../graphql/graphqlAtoms';
 import type { EditorProps } from './Editor';
 import { pairs } from './pairs/extension';
 import { text } from './text/extension';
@@ -135,8 +137,13 @@ export function getLanguageExtension({
           return span;
         },
         onShowInDocs(field, type, parentType) {
-          console.log("SHOW IN DOCS", field);
-          showInGraphQLDocsExplorer(field, type, parentType).catch(console.error);
+          const activeRequestId = jotaiStore.get(activeRequestIdAtom);
+          if (activeRequestId == null) return;
+          console.log('SHOW IN DOCS', field);
+          jotaiStore.set(showGraphQLDocExplorerAtom, (v) => ({
+            ...v,
+            [activeRequestId]: { field, type, parentType },
+          }));
         },
       }),
       extraExtensions,

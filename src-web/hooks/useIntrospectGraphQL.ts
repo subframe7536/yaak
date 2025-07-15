@@ -3,7 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import type { GraphQlIntrospection, HttpRequest } from '@yaakapp-internal/models';
 import type { GraphQLSchema } from 'graphql';
 import { buildClientSchema, getIntrospectionQuery } from 'graphql';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { minPromiseMillis } from '../lib/minPromiseMillis';
 import { getResponseBodyText } from '../lib/responseBody';
 import { sendEphemeralRequest } from '../lib/sendEphemeralRequest';
@@ -28,13 +28,7 @@ export function useIntrospectGraphQL(
   const [schema, setSchema] = useState<GraphQLSchema | null>(null);
   const queryClient = useQueryClient();
 
-  const introspection = useQuery({
-    queryKey: ['introspection', baseRequest.id],
-    queryFn: async () =>
-      invoke<GraphQlIntrospection | null>('plugin:yaak-models|get_graphql_introspection', {
-        requestId: baseRequest.id,
-      }),
-  });
+  const introspection = useIntrospectionResult(baseRequest);
 
   const upsertIntrospection = useCallback(
     async (content: string | null) => {
@@ -126,7 +120,22 @@ export function useIntrospectGraphQL(
   return { schema, isLoading, error, refetch, clear };
 }
 
+function useIntrospectionResult(request: HttpRequest) {
+  return useQuery({
+    queryKey: ['introspection', request.id],
+    queryFn: async () =>
+      invoke<GraphQlIntrospection | null>('plugin:yaak-models|get_graphql_introspection', {
+        requestId: request.id,
+      }),
+  });
+}
+
 export function useCurrentGraphQLSchema(request: HttpRequest) {
-  const { schema } = useIntrospectGraphQL(request, { disabled: true });
-  return schema;
+  const result = useIntrospectionResult(request);
+  return useMemo(() => {
+    if (result.data == null) return null;
+    if (result.data.content == null || result.data.content === '') return null;
+    const schema = buildClientSchema(JSON.parse(result.data.content).data);
+    return schema;
+  }, [result.data]);
 }

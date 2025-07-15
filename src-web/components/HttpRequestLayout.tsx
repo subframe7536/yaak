@@ -38,7 +38,11 @@ export function HttpRequestLayout({ activeRequest, style }: Props) {
     />
   );
 
-  if (activeRequest.bodyType === 'graphql' && showGraphQLDocExplorer && graphQLSchema != null) {
+  if (
+    activeRequest.bodyType === 'graphql' &&
+    showGraphQLDocExplorer[activeRequest.id] !== undefined &&
+    graphQLSchema != null
+  ) {
     return (
       <SplitLayout
         name="graphql_layout"
@@ -46,7 +50,7 @@ export function HttpRequestLayout({ activeRequest, style }: Props) {
         firstSlot={requestResponseSplit}
         secondSlot={({ style, orientation }) => (
           <GraphQLDocsExplorer
-            key={activeRequest.id}
+            requestId={activeRequest.id}
             schema={graphQLSchema}
             className={classNames(orientation == 'horizontal' && '!ml-0')}
             style={style}

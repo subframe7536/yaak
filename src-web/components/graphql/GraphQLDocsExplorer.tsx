@@ -21,24 +21,26 @@ import {
   isScalarType,
   isUnionType,
 } from 'graphql';
+import { useAtomValue } from 'jotai';
 import type { CSSProperties, HTMLAttributes, KeyboardEvent, ReactNode } from 'react';
-import { Fragment, memo, useCallback, useMemo, useRef, useState } from 'react';
+import { Fragment, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useClickOutside } from '../../hooks/useClickOutside';
 import { useContainerSize } from '../../hooks/useContainerQuery';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { useStateWithDeps } from '../../hooks/useStateWithDeps';
 import { jotaiStore } from '../../lib/jotai';
+import { Banner } from '../core/Banner';
 import { CountBadge } from '../core/CountBadge';
 import { Icon } from '../core/Icon';
 import { IconButton } from '../core/IconButton';
 import { PlainInput } from '../core/PlainInput';
 import { Markdown } from '../Markdown';
 import { showGraphQLDocExplorerAtom } from './graphqlAtoms';
-import { useGraphQLDocsExplorerEvent } from './useGraphQLDocsExplorer';
 
 interface Props {
   style?: CSSProperties;
   schema: GraphQLSchema;
+  requestId: string;
   className?: string;
 }
 
@@ -51,6 +53,7 @@ type ExplorerItem =
 export const GraphQLDocsExplorer = memo(function GraphQLDocsExplorer({
   style,
   schema,
+  requestId,
   className,
 }: Props) {
   const [activeItem, setActiveItem] = useState<ExplorerItem>(null);
@@ -58,17 +61,34 @@ export const GraphQLDocsExplorer = memo(function GraphQLDocsExplorer({
   const qryType = schema.getQueryType();
   const mutType = schema.getMutationType();
   const subType = schema.getSubscriptionType();
+  const showField = useAtomValue(showGraphQLDocExplorerAtom)[requestId] ?? null;
 
-  useGraphQLDocsExplorerEvent('gql_docs_explorer.show_in_docs', ({ field }) => {
-    walkTypeGraph(schema, null, (t) => {
-      if (t.name === field) {
-        setActiveItem(toExplorerItem(t, null));
-        return false;
-      } else {
-        return true;
-      }
-    });
-  });
+  useEffect(() => {
+    if (showField === null) {
+      setActiveItem(null);
+    } else {
+      walkTypeGraph(schema, null, (t, from) => {
+        const isRootParentType =
+          showField.parentType === 'Query' ||
+          showField.parentType === 'Mutation' ||
+          showField.parentType === 'Subscription';
+        if (
+          showField.field === t.name &&
+          // For input fields, CodeMirror seems to set parentType to the root type of the field they belong to.
+          (isRootParentType || from?.name === showField.parentType)
+        ) {
+          console.log('SET FIELD', t, from);
+          setActiveItem(toExplorerItem(t, toExplorerItem(from, null)));
+          return false;
+        } else if (showField.type === t.name && from?.name === showField.parentType) {
+          setActiveItem(toExplorerItem(t, toExplorerItem(from, null)));
+          return false;
+        } else {
+          return true;
+        }
+      });
+    }
+  }, [schema, showField]);
 
   const qryItem: ExplorerItem = qryType ? { kind: 'type', type: qryType, from: null } : null;
   const mutItem: ExplorerItem = mutType ? { kind: 'type', type: mutType, from: null } : null;
@@ -83,6 +103,9 @@ export const GraphQLDocsExplorer = memo(function GraphQLDocsExplorer({
         <GraphQLExplorerHeader
           containerHeight={containerSize.height}
           item={activeItem}
+          onClose={() => {
+            jotaiStore.set(showGraphQLDocExplorerAtom, (v) => ({ ...v, [requestId]: undefined }));
+          }}
           setItem={setActiveItem}
           schema={schema}
         />
@@ -140,11 +163,13 @@ function GraphQLExplorerHeader({
   item,
   setItem,
   schema,
+  onClose,
   containerHeight,
 }: {
   item: ExplorerItem;
   setItem: (t: ExplorerItem) => void;
   schema: GraphQLSchema;
+  onClose: () => void;
   containerHeight: number;
 }) {
   const findIt = (t: ExplorerItem): ExplorerItem[] => {
@@ -186,14 +211,7 @@ function GraphQLExplorerHeader({
         />
       </div>
       <div className="ml-auto flex gap-1 [&>*]:text-text-subtle">
-        <IconButton
-          icon="x"
-          size="sm"
-          title="Close documenation explorer"
-          onClick={() => {
-            jotaiStore.set(showGraphQLDocExplorerAtom, false);
-          }}
-        />
+        <IconButton icon="x" size="sm" title="Close documenation explorer" onClick={onClose} />
       </div>
     </nav>
   );
@@ -219,6 +237,11 @@ function GqlTypeInfo({
         <GqlTypeLabel item={item} />
       </Heading>
       <DocMarkdown>{description || 'No description'}</DocMarkdown>
+      {'deprecationReason' in item.type && item.type.deprecationReason && (
+        <Banner color="notice">
+          <DocMarkdown>{item.type.deprecationReason}</DocMarkdown>
+        </Banner>
+      )}
     </div>
   );
 
@@ -292,6 +315,28 @@ function GqlTypeInfo({
             <DocMarkdown>{v.description ?? null}</DocMarkdown>
           </div>
         ))}
+      </div>
+    );
+  } else if (item.kind === 'input_field') {
+    return (
+      <div className="flex flex-col gap-3">
+        {heading}
+
+        {item.type.defaultValue !== undefined && (
+          <div>
+            <Subheading>Default Value</Subheading>
+            <div className="font-mono text-editor">{JSON.stringify(item.type.defaultValue)}</div>
+          </div>
+        )}
+
+        <div>
+          <Subheading>Type</Subheading>
+          <GqlTypeRow
+            className="mt-4"
+            item={{ kind: 'type', type: item.type.type, from: item }}
+            setItem={setItem}
+          />
+        </div>
       </div>
     );
   } else if (item.kind === 'field') {
@@ -392,7 +437,7 @@ function GqlTypeInfo({
     );
   }
 
-  console.log('Unknown GraphQL Type', item.type, isNonNullType(item.type));
+  console.log('Unknown GraphQL Type', item);
   return <div>Unknown GraphQL type</div>;
 }
 
@@ -665,8 +710,7 @@ function GqlSchemaSearch({
       } else {
         results.push({ name: type.name, type, score: match.score, from, depth });
       }
-
-      return true; // Continue searching
+      return true;
     });
     results.sort((a, b) => {
       if (value == '') {
@@ -922,19 +966,25 @@ function walkTypeGraph(
   }
 }
 
-function toExplorerItem(t: any, from: ExplorerItem | null): ExplorerItem {
+function toExplorerItem(t: any, from: ExplorerItem | null): ExplorerItem | null {
   if (t == null) return null;
 
-  // GraphQLField-like: has `args` and `type`
-  if (t && typeof t === 'object' && Array.isArray(t.args) && t.type) {
+  // GraphQLField-like: has `args` (array) and `type`
+  if (typeof t === 'object' && Array.isArray(t.args) && t.type) {
     return { kind: 'field', type: t, from };
   }
 
-  // GraphQLInputField-like: has `type` and maybe `defaultValue`, but no `args`
-  if (t && typeof t === 'object' && t.type && !('args' in t)) {
+  // GraphQLInputField-like: has `type`, no `args`, maybe `defaultValue`, and no `resolve`
+  if (
+    typeof t === 'object' &&
+    t.type &&
+    !('args' in t) &&
+    !('resolve' in t) &&
+    ('defaultValue' in t || 'description' in t)
+  ) {
     return { kind: 'input_field', type: t, from };
   }
 
-  // Otherwise, assume GraphQLType (object, scalar, enum, etc.)
+  // Fallback: treat as GraphQLNamedType (object, scalar, enum, etc.)
   return { kind: 'type', type: t, from };
 }
