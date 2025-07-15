@@ -4,11 +4,11 @@ export function convertSyntax(variable: string): string {
   return variable.replaceAll(/{{\s*(_\.)?([^}]+)\s*}}/g, '${[$2]}');
 }
 
-export function isJSObject(obj: any) {
+export function isJSObject(obj: unknown) {
   return Object.prototype.toString.call(obj) === '[object Object]';
 }
 
-export function isJSString(obj: any) {
+export function isJSString(obj: unknown) {
   return Object.prototype.toString.call(obj) === '[object String]';
 }
 

@@ -14,7 +14,7 @@ export const openSettings = createFastMutation<void, string, SettingsTab | null>
     const location = router.buildLocation({
       to: '/workspaces/$workspaceId/settings',
       params: { workspaceId },
-      search: { tab },
+      search: { tab: tab ?? undefined },
     });
 
     await invokeCmd('cmd_new_child_window', {

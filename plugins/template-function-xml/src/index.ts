@@ -19,7 +19,8 @@ export const plugin: PluginDefinition = {
       ],
       async onRender(_ctx: Context, args: CallTemplateFunctionArgs): Promise<string | null> {
         try {
-          const doc = new DOMParser().parseFromString(String(args.values.input), 'text/xml');
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const doc: any = new DOMParser().parseFromString(String(args.values.input), 'text/xml');
           const result = xpath.select(String(args.values.query), doc, false);
           if (Array.isArray(result)) {
             return String(result.map((c) => String(c.firstChild))[0] ?? '');

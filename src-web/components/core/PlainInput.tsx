@@ -147,8 +147,8 @@ export const PlainInput = forwardRef<{ focus: () => void }, PlainInputProps>(fun
         <HStack
           className={classNames(
             'w-full min-w-0',
-            leftSlot && 'pl-0.5 -ml-2',
-            rightSlot && 'pr-0.5 -mr-2',
+            leftSlot ? 'pl-0.5 -ml-2' : null,
+            rightSlot ? 'pr-0.5 -mr-2' : null,
           )}
         >
           <input

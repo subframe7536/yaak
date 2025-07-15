@@ -83,10 +83,12 @@ export function convertPostman(contents: string): ImportPluginResponse | undefin
   };
   exportResources.environments.push(environment);
 
+  let sortPriorityIndex = 0;
   const importItem = (v: Record<string, unknown>, folderId: string | null = null) => {
     if (typeof v.name === 'string' && Array.isArray(v.item)) {
       const folder: ExportResources['folders'][0] = {
         model: 'folder',
+        sortPriority: sortPriorityIndex++,
         workspaceId: workspace.id,
         id: generateId('folder'),
         name: v.name,
@@ -133,7 +135,7 @@ export function convertPostman(contents: string): ImportPluginResponse | undefin
         workspaceId: workspace.id,
         folderId,
         name: v.name,
-        description: v.description ? String(v.description) : undefined,
+        description: r.description ? String(r.description) : undefined,
         method: typeof r.method === 'string' ? r.method : 'GET',
         url,
         urlParameters,
@@ -141,6 +143,7 @@ export function convertPostman(contents: string): ImportPluginResponse | undefin
         bodyType: bodyPatch.bodyType,
         authentication: authPatch.authentication,
         authenticationType: authPatch.authenticationType,
+        sortPriority: sortPriorityIndex++,
         headers,
       };
       exportResources.httpRequests.push(request);

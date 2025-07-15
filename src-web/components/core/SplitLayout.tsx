@@ -64,7 +64,7 @@ export function SplitLayout({
   }
 
   const size = useContainerSize(containerRef);
-  const verticalBasedOnSize = size.width < STACK_VERTICAL_WIDTH;
+  const verticalBasedOnSize = size.width !== 0 && size.width < STACK_VERTICAL_WIDTH;
   const vertical = layout !== 'horizontal' && (layout === 'vertical' || verticalBasedOnSize);
 
   const styles = useMemo<CSSProperties>(() => {
@@ -142,31 +142,25 @@ export function SplitLayout({
     [width, height, vertical, minHeightPx, setHeight, minWidthPx, setWidth],
   );
 
-  const containerQueryReady = size.width > 0 || size.height > 0;
-
   return (
     <div
       ref={containerRef}
       style={styles}
       className={classNames(className, 'grid w-full h-full overflow-hidden')}
     >
-      {containerQueryReady && (
+      {firstSlot({ style: areaL, orientation: vertical ? 'vertical' : 'horizontal' })}
+      {secondSlot && (
         <>
-          {firstSlot({ style: areaL, orientation: vertical ? 'vertical' : 'horizontal' })}
-          {secondSlot && (
-            <>
-              <ResizeHandle
-                style={areaD}
-                isResizing={isResizing}
-                className={classNames(vertical ? '-translate-y-1.5' : '-translate-x-1.5')}
-                onResizeStart={handleResizeStart}
-                onReset={handleReset}
-                side={vertical ? 'top' : 'left'}
-                justify="center"
-              />
-              {secondSlot({ style: areaR, orientation: vertical ? 'vertical' : 'horizontal' })}
-            </>
-          )}
+          <ResizeHandle
+            style={areaD}
+            isResizing={isResizing}
+            className={classNames(vertical ? '-translate-y-1.5' : '-translate-x-1.5')}
+            onResizeStart={handleResizeStart}
+            onReset={handleReset}
+            side={vertical ? 'top' : 'left'}
+            justify="center"
+          />
+          {secondSlot({ style: areaR, orientation: vertical ? 'vertical' : 'horizontal' })}
         </>
       )}
     </div>

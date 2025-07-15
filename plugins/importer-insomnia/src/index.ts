@@ -1,4 +1,4 @@
-import { Context, PluginDefinition } from '@yaakapp/api';
+import type { Context, PluginDefinition } from '@yaakapp/api';
 import YAML from 'yaml';
 import { deleteUndefinedAttrs, isJSObject } from './common';
 import { convertInsomniaV4 } from './v4';
@@ -15,16 +15,18 @@ export const plugin: PluginDefinition = {
 };
 
 export function convertInsomnia(contents: string) {
-  let parsed: any;
+  let parsed: unknown;
 
   try {
     parsed = JSON.parse(contents);
-  } catch (e) {
+  } catch {
+    // Fall through
   }
 
   try {
     parsed = parsed ?? YAML.parse(contents);
-  } catch (e) {
+  } catch {
+    // Fall through
   }
 
   if (!isJSObject(parsed)) return null;

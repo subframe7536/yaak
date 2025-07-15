@@ -1,4 +1,4 @@
-import { CallTemplateFunctionArgs, Context, PluginDefinition } from '@yaakapp/api';
+import type { CallTemplateFunctionArgs, Context, PluginDefinition } from '@yaakapp/api';
 import { createHash, createHmac } from 'node:crypto';
 
 const algorithms = ['md5', 'sha1', 'sha256', 'sha512'] as const;

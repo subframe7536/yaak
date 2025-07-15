@@ -1,11 +1,11 @@
-import { Environment, PluginDefinition } from '@yaakapp/api';
+import type { Environment, PluginDefinition } from '@yaakapp/api';
 
 export const plugin: PluginDefinition = {
   importer: {
     name: 'Yaak',
     description: 'Yaak official format',
     onImport(_ctx, args) {
-      return migrateImport(args.text) as any;
+      return migrateImport(args.text);
     },
   },
 };
@@ -14,7 +14,7 @@ export function migrateImport(contents: string) {
   let parsed;
   try {
     parsed = JSON.parse(contents);
-  } catch (err) {
+  } catch {
     return undefined;
   }
 
@@ -69,6 +69,6 @@ export function migrateImport(contents: string) {
   return { resources: parsed.resources }; // Should already be in the correct format
 }
 
-function isJSObject(obj: any) {
+function isJSObject(obj: unknown) {
   return Object.prototype.toString.call(obj) === '[object Object]';
 }

@@ -8,94 +8,41 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-// Import Routes
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as WorkspacesIndexRouteImport } from './routes/workspaces/index'
+import { Route as WorkspacesWorkspaceIdIndexRouteImport } from './routes/workspaces/$workspaceId/index'
+import { Route as WorkspacesWorkspaceIdSettingsRouteImport } from './routes/workspaces/$workspaceId/settings'
+import { Route as WorkspacesWorkspaceIdRequestsRequestIdRouteImport } from './routes/workspaces/$workspaceId/requests/$requestId'
 
-import { Route as rootRoute } from './routes/__root'
-import { Route as IndexImport } from './routes/index'
-import { Route as WorkspacesIndexImport } from './routes/workspaces/index'
-import { Route as WorkspacesWorkspaceIdIndexImport } from './routes/workspaces/$workspaceId/index'
-import { Route as WorkspacesWorkspaceIdSettingsImport } from './routes/workspaces/$workspaceId/settings'
-import { Route as WorkspacesWorkspaceIdRequestsRequestIdImport } from './routes/workspaces/$workspaceId/requests/$requestId'
-
-// Create/Update Routes
-
-const IndexRoute = IndexImport.update({
+const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const WorkspacesIndexRoute = WorkspacesIndexImport.update({
+const WorkspacesIndexRoute = WorkspacesIndexRouteImport.update({
   id: '/workspaces/',
   path: '/workspaces/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const WorkspacesWorkspaceIdIndexRoute = WorkspacesWorkspaceIdIndexImport.update(
-  {
+const WorkspacesWorkspaceIdIndexRoute =
+  WorkspacesWorkspaceIdIndexRouteImport.update({
     id: '/workspaces/$workspaceId/',
     path: '/workspaces/$workspaceId/',
-    getParentRoute: () => rootRoute,
-  } as any,
-)
-
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const WorkspacesWorkspaceIdSettingsRoute =
-  WorkspacesWorkspaceIdSettingsImport.update({
+  WorkspacesWorkspaceIdSettingsRouteImport.update({
     id: '/workspaces/$workspaceId/settings',
     path: '/workspaces/$workspaceId/settings',
-    getParentRoute: () => rootRoute,
+    getParentRoute: () => rootRouteImport,
   } as any)
-
 const WorkspacesWorkspaceIdRequestsRequestIdRoute =
-  WorkspacesWorkspaceIdRequestsRequestIdImport.update({
+  WorkspacesWorkspaceIdRequestsRequestIdRouteImport.update({
     id: '/workspaces/$workspaceId/requests/$requestId',
     path: '/workspaces/$workspaceId/requests/$requestId',
-    getParentRoute: () => rootRoute,
+    getParentRoute: () => rootRouteImport,
   } as any)
-
-// Populate the FileRoutesByPath interface
-
-declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/workspaces/': {
-      id: '/workspaces/'
-      path: '/workspaces'
-      fullPath: '/workspaces'
-      preLoaderRoute: typeof WorkspacesIndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/workspaces/$workspaceId/settings': {
-      id: '/workspaces/$workspaceId/settings'
-      path: '/workspaces/$workspaceId/settings'
-      fullPath: '/workspaces/$workspaceId/settings'
-      preLoaderRoute: typeof WorkspacesWorkspaceIdSettingsImport
-      parentRoute: typeof rootRoute
-    }
-    '/workspaces/$workspaceId/': {
-      id: '/workspaces/$workspaceId/'
-      path: '/workspaces/$workspaceId'
-      fullPath: '/workspaces/$workspaceId'
-      preLoaderRoute: typeof WorkspacesWorkspaceIdIndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/workspaces/$workspaceId/requests/$requestId': {
-      id: '/workspaces/$workspaceId/requests/$requestId'
-      path: '/workspaces/$workspaceId/requests/$requestId'
-      fullPath: '/workspaces/$workspaceId/requests/$requestId'
-      preLoaderRoute: typeof WorkspacesWorkspaceIdRequestsRequestIdImport
-      parentRoute: typeof rootRoute
-    }
-  }
-}
-
-// Create and export the route tree
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -104,7 +51,6 @@ export interface FileRoutesByFullPath {
   '/workspaces/$workspaceId': typeof WorkspacesWorkspaceIdIndexRoute
   '/workspaces/$workspaceId/requests/$requestId': typeof WorkspacesWorkspaceIdRequestsRequestIdRoute
 }
-
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/workspaces': typeof WorkspacesIndexRoute
@@ -112,16 +58,14 @@ export interface FileRoutesByTo {
   '/workspaces/$workspaceId': typeof WorkspacesWorkspaceIdIndexRoute
   '/workspaces/$workspaceId/requests/$requestId': typeof WorkspacesWorkspaceIdRequestsRequestIdRoute
 }
-
 export interface FileRoutesById {
-  __root__: typeof rootRoute
+  __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/workspaces/': typeof WorkspacesIndexRoute
   '/workspaces/$workspaceId/settings': typeof WorkspacesWorkspaceIdSettingsRoute
   '/workspaces/$workspaceId/': typeof WorkspacesWorkspaceIdIndexRoute
   '/workspaces/$workspaceId/requests/$requestId': typeof WorkspacesWorkspaceIdRequestsRequestIdRoute
 }
-
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
@@ -146,13 +90,52 @@ export interface FileRouteTypes {
     | '/workspaces/$workspaceId/requests/$requestId'
   fileRoutesById: FileRoutesById
 }
-
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   WorkspacesIndexRoute: typeof WorkspacesIndexRoute
   WorkspacesWorkspaceIdSettingsRoute: typeof WorkspacesWorkspaceIdSettingsRoute
   WorkspacesWorkspaceIdIndexRoute: typeof WorkspacesWorkspaceIdIndexRoute
   WorkspacesWorkspaceIdRequestsRequestIdRoute: typeof WorkspacesWorkspaceIdRequestsRequestIdRoute
+}
+
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/workspaces/': {
+      id: '/workspaces/'
+      path: '/workspaces'
+      fullPath: '/workspaces'
+      preLoaderRoute: typeof WorkspacesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/workspaces/$workspaceId/': {
+      id: '/workspaces/$workspaceId/'
+      path: '/workspaces/$workspaceId'
+      fullPath: '/workspaces/$workspaceId'
+      preLoaderRoute: typeof WorkspacesWorkspaceIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/workspaces/$workspaceId/settings': {
+      id: '/workspaces/$workspaceId/settings'
+      path: '/workspaces/$workspaceId/settings'
+      fullPath: '/workspaces/$workspaceId/settings'
+      preLoaderRoute: typeof WorkspacesWorkspaceIdSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/workspaces/$workspaceId/requests/$requestId': {
+      id: '/workspaces/$workspaceId/requests/$requestId'
+      path: '/workspaces/$workspaceId/requests/$requestId'
+      fullPath: '/workspaces/$workspaceId/requests/$requestId'
+      preLoaderRoute: typeof WorkspacesWorkspaceIdRequestsRequestIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+  }
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -163,39 +146,6 @@ const rootRouteChildren: RootRouteChildren = {
   WorkspacesWorkspaceIdRequestsRequestIdRoute:
     WorkspacesWorkspaceIdRequestsRequestIdRoute,
 }
-
-export const routeTree = rootRoute
+export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-/* ROUTE_MANIFEST_START
-{
-  "routes": {
-    "__root__": {
-      "filePath": "__root.tsx",
-      "children": [
-        "/",
-        "/workspaces/",
-        "/workspaces/$workspaceId/settings",
-        "/workspaces/$workspaceId/",
-        "/workspaces/$workspaceId/requests/$requestId"
-      ]
-    },
-    "/": {
-      "filePath": "index.tsx"
-    },
-    "/workspaces/": {
-      "filePath": "workspaces/index.tsx"
-    },
-    "/workspaces/$workspaceId/settings": {
-      "filePath": "workspaces/$workspaceId/settings.tsx"
-    },
-    "/workspaces/$workspaceId/": {
-      "filePath": "workspaces/$workspaceId/index.tsx"
-    },
-    "/workspaces/$workspaceId/requests/$requestId": {
-      "filePath": "workspaces/$workspaceId/requests/$requestId.tsx"
-    }
-  }
-}
-ROUTE_MANIFEST_END */

@@ -263,8 +263,8 @@ const BaseInput = forwardRef<EditorView, InputProps>(function InputBase(
             inputWrapperClassName,
             'w-full min-w-0 px-2',
             fullHeight && 'h-full',
-            leftSlot && 'pl-0.5 -ml-2',
-            rightSlot && 'pr-0.5 -mr-2',
+            leftSlot ? 'pl-0.5 -ml-2' : null,
+            rightSlot ? 'pr-0.5 -mr-2' : null,
           )}
         >
           <Editor

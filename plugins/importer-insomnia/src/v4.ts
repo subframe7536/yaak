@@ -1,7 +1,8 @@
-import { PartialImportResources } from '@yaakapp/api';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import type { PartialImportResources } from '@yaakapp/api';
 import { convertId, convertSyntax, isJSObject } from './common';
 
-export function convertInsomniaV4(parsed: Record<string, any>) {
+export function convertInsomniaV4(parsed: any) {
   if (!Array.isArray(parsed.resources)) return null;
 
   const resources: PartialImportResources = {
@@ -14,7 +15,9 @@ export function convertInsomniaV4(parsed: Record<string, any>) {
   };
 
   // Import workspaces
-  const workspacesToImport = parsed.resources.filter(r => isJSObject(r) && r._type === 'workspace');
+  const workspacesToImport = parsed.resources.filter(
+    (r: any) => isJSObject(r) && r._type === 'workspace',
+  );
   for (const w of workspacesToImport) {
     resources.workspaces.push({
       id: convertId(w._id),
@@ -40,13 +43,9 @@ export function convertInsomniaV4(parsed: Record<string, any>) {
           resources.folders.push(importFolder(child, w._id));
           nextFolder(child._id);
         } else if (child._type === 'request') {
-          resources.httpRequests.push(
-            importHttpRequest(child, w._id),
-          );
+          resources.httpRequests.push(importHttpRequest(child, w._id));
         } else if (child._type === 'grpc_request') {
-          resources.grpcRequests.push(
-            importGrpcRequest(child, w._id),
-          );
+          resources.grpcRequests.push(importGrpcRequest(child, w._id));
         }
       }
     };
@@ -64,10 +63,7 @@ export function convertInsomniaV4(parsed: Record<string, any>) {
   return { resources };
 }
 
-function importHttpRequest(
-  r: any,
-  workspaceId: string,
-): PartialImportResources['httpRequests'][0] {
+function importHttpRequest(r: any, workspaceId: string): PartialImportResources['httpRequests'][0] {
   let bodyType: string | null = null;
   let body = {};
   if (r.body.mimeType === 'application/octet-stream') {
@@ -141,10 +137,7 @@ function importHttpRequest(
   };
 }
 
-function importGrpcRequest(
-  r: any,
-  workspaceId: string,
-): PartialImportResources['grpcRequests'][0] {
+function importGrpcRequest(r: any, workspaceId: string): PartialImportResources['grpcRequests'][0] {
   const parts = r.protoMethodName.split('/').filter((p: any) => p !== '');
   const service = parts[0] ?? null;
   const method = parts[1] ?? null;
@@ -186,13 +179,18 @@ function importFolder(f: any, workspaceId: string): PartialImportResources['fold
   };
 }
 
-function importEnvironment(e: any, workspaceId: string, isParent?: boolean): PartialImportResources['environments'][0] {
+function importEnvironment(
+  e: any,
+  workspaceId: string,
+  isParent?: boolean,
+): PartialImportResources['environments'][0] {
   return {
     id: convertId(e._id),
     createdAt: e.created ? new Date(e.created).toISOString().replace('Z', '') : undefined,
     updatedAt: e.modified ? new Date(e.modified).toISOString().replace('Z', '') : undefined,
     workspaceId: convertId(workspaceId),
-    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
     sortPriority: e.metaSortKey, // Will be added to Yaak later
     base: isParent ?? e.parentId === workspaceId,
     model: 'environment',

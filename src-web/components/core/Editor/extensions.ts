@@ -36,15 +36,19 @@ import {
 import { tags as t } from '@lezer/highlight';
 import type { EnvironmentVariable } from '@yaakapp-internal/models';
 import { graphql } from 'cm6-graphql';
+import { activeRequestIdAtom } from '../../../hooks/useActiveRequestId';
+import { jotaiStore } from '../../../lib/jotai';
+import { renderMarkdown } from '../../../lib/markdown';
 import { pluralizeCount } from '../../../lib/pluralize';
+import { showGraphQLDocExplorerAtom } from '../../graphql/graphqlAtoms';
 import type { EditorProps } from './Editor';
+import { pairs } from './pairs/extension';
 import { text } from './text/extension';
 import type { TwigCompletionOption } from './twig/completion';
 import { twig } from './twig/extension';
 import { pathParametersPlugin } from './twig/pathParameters';
 import { jsonc } from '@shopify/lang-jsonc';
 import { xml } from '@codemirror/lang-xml';
-import { pairs } from './pairs/extension';
 import { url } from './url/extension';
 
 export const syntaxHighlightStyle = HighlightStyle.define([
@@ -124,7 +128,27 @@ export function getLanguageExtension({
 
   // GraphQL is a special exception
   if (language === 'graphql') {
-    return [graphql(), extraExtensions];
+    return [
+      graphql(undefined, {
+        async onCompletionInfoRender(gqlCompletionItem): Promise<Node | null> {
+          if (!gqlCompletionItem.documentation) return null;
+          const innerHTML = await renderMarkdown(gqlCompletionItem.documentation);
+          const span = document.createElement('span');
+          span.innerHTML = innerHTML;
+          return span;
+        },
+        onShowInDocs(field, type, parentType) {
+          const activeRequestId = jotaiStore.get(activeRequestIdAtom);
+          if (activeRequestId == null) return;
+          console.log('SHOW IN DOCS', field);
+          jotaiStore.set(showGraphQLDocExplorerAtom, (v) => ({
+            ...v,
+            [activeRequestId]: { field, type, parentType },
+          }));
+        },
+      }),
+      extraExtensions,
+    ];
   }
 
   const base_ = syntaxExtensions[language ?? 'text'] ?? text();
@@ -237,7 +261,6 @@ export const multiLineExtensions = ({ hideGutter }: { hideGutter?: boolean }) =>
       }
     },
   }),
-  EditorState.allowMultipleSelections.of(true),
   indentOnInput(),
   rectangularSelection(),
   crosshairCursor(),
