@@ -117,7 +117,7 @@ pub fn git_commit(dir: &Path, message: &str) -> Result<()> {
     let tree = repo.find_tree(tree_oid)?;
 
     // Make the signature
-    let config = repo.config()?.snapshot()?;
+    let config = repo.config().or_else(|_| git2::Config::open_default())?.snapshot()?;
     let name = config.get_str("user.name").unwrap_or("Unknown");
     let email = config.get_str("user.email")?;
     let sig = git2::Signature::now(name, email)?;
