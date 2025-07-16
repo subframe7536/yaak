@@ -602,8 +602,8 @@ export const plugin: PluginDefinition = {
       base: {
         surface: 'hsl(60, 10%, 98%)',
         text: '#475569',
-        primary: 'hsl(100, 36%, 40%)',
-        secondary: 'hsl(210, 28%, 52%)',
+        primary: 'hsl(31, 70%, 40%)',
+        secondary: 'hsl(100, 36%, 40%)',
         info: 'hsl(193, 94%, 34%)',
         success: 'hsl(95, 75%, 32%)',
         notice: 'hsl(164, 75%, 28%)',
