@@ -87,7 +87,7 @@ export function WorkspaceSettingsDialog({ workspaceId, hide, tab }: Props) {
           stateKey={`headers.${workspace.id}`}
         />
       </TabContent>
-      <TabContent value={TAB_GENERAL} className="pt-3 overflow-y-auto h-full px-2 gap-8 !data-[state=active]:flex">
+      <TabContent value={TAB_GENERAL} className="pt-3 overflow-y-auto h-full px-2 gap-8 data-[state=active]:!flex">
         <VStack space={4} alignItems="start" className="pb-3 h-full flex-1">
           <PlainInput
             required
