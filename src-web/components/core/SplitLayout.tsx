@@ -75,11 +75,11 @@ export function SplitLayout({
             ' ${areaL.gridArea}' minmax(0,${1 - height}fr)
             ' ${areaD.gridArea}' 0
             ' ${areaR.gridArea}' minmax(${minHeightPx}px,${height}fr)
-            / 1fr            
+            / 1fr
           `
         : `
             ' ${areaL.gridArea} ${areaD.gridArea} ${areaR.gridArea}' minmax(0,1fr)
-            / ${1 - width}fr    0                 ${width}fr           
+            / ${1 - width}fr    0                 ${width}fr
           `,
     };
   }, [style, vertical, height, minHeightPx, width]);
@@ -154,7 +154,7 @@ export function SplitLayout({
           <ResizeHandle
             style={areaD}
             isResizing={isResizing}
-            className={classNames(vertical ? '-translate-y-1.5' : '-translate-x-1.5')}
+            className={classNames(vertical ? '-translate-y-1' : '-translate-x-1')}
             onResizeStart={handleResizeStart}
             onReset={handleReset}
             side={vertical ? 'top' : 'left'}
