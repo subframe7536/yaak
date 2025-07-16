@@ -406,7 +406,7 @@ function FileArg({
       disabled={arg.disabled}
       help={arg.description}
       onChange={({ filePath }) => onChange(filePath)}
-      filePath={filePath === '__NULL__' ? null : filePath}
+      filePath={filePath === DYNAMIC_FORM_NULL_ARG ? null : filePath}
       directory={!!arg.directory}
     />
   );
@@ -430,7 +430,7 @@ function HttpRequestArg({
       name={arg.name}
       onChange={onChange}
       help={arg.description}
-      value={value}
+      value={value === DYNAMIC_FORM_NULL_ARG ? activeRequest?.id ?? value : value}
       disabled={arg.disabled}
       options={[
         ...httpRequests.map((r) => {
