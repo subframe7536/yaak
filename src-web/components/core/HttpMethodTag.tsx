@@ -53,7 +53,6 @@ export function HttpMethodTag({ request, className, short }: Props) {
         settings.coloredMethods && method === 'POST' && 'text-success',
         settings.coloredMethods && method === 'DELETE' && 'text-danger',
         'font-mono flex-shrink-0 whitespace-pre',
-        'pt-[0.25em]', // Fix for monospace font not vertically centering
       )}
     >
       {label}

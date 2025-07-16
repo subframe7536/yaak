@@ -253,7 +253,7 @@ export const SidebarItem = memo(function SidebarItem({
               className={classNames('transition-transform', !collapsed && 'transform rotate-90')}
             />
           )}
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center gap-2 min-w-0 text-sm">
             {itemPrefix}
             {editing ? (
               <input
