@@ -595,5 +595,27 @@ export const plugin: PluginDefinition = {
         danger: 'hsl(343,81%,75%)',
       },
     },
+    {
+      id: 'maple-light',
+      label: 'Maple Light',
+      dark: false,
+      base: {
+        surface: 'hsl(60, 10%, 98%)',
+        text: '#475569',
+        primary: 'hsl(100, 36%, 40%)',
+        secondary: 'hsl(210, 28%, 52%)',
+        info: 'hsl(193, 94%, 34%)',
+        success: 'hsl(95, 75%, 32%)',
+        notice: 'hsl(164, 75%, 28%)',
+        warning: 'hsl(48, 100%, 32%)',
+        danger: 'hsl(0, 45%, 53%)',
+      },
+      components: {
+        input: {
+          border: '#8393aa66',
+          borderFocus: '#94a3b8'
+        },
+      }
+    },
   ],
 };
