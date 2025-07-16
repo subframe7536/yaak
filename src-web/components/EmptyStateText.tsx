@@ -9,7 +9,7 @@ interface Props {
 
 export function EmptyStateText({ children, className }: Props) {
   return (
-    <div className="w-full h-full pb-2">
+    <div className="w-full h-full">
       <div
         className={classNames(
           className,
