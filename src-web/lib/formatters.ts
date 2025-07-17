@@ -1,5 +1,5 @@
 import xmlFormat from 'xml-formatter';
-import { invokeCmd } from './tauri';
+import { jsonrepair } from 'jsonrepair';
 
 const INDENT = '  ';
 
@@ -7,21 +7,15 @@ export async function tryFormatJson(text: string): Promise<string> {
   if (text === '') return text;
 
   try {
-    const result = await invokeCmd<string>('cmd_format_json', { text });
-    return result;
-  } catch (err) {
-    console.warn('Failed to format JSON', err);
-    // Nothing
+    // Normalize whitespace and repair JSON
+    const jsonObject = jsonrepair(
+      text.replace(/(^|\n)\s*[\u3000\u2000-\u200F\u2028-\u202F]+/g, '$1  ')
+    );
+    return JSON.stringify(JSON.parse(jsonObject), null, 2);
+  } catch (error) {
+    console.error('Failed to format JSON:', error);
+    return text;
   }
-
-  try {
-    return JSON.stringify(JSON.parse(text), null, 2);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (err) {
-    // Nothing
-  }
-
-  return text;
 }
 
 export async function tryFormatXml(text: string): Promise<string> {
@@ -29,8 +23,8 @@ export async function tryFormatXml(text: string): Promise<string> {
 
   try {
     return xmlFormat(text, { throwOnFailure: true, strictMode: false, indentation: INDENT });
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (err) {
+  } catch (error) {
+    console.error('Failed to format XML:', error);
     return text;
   }
 }
