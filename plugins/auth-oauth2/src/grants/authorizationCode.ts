@@ -56,7 +56,7 @@ export async function getAuthorizationCode(
   try {
     authorizationUrl = new URL(`${authorizationUrlRaw ?? ''}`);
   } catch {
-    throw new Error('Invalid authorization URL: ' + authorizationUrlRaw);
+    throw new Error(`Invalid authorization URL "${authorizationUrlRaw}"`);
   }
   authorizationUrl.searchParams.set('response_type', 'code');
   authorizationUrl.searchParams.set('client_id', clientId);

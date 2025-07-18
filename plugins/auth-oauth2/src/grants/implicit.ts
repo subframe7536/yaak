@@ -35,7 +35,7 @@ export async function getImplicit(
   try {
     authorizationUrl = new URL(`${authorizationUrlRaw ?? ''}`);
   } catch {
-    throw new Error('Invalid authorization URL: ' + authorizationUrlRaw);
+    throw new Error(`Invalid authorization URL "${authorizationUrlRaw}"`);
   }
   authorizationUrl.searchParams.set('response_type', 'token');
   authorizationUrl.searchParams.set('client_id', clientId);
