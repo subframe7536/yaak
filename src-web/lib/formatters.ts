@@ -14,7 +14,7 @@ export async function tryFormatJson(
   let repairedText = text;
   try {
     repairedText = options.repair
-      ? jsonrepair(text.replace(/(^|\n)\s*[\u3000\u2000-\u200F\u2028-\u202F]+/g, '$1  '))
+      ? jsonrepair(text.replace(/(^|\r?\n)\s*[\u3000\u2000-\u200F\u2028-\u202F]+/g, '$1  '))
       : text;
   } catch {
     // Leave unrepaired repair fails. This could be caused by {"foo": ${[ BAR ]}} template syntax
