@@ -3,7 +3,7 @@
 A request action plugin for Yaak that converts HTTP requests into [curl](https://curl.se)
 commands, making it easy to share, debug, and execute requests outside Yaak.
 
-![](screenshot.png)
+![Screenshot of context menu](screenshot.png)
 
 ## Overview
 
