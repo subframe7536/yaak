@@ -240,9 +240,6 @@ impl PluginManager {
         plugins.retain(|p| p.dir != dir);
         plugins.push(plugin_handle.clone());
 
-        // Add the new plugin
-        self.plugins.lock().await.push(plugin_handle.clone());
-
         let _ = match event.payload {
             InternalEventPayload::BootResponse(resp) => resp,
             _ => return Err(UnknownEventErr),
