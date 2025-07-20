@@ -643,7 +643,8 @@ impl PluginManager {
         if disabled {
             info!("Not applying disabled auth {:?}", auth_name);
             return Ok(CallHttpAuthenticationResponse {
-                set_headers: Vec::new(),
+                set_headers: None,
+                set_query_parameters: None
             });
         }
 

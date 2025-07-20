@@ -212,6 +212,35 @@ pub(crate) async fn connect<R: Runtime>(
     )
     .await?;
 
+    let connection = app_handle.db().upsert_websocket_connection(
+        &WebsocketConnection {
+            workspace_id: request.workspace_id.clone(),
+            request_id: request_id.to_string(),
+            ..Default::default()
+        },
+        &UpdateSource::from_window(&window),
+    )?;
+
+    let (mut url, url_parameters) = apply_path_placeholders(&request.url, request.url_parameters);
+    if !url.starts_with("ws://") && !url.starts_with("wss://") {
+        url.insert_str(0, "ws://");
+    }
+
+    // Add URL parameters to URL
+    let mut url = match Url::parse(&url) {
+        Ok(url) => url,
+        Err(e) => {
+            return Ok(app_handle.db().upsert_websocket_connection(
+                &WebsocketConnection {
+                    error: Some(format!("Failed to parse URL {}", e.to_string())),
+                    state: WebsocketConnectionState::Closed,
+                    ..connection
+                },
+                &UpdateSource::from_window(&window),
+            )?);
+        }
+    };
+
     let mut headers = HeaderMap::new();
 
     for h in request.headers.clone() {
@@ -256,11 +285,17 @@ pub(crate) async fn connect<R: Runtime>(
             let plugin_result = plugin_manager
                 .call_http_authentication(&window, &authentication_type, plugin_req)
                 .await?;
-            for header in plugin_result.set_headers {
-                headers.insert(
-                    HeaderName::from_str(&header.name).unwrap(),
-                    HeaderValue::from_str(&header.value).unwrap(),
-                );
+            for header in plugin_result.set_headers.unwrap_or_default() {
+                match (HeaderName::from_str(&header.name), HeaderValue::from_str(&header.value)) {
+                    (Ok(name), Ok(value)) => {
+                        headers.insert(name, value);
+                    }
+                    _ => continue,
+                };
+            }
+            let mut query_pairs = url.query_pairs_mut();
+            for p in plugin_result.set_query_parameters.unwrap_or_default() {
+                query_pairs.append_pair(&p.name, &p.value);
             }
         }
     }
@@ -271,37 +306,8 @@ pub(crate) async fn connect<R: Runtime>(
         None => None,
     };
 
-    let connection = app_handle.db().upsert_websocket_connection(
-        &WebsocketConnection {
-            workspace_id: request.workspace_id.clone(),
-            request_id: request_id.to_string(),
-            ..Default::default()
-        },
-        &UpdateSource::from_window(&window),
-    )?;
-
     let (receive_tx, mut receive_rx) = mpsc::channel::<Message>(128);
     let mut ws_manager = ws_manager.lock().await;
-
-    let (mut url, url_parameters) = apply_path_placeholders(&request.url, request.url_parameters);
-    if !url.starts_with("ws://") && !url.starts_with("wss://") {
-        url.insert_str(0, "ws://");
-    }
-
-    // Add URL parameters to URL
-    let mut url = match Url::parse(&url) {
-        Ok(url) => url,
-        Err(e) => {
-            return Ok(app_handle.db().upsert_websocket_connection(
-                &WebsocketConnection {
-                    error: Some(format!("Failed to parse URL {}", e.to_string())),
-                    state: WebsocketConnectionState::Closed,
-                    ..connection
-                },
-                &UpdateSource::from_window(&window),
-            )?);
-        }
-    };
 
     {
         let valid_query_pairs = url_parameters
