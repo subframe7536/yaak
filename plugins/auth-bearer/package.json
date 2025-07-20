@@ -2,6 +2,11 @@
   "name": "@yaak/auth-bearer",
   "displayName": "Bearer Authentication",
   "description": "Authenticate requests using bearer authentication",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mountain-loop/yaak.git",
+    "directory": "plugins/auth-bearer"
+  },
   "private": true,
   "version": "0.1.0",
   "scripts": {
