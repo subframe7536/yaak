@@ -1,6 +1,6 @@
 {
   "name": "@yaak/auth-oauth2",
-  "displayName": "OAuth 2.0 Authentication",
+  "displayName": "OAuth 2.0",
   "description": "Authenticate requests using OAuth 2.0",
   "repository": {
     "type": "git",

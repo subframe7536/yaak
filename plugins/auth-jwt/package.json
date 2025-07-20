@@ -1,6 +1,6 @@
 {
   "name": "@yaak/auth-jwt",
-  "displayName": "JWT Authentication",
+  "displayName": "JSON Web Tokens",
   "description": "Authenticate requests using JSON web tokens (JWT)",
   "repository": {
     "type": "git",
