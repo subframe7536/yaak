@@ -209,6 +209,7 @@ impl PluginManager {
         dir: &str,
     ) -> Result<()> {
         info!("Adding plugin by dir {dir}");
+
         let maybe_tx = self.ws_service.app_to_plugin_events_tx.lock().await;
         let tx = match &*maybe_tx {
             None => return Err(ClientNotInitializedErr),
@@ -232,6 +233,12 @@ impl PluginManager {
             ),
         )
         .await??;
+
+        let mut plugins = self.plugins.lock().await;
+
+        // Remove the existing plugin (if exists) before adding this one
+        plugins.retain(|p| p.dir != dir);
+        plugins.push(plugin_handle.clone());
 
         // Add the new plugin
         self.plugins.lock().await.push(plugin_handle.clone());

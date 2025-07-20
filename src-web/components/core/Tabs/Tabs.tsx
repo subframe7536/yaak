@@ -177,7 +177,7 @@ export const TabContent = memo(function TabContent({
       <div
         tabIndex={-1}
         data-tab={value}
-        className={classNames(className, 'tab-content', 'hidden w-full h-full py-2')}
+        className={classNames(className, 'tab-content', 'hidden w-full h-full pt-2')}
       >
         {children}
       </div>
