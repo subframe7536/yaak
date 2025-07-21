@@ -93,6 +93,7 @@ const icons = {
   plus: lucide.PlusIcon,
   plus_circle: lucide.PlusCircleIcon,
   refresh: lucide.RefreshCwIcon,
+  rocket: lucide.RocketIcon,
   save: lucide.SaveIcon,
   search: lucide.SearchIcon,
   send_horizontal: lucide.SendHorizonalIcon,

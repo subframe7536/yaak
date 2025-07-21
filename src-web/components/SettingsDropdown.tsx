@@ -43,6 +43,11 @@ export function SettingsDropdown() {
           },
         },
         {
+          label: 'Create Run Button',
+          leftSlot: <Icon icon="rocket" />,
+          onSelect: () => openUrl("https://yaak.app/button/new"),
+        },
+        {
           label: 'Import Data',
           leftSlot: <Icon icon="folder_input" />,
           onSelect: () => importData.mutate(),
