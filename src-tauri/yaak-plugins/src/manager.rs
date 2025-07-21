@@ -209,6 +209,7 @@ impl PluginManager {
         dir: &str,
     ) -> Result<()> {
         info!("Adding plugin by dir {dir}");
+
         let maybe_tx = self.ws_service.app_to_plugin_events_tx.lock().await;
         let tx = match &*maybe_tx {
             None => return Err(ClientNotInitializedErr),
@@ -233,8 +234,11 @@ impl PluginManager {
         )
         .await??;
 
-        // Add the new plugin
-        self.plugins.lock().await.push(plugin_handle.clone());
+        let mut plugins = self.plugins.lock().await;
+
+        // Remove the existing plugin (if exists) before adding this one
+        plugins.retain(|p| p.dir != dir);
+        plugins.push(plugin_handle.clone());
 
         let _ = match event.payload {
             InternalEventPayload::BootResponse(resp) => resp,
@@ -639,7 +643,8 @@ impl PluginManager {
         if disabled {
             info!("Not applying disabled auth {:?}", auth_name);
             return Ok(CallHttpAuthenticationResponse {
-                set_headers: Vec::new(),
+                set_headers: None,
+                set_query_parameters: None
             });
         }
 

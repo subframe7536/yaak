@@ -21,7 +21,12 @@ export type CallHttpAuthenticationResponse = {
  * HTTP headers to add to the request. Existing headers will be replaced, while
  * new headers will be added.
  */
-setHeaders: Array<HttpHeader>, };
+setHeaders?: Array<HttpHeader>, 
+/**
+ * Query parameters to add to the request. Existing params will be replaced, while
+ * new params will be added.
+ */
+setQueryParameters?: Array<HttpHeader>, };
 
 export type CallHttpRequestActionArgs = { httpRequest: HttpRequest, };
 

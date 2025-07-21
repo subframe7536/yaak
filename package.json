@@ -10,6 +10,7 @@
     "packages/plugin-runtime",
     "packages/plugin-runtime-types",
     "packages/common-lib",
+    "plugins/auth-apikey",
     "plugins/auth-basic",
     "plugins/auth-bearer",
     "plugins/auth-jwt",

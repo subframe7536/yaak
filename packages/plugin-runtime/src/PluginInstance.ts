@@ -253,12 +253,11 @@ export class PluginInstance {
         const auth = this.#mod.authentication;
         if (typeof auth?.onApply === 'function') {
           applyFormInputDefaults(auth.args, payload.values);
-          const result = await auth.onApply(ctx, payload);
           this.#sendPayload(
             windowContext,
             {
               type: 'call_http_authentication_response',
-              setHeaders: result.setHeaders,
+              ...(await auth.onApply(ctx, payload)),
             },
             replyId,
           );
@@ -579,7 +578,7 @@ export class PluginInstance {
             event.windowContext,
             payload,
           );
-          return result.data;
+          return result.data as any;
         },
       },
       store: {

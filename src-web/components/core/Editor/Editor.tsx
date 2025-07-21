@@ -12,9 +12,10 @@ import { settingsAtom } from '@yaakapp-internal/models';
 import type { EditorLanguage, TemplateFunction } from '@yaakapp-internal/plugins';
 import { parseTemplate } from '@yaakapp-internal/templates';
 import classNames from 'classnames';
+import type { GraphQLSchema } from 'graphql';
 import { useAtomValue } from 'jotai';
 import { md5 } from 'js-md5';
-import type { MutableRefObject, ReactNode } from 'react';
+import type { ReactNode, RefObject } from 'react';
 import {
   Children,
   cloneElement,
@@ -77,6 +78,7 @@ export interface EditorProps {
   hideGutter?: boolean;
   id?: string;
   language?: EditorLanguage | 'pairs' | 'url';
+  graphQLSchema?: GraphQLSchema | null;
   onBlur?: () => void;
   onChange?: (value: string) => void;
   onFocus?: () => void;
@@ -115,6 +117,7 @@ export const Editor = forwardRef<EditorView | undefined, EditorProps>(function E
     format,
     heightMode,
     hideGutter,
+    graphQLSchema,
     language,
     onBlur,
     onChange,
@@ -374,6 +377,7 @@ export const Editor = forwardRef<EditorView | undefined, EditorProps>(function E
       onClickVariable,
       onClickMissingVariable,
       onClickPathParameter,
+      graphQLSchema: graphQLSchema ?? null,
     });
     view.dispatch({ effects: languageCompartment.reconfigure(ext) });
   }, [
@@ -386,6 +390,7 @@ export const Editor = forwardRef<EditorView | undefined, EditorProps>(function E
     onClickPathParameter,
     completionOptions,
     useTemplating,
+    graphQLSchema,
   ]);
 
   // Initialize the editor when ref mounts
@@ -408,6 +413,7 @@ export const Editor = forwardRef<EditorView | undefined, EditorProps>(function E
           onClickVariable,
           onClickMissingVariable,
           onClickPathParameter,
+          graphQLSchema: graphQLSchema ?? null,
         });
         const extensions = [
           languageCompartment.of(langExt),
@@ -595,12 +601,12 @@ function getExtensions({
 }: Pick<EditorProps, 'singleLine' | 'readOnly' | 'hideGutter'> & {
   stateKey: EditorProps['stateKey'];
   container: HTMLDivElement | null;
-  onChange: MutableRefObject<EditorProps['onChange']>;
-  onPaste: MutableRefObject<EditorProps['onPaste']>;
-  onPasteOverwrite: MutableRefObject<EditorProps['onPasteOverwrite']>;
-  onFocus: MutableRefObject<EditorProps['onFocus']>;
-  onBlur: MutableRefObject<EditorProps['onBlur']>;
-  onKeyDown: MutableRefObject<EditorProps['onKeyDown']>;
+  onChange: RefObject<EditorProps['onChange']>;
+  onPaste: RefObject<EditorProps['onPaste']>;
+  onPasteOverwrite: RefObject<EditorProps['onPasteOverwrite']>;
+  onFocus: RefObject<EditorProps['onFocus']>;
+  onBlur: RefObject<EditorProps['onBlur']>;
+  onKeyDown: RefObject<EditorProps['onKeyDown']>;
 }) {
   // TODO: Ensure tooltips render inside the dialog if we are in one.
   const parent =

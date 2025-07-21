@@ -37,7 +37,7 @@ export function useAuthTab<T extends string>(tabValue: T, model: AuthenticatedMo
                   <IconTooltip
                     icon="magic_wand"
                     iconSize="xs"
-                    content="Authenticatin was inherited from an ancestor"
+                    content="Authentication was inherited from an ancestor"
                   />
                 </HStack>
               ) : (

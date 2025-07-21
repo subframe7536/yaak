@@ -1,3 +1,4 @@
+import type { HttpUrlParameter } from '@yaakapp-internal/models';
 import type { CallTemplateFunctionArgs, Context, PluginDefinition } from '@yaakapp/api';
 
 export const plugin: PluginDefinition = {
@@ -51,6 +52,48 @@ export const plugin: PluginDefinition = {
             purpose: args.purpose,
           }),
         );
+      },
+    },
+    {
+      name: 'request.param',
+      args: [
+        {
+          name: 'requestId',
+          label: 'Http Request',
+          type: 'http_request',
+        },
+        {
+          name: 'param',
+          label: 'Param Name',
+          type: 'text',
+        },
+      ],
+      async onRender(ctx: Context, args: CallTemplateFunctionArgs): Promise<string | null> {
+        const paramName = String(args.values.param ?? '');
+        const requestId = String(args.values.requestId ?? 'n/a');
+        const httpRequest = await ctx.httpRequest.getById({ id: requestId });
+        if (httpRequest == null) return null;
+
+        const renderedUrl = await ctx.templates.render({
+          data: httpRequest.url,
+          purpose: args.purpose,
+        });
+
+        const querystring = renderedUrl.split('?')[1] ?? '';
+        const paramsFromUrl: HttpUrlParameter[] = new URLSearchParams(querystring)
+          .entries()
+          .map(([name, value]): HttpUrlParameter => ({ name, value }))
+          .toArray();
+
+        const allParams = [...paramsFromUrl, ...httpRequest.urlParameters];
+        const allEnabledParams = allParams.filter((p) => p.enabled !== false);
+        const foundParam = allEnabledParams.find((p) => p.name === paramName);
+
+        const renderedValue = await ctx.templates.render({
+          data: foundParam?.value ?? '',
+          purpose: args.purpose,
+        });
+        return renderedValue;
       },
     },
   ],

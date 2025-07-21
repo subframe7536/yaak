@@ -69,7 +69,7 @@ pub(crate) async fn build_metadata<R: Runtime>(
             let auth = request.authentication.clone();
             let plugin_req = CallHttpAuthenticationRequest {
                 context_id: format!("{:x}", md5::compute(authentication_context_id)),
-                values: serde_json::from_value(serde_json::to_value(&auth).unwrap()).unwrap(),
+                values: serde_json::from_value(serde_json::to_value(&auth)?)?,
                 method: "POST".to_string(),
                 url: request.url.clone(),
                 headers: metadata
@@ -83,7 +83,7 @@ pub(crate) async fn build_metadata<R: Runtime>(
             let plugin_result = plugin_manager
                 .call_http_authentication(&window, &authentication_type, plugin_req)
                 .await?;
-            for header in plugin_result.set_headers {
+            for header in plugin_result.set_headers.unwrap_or_default() {
                 metadata.insert(header.name, header.value);
             }
         }

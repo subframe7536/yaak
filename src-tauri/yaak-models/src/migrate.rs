@@ -1,10 +1,10 @@
 use crate::error::Error::MigrationError;
 use crate::error::Result;
-use include_dir::{include_dir, Dir, DirEntry};
-use log::{debug, info};
+use include_dir::{Dir, DirEntry, include_dir};
+use log::info;
 use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
-use rusqlite::{params, OptionalExtension, TransactionBehavior};
+use rusqlite::{OptionalExtension, TransactionBehavior, params};
 use sha2::{Digest, Sha384};
 
 static MIGRATIONS_DIR: Dir = include_dir!("$CARGO_MANIFEST_DIR/migrations");
@@ -40,12 +40,18 @@ pub(crate) fn migrate_db(pool: &Pool<SqliteConnectionManager>) -> Result<()> {
 
     // Run each migration in a transaction
     let mut num_migrations = 0;
+    let mut ran_migrations = 0;
     for entry in entries {
         num_migrations += 1;
         let mut conn = pool.get()?;
         let mut tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
         match run_migration(entry, &mut tx) {
-            Ok(_) => tx.commit()?,
+            Ok(ran) => {
+                if ran {
+                    ran_migrations += 1;
+                }
+                tx.commit()?
+            }
             Err(e) => {
                 let msg = format!(
                     "{} failed with {}",
@@ -58,7 +64,11 @@ pub(crate) fn migrate_db(pool: &Pool<SqliteConnectionManager>) -> Result<()> {
         };
     }
 
-    info!("Finished running {} migrations", num_migrations);
+    if ran_migrations == 0 {
+        info!("No migrations to run out of {}", num_migrations);
+    } else {
+        info!("Ran {}/{} migrations", ran_migrations, num_migrations);
+    }
 
     Ok(())
 }
@@ -76,9 +86,7 @@ fn run_migration(migration_path: &DirEntry, tx: &mut rusqlite::Transaction) -> R
         .optional()?;
 
     if row.is_some() {
-        debug!("Skipping migration {description}");
-        // Migration was already run
-        return Ok(false);
+        return Ok(false); // Migration was already run
     }
 
     let sql =

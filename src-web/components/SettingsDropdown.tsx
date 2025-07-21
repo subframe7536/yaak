@@ -43,6 +43,12 @@ export function SettingsDropdown() {
           },
         },
         {
+          label: 'Plugins',
+          leftSlot: <Icon icon="puzzle" />,
+          onSelect: () => openSettings.mutate('plugins'),
+        },
+        { type: 'separator', label: 'Share Workspace(s)' },
+        {
           label: 'Import Data',
           leftSlot: <Icon icon="folder_input" />,
           onSelect: () => importData.mutate(),
@@ -51,6 +57,11 @@ export function SettingsDropdown() {
           label: 'Export Data',
           leftSlot: <Icon icon="folder_output" />,
           onSelect: () => exportData.mutate(),
+        },
+        {
+          label: 'Create Run Button',
+          leftSlot: <Icon icon="rocket" />,
+          onSelect: () => openUrl('https://yaak.app/button/new'),
         },
         { type: 'separator', label: `Yaak v${appInfo.version}` },
         {

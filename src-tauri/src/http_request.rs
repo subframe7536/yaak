@@ -452,10 +452,7 @@ pub async fn send_http_request<R: Runtime>(
         Some(authentication_type) => {
             let req = CallHttpAuthenticationRequest {
                 context_id: format!("{:x}", md5::compute(auth_context_id)),
-                values: serde_json::from_value(
-                    serde_json::to_value(&request.authentication).unwrap(),
-                )
-                .unwrap(),
+                values: serde_json::from_value(serde_json::to_value(&request.authentication)?)?,
                 url: sendable_req.url().to_string(),
                 method: sendable_req.method().to_string(),
                 headers: sendable_req
@@ -482,11 +479,19 @@ pub async fn send_http_request<R: Runtime>(
             };
 
             let headers = sendable_req.headers_mut();
-            for header in plugin_result.set_headers {
-                headers.insert(
-                    HeaderName::from_str(&header.name).unwrap(),
-                    HeaderValue::from_str(&header.value).unwrap(),
-                );
+            for header in plugin_result.set_headers.unwrap_or_default() {
+                match (HeaderName::from_str(&header.name), HeaderValue::from_str(&header.value)) {
+                    (Ok(name), Ok(value)) => {
+                        headers.insert(name, value);
+                    }
+                    _ => continue,
+                };
+            }
+
+            let mut query_pairs = sendable_req.url_mut().query_pairs_mut();
+            for p in plugin_result.set_query_parameters.unwrap_or_default() {
+                println!("Adding query parameter: {:?}", p);
+                query_pairs.append_pair(&p.name, &p.value);
             }
         }
     }
