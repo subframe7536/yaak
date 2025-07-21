@@ -84,63 +84,70 @@ function ExportDataDialogContent({
   const numSelected = Object.values(selectedWorkspaces).filter(Boolean).length;
   const noneSelected = numSelected === 0;
   return (
-    <VStack space={3} className="w-full mb-3 px-4">
-      <table className="w-full mb-auto min-w-full max-w-full divide-y divide-surface-highlight">
-        <thead>
-          <tr>
-            <th className="w-6 min-w-0 py-2 text-left pl-1">
-              <Checkbox
-                checked={!allSelected && !noneSelected ? 'indeterminate' : allSelected}
-                hideLabel
-                title="All workspaces"
-                onChange={handleToggleAll}
-              />
-            </th>
-            <th className="py-2 text-left pl-4" onClick={handleToggleAll}>
-              Workspace
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-surface-highlight">
-          {workspaces.map((w) => (
-            <tr key={w.id}>
-              <td className="min-w-0 py-1 pl-1">
+    <div className="w-full grid grid-rows-[minmax(0,1fr)_auto]">
+      <VStack space={3} className="overflow-auto px-5 pb-6">
+        <table className="w-full mb-auto min-w-full max-w-full divide-y divide-surface-highlight">
+          <thead>
+            <tr>
+              <th className="w-6 min-w-0 py-2 text-left pl-1">
                 <Checkbox
-                  checked={selectedWorkspaces[w.id] ?? false}
-                  title={w.name}
+                  checked={!allSelected && !noneSelected ? 'indeterminate' : allSelected}
                   hideLabel
-                  onChange={() =>
+                  title="All workspaces"
+                  onChange={handleToggleAll}
+                />
+              </th>
+              <th className="py-2 text-left pl-4" onClick={handleToggleAll}>
+                Workspace
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-surface-highlight">
+            {workspaces.map((w) => (
+              <tr key={w.id}>
+                <td className="min-w-0 py-1 pl-1">
+                  <Checkbox
+                    checked={selectedWorkspaces[w.id] ?? false}
+                    title={w.name}
+                    hideLabel
+                    onChange={() =>
+                      setSelectedWorkspaces((prev) => ({ ...prev, [w.id]: !prev[w.id] }))
+                    }
+                  />
+                </td>
+                <td
+                  className="py-1 pl-4 text whitespace-nowrap overflow-x-auto hide-scrollbars"
+                  onClick={() =>
                     setSelectedWorkspaces((prev) => ({ ...prev, [w.id]: !prev[w.id] }))
                   }
-                />
-              </td>
-              <td
-                className="py-1 pl-4 text whitespace-nowrap overflow-x-auto hide-scrollbars"
-                onClick={() => setSelectedWorkspaces((prev) => ({ ...prev, [w.id]: !prev[w.id] }))}
-              >
-                {w.name} {w.id === activeWorkspace.id ? '(current workspace)' : ''}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <DetailsBanner color="secondary" open summary="Extra Settings">
-        <Checkbox
-          checked={includePrivateEnvironments}
-          onChange={setIncludePrivateEnvironments}
-          title="Include private environments"
-          help='Environments marked as "sharable" will be exported by default'
-        />
-      </DetailsBanner>
-      <div className="grid grid-cols-[1fr_auto] items-center mt-6 pb-1.5">
+                >
+                  {w.name} {w.id === activeWorkspace.id ? '(current workspace)' : ''}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <DetailsBanner color="secondary" open summary="Extra Settings">
+          <Checkbox
+            checked={includePrivateEnvironments}
+            onChange={setIncludePrivateEnvironments}
+            title="Include private environments"
+            help='Environments marked as "sharable" will be exported by default'
+          />
+        </DetailsBanner>
+      </VStack>
+      <footer className="px-5 grid grid-cols-[1fr_auto] items-center bg-surface-highlight py-2 border-t border-border-subtle">
         <div>
-          <Link href="https://yaak.app/button/new" noUnderline className="text-text-subtle">Create Run Button</Link>
+          <Link href="https://yaak.app/button/new" noUnderline className="text-text-subtle">
+            Create Run Button
+          </Link>
         </div>
         <HStack space={2} justifyContent="end">
-          <Button className="focus" variant="border" onClick={onHide}>
+          <Button size="sm" className="focus" variant="border" onClick={onHide}>
             Cancel
           </Button>
           <Button
+            size="sm"
             type="submit"
             className="focus"
             color="primary"
@@ -151,7 +158,7 @@ function ExportDataDialogContent({
             {pluralizeCount('Workspace', numSelected, { omitSingle: true, noneWord: 'Nothing' })}
           </Button>
         </HStack>
-      </div>
-    </VStack>
+      </footer>
+    </div>
   );
 }
