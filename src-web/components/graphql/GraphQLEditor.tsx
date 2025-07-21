@@ -1,10 +1,9 @@
 import type { EditorView } from '@codemirror/view';
 import type { HttpRequest } from '@yaakapp-internal/models';
-import { updateSchema } from 'cm6-graphql';
 
 import { formatSdl } from 'format-graphql';
 import { useAtom } from 'jotai';
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { useLocalStorage } from 'react-use';
 import { useIntrospectGraphQL } from '../../hooks/useIntrospectGraphQL';
 import { useStateWithDeps } from '../../hooks/useStateWithDeps';
@@ -62,12 +61,6 @@ export function GraphQLEditor({ request, onChange, baseRequest, ...extraEditorPr
     setCurrentBody(newBody);
     onChange(newBody);
   };
-
-  // Refetch the schema when the URL changes
-  useEffect(() => {
-    if (editorViewRef.current == null) return;
-    updateSchema(editorViewRef.current, schema ?? undefined);
-  }, [schema]);
 
   const actions = useMemo<EditorProps['actions']>(
     () => [
@@ -201,6 +194,7 @@ export function GraphQLEditor({ request, onChange, baseRequest, ...extraEditorPr
       <Editor
         language="graphql"
         heightMode="auto"
+        graphQLSchema={schema}
         format={formatSdl}
         defaultValue={currentBody.query}
         onChange={handleChangeQuery}
