@@ -10,6 +10,7 @@ import { invokeCmd } from '../lib/tauri';
 import { Button } from './core/Button';
 import { Checkbox } from './core/Checkbox';
 import { DetailsBanner } from './core/DetailsBanner';
+import { Link } from './core/Link';
 import { HStack, VStack } from './core/Stacks';
 
 interface Props {
@@ -131,21 +132,26 @@ function ExportDataDialogContent({
           help='Environments marked as "sharable" will be exported by default'
         />
       </DetailsBanner>
-      <HStack space={2} justifyContent="end">
-        <Button className="focus" variant="border" onClick={onHide}>
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          className="focus"
-          color="primary"
-          disabled={noneSelected}
-          onClick={() => handleExport()}
-        >
-          Export{' '}
-          {pluralizeCount('Workspace', numSelected, { omitSingle: true, noneWord: 'Nothing' })}
-        </Button>
-      </HStack>
+      <div className="grid grid-cols-[1fr_auto] items-center mt-6 pb-1.5">
+        <div>
+          <Link href="https://yaak.app/button/new" noUnderline className="text-text-subtle">Create Run Button</Link>
+        </div>
+        <HStack space={2} justifyContent="end">
+          <Button className="focus" variant="border" onClick={onHide}>
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            className="focus"
+            color="primary"
+            disabled={noneSelected}
+            onClick={() => handleExport()}
+          >
+            Export{' '}
+            {pluralizeCount('Workspace', numSelected, { omitSingle: true, noneWord: 'Nothing' })}
+          </Button>
+        </HStack>
+      </div>
     </VStack>
   );
 }

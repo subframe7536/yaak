@@ -46,7 +46,7 @@ export function SettingsPlugins() {
         addBorders
         tabListClassName="!-ml-3"
         tabs={[
-          { label: 'Marketplace', value: 'search' },
+          { label: 'Discover', value: 'search' },
           {
             label: 'Installed',
             value: 'installed',
