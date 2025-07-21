@@ -603,7 +603,7 @@ export const plugin: PluginDefinition = {
         surface: 'hsl(60, 10%, 98%)',
         text: '#475569',
         primary: 'hsl(31, 70%, 40%)',
-        secondary: 'hsl(100, 36%, 40%)',
+        secondary: 'hsl(100, 20%, 55%)',
         info: 'hsl(193, 94%, 34%)',
         success: 'hsl(95, 75%, 32%)',
         notice: 'hsl(164, 75%, 28%)',
