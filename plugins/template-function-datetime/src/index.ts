@@ -1,22 +1,87 @@
+import type { TemplateFunctionArg } from '@yaakapp-internal/plugins';
 import type { PluginDefinition } from '@yaakapp/api';
 
 import {
   addDays,
-  addMonths,
-  addYears,
   addHours,
   addMinutes,
+  addMonths,
   addSeconds,
+  addYears,
+  format,
+  isValid,
+  parseISO,
   subDays,
-  subMonths,
-  subYears,
   subHours,
   subMinutes,
+  subMonths,
   subSeconds,
-  format,
-  parseISO,
-  isValid,
+  subYears,
 } from 'date-fns';
+
+const dateArg: TemplateFunctionArg = {
+  type: 'text',
+  name: 'date',
+  label: 'Date String',
+  optional: true,
+  description: 'The date to manipulate, can be a timestamp or ISO string',
+  placeholder: new Date().toISOString(),
+};
+
+const expressionArg: TemplateFunctionArg = {
+  type: 'text',
+  name: 'expression',
+  label: 'Expression',
+  description: "Modification expression (eg. '-5d +2h 3m'). Available units: y, M, d, h, m, s",
+  optional: true,
+  placeholder: '-5d +2h 3m',
+};
+
+const outputArg: TemplateFunctionArg = {
+  name: 'output',
+  label: 'Format String',
+  description: "Format string to describe the output (eg. 'yyyy-MM-dd at HH:mm:ss')",
+  optional: true,
+  placeholder: 'yyyy-MM-dd HH:mm:ss',
+  type: 'text',
+};
+
+export const plugin: PluginDefinition = {
+  templateFunctions: [
+    {
+      name: 'timestamp.unix',
+      description: 'Get the current timestamp in seconds',
+      args: [],
+      onRender: async () => String(Math.floor(Date.now() / 1000)),
+    },
+    {
+      name: 'timestamp.unixMillis',
+      description: 'Get the current timestamp in milliseconds',
+      args: [],
+      onRender: async () => String(Date.now()),
+    },
+    {
+      name: 'timestamp.iso8601',
+      description: 'Get the current date in ISO format',
+      args: [],
+      onRender: async () => new Date().toISOString(),
+    },
+    {
+      name: 'timestamp.add',
+      description:
+        'Manipulate the datetime, returns ISO string. Input is optional, default to current timestamp.',
+      args: [dateArg, expressionArg],
+      onRender: async (_ctx, args) => calculateDatetime(args.values),
+    },
+    {
+      name: 'timestamp.format',
+      description:
+        'Format a date using a specified format string. Input is optional, default to current timestamp.',
+      args: [dateArg, outputArg],
+      onRender: async (_ctx, args) => formatDatetime(args.values),
+    },
+  ],
+};
 
 function applyDateOp(d: Date, sign: string, amount: number, unit: string): Date {
   switch (unit) {
@@ -33,154 +98,60 @@ function applyDateOp(d: Date, sign: string, amount: number, unit: string): Date 
     case 's':
       return sign === '-' ? subSeconds(d, amount) : addSeconds(d, amount);
     default:
-      throw new Error(`Invalid unit: ${unit}`);
+      throw new Error(`Invalid data calculation unit: ${unit}`);
   }
 }
 
 function parseOp(op: string): { sign: string; amount: number; unit: string } | null {
-  const match = op.match(/^([+-])(\d+)([a-zA-Z]+)$/);
-  if (!match) return null;
+  const match = op.match(/^([+-]?)(\d+)([yMdhms])$/);
+  if (!match) {
+    throw new Error(`Invalid date expression: ${op}`);
+  }
   const [, sign, amount, unit] = match;
   if (!unit) return null;
-  if (!['y', 'M', 'd', 'h', 'm', 's'].includes(unit)) {
-    throw new Error(`Invalid unit: ${unit}`);
-  }
   return { sign: sign ?? '+', amount: Number(amount ?? 0), unit };
 }
 
-export async function calculateDatetime(args: {
-  date?: string;
-  calc?: string;
-}): Promise<string> {
-  const { date, calc } = args;
-  let d: Date;
-  if (date) {
-    if (/^\d+$/.test(date)) {
-      d = new Date(Number(date));
-    } else {
-      d = parseISO(date);
-      if (!isValid(d)) d = new Date(date);
-    }
-  } else {
-    d = new Date();
+function parseDateString(date: string): Date {
+  if (!date.trim()) {
+    return new Date();
   }
-  if (calc) {
-    const ops = String(calc)
-      .split(',')
+
+  const isoDate = parseISO(date);
+  if (isValid(isoDate)) {
+    return isoDate;
+  }
+
+  const jsDate = /^\d+(\.\d+)?$/.test(date) ? new Date(Number(date)) : new Date(date);
+  if (isValid(jsDate)) {
+    return jsDate;
+  }
+
+  throw new Error(`Invalid date: ${date}`);
+}
+
+export function calculateDatetime(args: { date?: string; expression?: string }): string {
+  const { date, expression } = args;
+  let jsDate = parseDateString(date ?? '');
+
+  if (expression) {
+    const ops = String(expression)
+      .split(' ')
       .map((s) => s.trim())
       .filter(Boolean);
     for (const op of ops) {
       const parsed = parseOp(op);
       if (parsed) {
-        d = applyDateOp(d, parsed.sign, parsed.amount, parsed.unit);
+        jsDate = applyDateOp(jsDate, parsed.sign, parsed.amount, parsed.unit);
       }
     }
   }
-  return d.toISOString();
+
+  return jsDate.toISOString();
 }
 
-export async function formatDatetime(args: {
-  date?: string;
-  output?: string;
-}): Promise<string> {
+export function formatDatetime(args: { date?: string; output?: string }): string {
   const { date, output = 'yyyy-MM-dd HH:mm:ss' } = args;
-  let d: Date;
-  if (date) {
-    if (/^\d+$/.test(date)) {
-      d = new Date(Number(date));
-    } else {
-      d = parseISO(date);
-      if (!isValid(d)) d = new Date(date);
-    }
-  } else {
-    d = new Date();
-  }
+  const d = parseDateString(date ?? '');
   return format(d, String(output));
 }
-
-export const plugin: PluginDefinition = {
-  templateFunctions: [
-    {
-      name: 'datetime.timestamp',
-      description: 'Get the current timestamp in milliseconds',
-      args: [],
-      onRender: async () => String(Date.now()),
-    },
-    {
-      name: 'datetime.iso',
-      description: 'Get the current date in ISO format',
-      args: [],
-      onRender: async () => new Date().toISOString(),
-    },
-    {
-      name: 'datetime.calculate',
-      description: 'Manipulate the datetime, returns ISO string. Input is optional, default to current datetime.',
-      args: [
-        {
-          name: 'date',
-          label: 'Date String',
-          description: 'The date to manipulate, can be a timestamp or ISO string',
-          type: 'text',
-          optional: true,
-          placeholder: 'Default: current date',
-        },
-        {
-          name: 'calc',
-          label: 'Calculate Expression',
-          description: "The calculate expression in dayjs format, split by commas: '-5d, +2h, 3m'. Available units: y, M, d, h, m, s",
-          optional: true,
-          placeholder: 'Example: -5d, +2h, 3m',
-          type: 'text',
-        },
-      ],
-      onRender: async ({toast}, args) => {
-        try {
-          return await calculateDatetime(args.values);
-        } catch (error) {
-          const msg = error instanceof Error ? error.message : String(error);
-          toast.show({
-            icon: 'alert_triangle',
-            color: 'warning',
-            message:`Error calculating date: ${msg}`
-          });
-          return null;
-        }
-      },
-    },
-    {
-      name: 'datetime.format',
-      description: 'Format a date using a specified format string. Input is optional, default to current datetime.',
-      args: [
-        {
-          name: 'date',
-          label: 'Date String',
-          description: 'The date to format, can be a timestamp or ISO string',
-          type: 'text',
-          optional: true,
-          placeholder: 'Default: current date',
-        },
-        {
-          name: 'output',
-          label: 'Output Format String',
-          description: "The output format string in dayjs format, e.g., 'YYYY-MM-DD HH:mm:ss'",
-          optional: true,
-          placeholder: 'Default: YYYY-MM-DD HH:mm:ss',
-          type: 'text',
-        },
-      ],
-      onRender: async ({toast}, args) => {
-        try {
-          return await formatDatetime(args.values);
-        } catch (error) {
-          const msg = error instanceof Error ? error.message : String(error);
-          toast.show({
-            icon: 'alert_triangle',
-            color: 'warning',
-            message:`Error formatting date: ${msg}`
-          });
-          return null;
-        }
-      },
-    },
-  ],
-};
