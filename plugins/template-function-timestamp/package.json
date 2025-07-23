@@ -1,5 +1,5 @@
 {
-  "name": "@yaak/template-function-datetime",
+  "name": "@yaak/template-function-timestamp",
   "private": true,
   "version": "0.1.0",
   "scripts": {
