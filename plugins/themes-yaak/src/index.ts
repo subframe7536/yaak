@@ -600,15 +600,15 @@ export const plugin: PluginDefinition = {
       label: 'Maple Light',
       dark: false,
       base: {
-        surface: 'hsl(60, 10%, 98%)',
-        text: '#475569',
-        primary: 'hsl(31, 70%, 40%)',
-        secondary: 'hsl(100, 20%, 55%)',
-        info: 'hsl(193, 94%, 34%)',
-        success: 'hsl(95, 75%, 32%)',
-        notice: 'hsl(164, 75%, 28%)',
-        warning: 'hsl(48, 100%, 32%)',
-        danger: 'hsl(0, 45%, 53%)',
+        surface: "hsl(60, 10%, 98%)",
+        text: "hsl(215, 19%, 35%)",
+        primary: "hsl(40, 65%, 40%)",
+        secondary: "hsl(100, 40%, 50%)",
+        info: "hsl(198, 80%, 40%)",
+        success: "hsl(90, 70%, 35%)",
+        notice: "hsl(150, 70%, 30%)",
+        warning: "hsl(55, 90%, 30%)",
+        danger: "hsl(0, 45%, 53%)"
       },
       components: {
         input: {
