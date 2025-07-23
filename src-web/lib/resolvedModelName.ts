@@ -33,7 +33,7 @@ export function resolvedModelName(r: AnyModel | null): string {
   }
 
   // Strip unnecessary protocol
-  const withoutProto = withoutVariables.replace(/^https?:\/\//, '');
+  const withoutProto = withoutVariables.replace(/^(http|https|ws|wss):\/\//, '');
 
   return withoutProto;
 }
