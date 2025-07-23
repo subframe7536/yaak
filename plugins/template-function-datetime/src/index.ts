@@ -8,7 +8,7 @@ import {
   addMonths,
   addSeconds,
   addYears,
-  format,
+  format as formatDate,
   isValid,
   parseISO,
   subDays,
@@ -22,9 +22,10 @@ import {
 const dateArg: TemplateFunctionArg = {
   type: 'text',
   name: 'date',
-  label: 'Date String',
+  label: 'Timestamp',
   optional: true,
-  description: 'The date to manipulate, can be a timestamp or ISO string',
+  defaultValue: '${[ timestamp.iso8601() ]}',
+  description: 'Can be a timestamp in milliseconds, ISO string, or anything parseable by JS `new Date()`',
   placeholder: new Date().toISOString(),
 };
 
@@ -37,8 +38,8 @@ const expressionArg: TemplateFunctionArg = {
   placeholder: '-5d +2h 3m',
 };
 
-const outputArg: TemplateFunctionArg = {
-  name: 'output',
+const formatArg: TemplateFunctionArg = {
+  name: 'format',
   label: 'Format String',
   description: "Format string to describe the output (eg. 'yyyy-MM-dd at HH:mm:ss')",
   optional: true,
@@ -62,23 +63,21 @@ export const plugin: PluginDefinition = {
     },
     {
       name: 'timestamp.iso8601',
-      description: 'Get the current date in ISO format',
+      description: 'Get the current date in ISO8601 format',
       args: [],
       onRender: async () => new Date().toISOString(),
     },
     {
-      name: 'timestamp.add',
-      description:
-        'Manipulate the datetime, returns ISO string. Input is optional, default to current timestamp.',
-      args: [dateArg, expressionArg],
-      onRender: async (_ctx, args) => calculateDatetime(args.values),
+      name: 'timestamp.format',
+      description: 'Format a date using a dayjs-compatible format string',
+      args: [dateArg, formatArg],
+      onRender: async (_ctx, args) => formatDatetime(args.values),
     },
     {
-      name: 'timestamp.format',
-      description:
-        'Format a date using a specified format string. Input is optional, default to current timestamp.',
-      args: [dateArg, outputArg],
-      onRender: async (_ctx, args) => formatDatetime(args.values),
+      name: 'timestamp.offset',
+      description: 'Get the offset of a date based on an expression',
+      args: [dateArg, expressionArg],
+      onRender: async (_ctx, args) => calculateDatetime(args.values),
     },
   ],
 };
@@ -150,8 +149,8 @@ export function calculateDatetime(args: { date?: string; expression?: string }):
   return jsDate.toISOString();
 }
 
-export function formatDatetime(args: { date?: string; output?: string }): string {
-  const { date, output = 'yyyy-MM-dd HH:mm:ss' } = args;
+export function formatDatetime(args: { date?: string; format?: string }): string {
+  const { date, format = 'yyyy-MM-dd HH:mm:ss' } = args;
   const d = parseDateString(date ?? '');
-  return format(d, String(output));
+  return formatDate(d, String(format));
 }

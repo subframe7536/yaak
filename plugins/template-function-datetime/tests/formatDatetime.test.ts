@@ -23,7 +23,7 @@ describe('formatDatetime', () => {
   });
 
   it('returns formatted date with custom output', () => {
-    const result = formatDatetime({ date: '2025-07-13T12:34:56', output: 'dd/MM/yyyy' });
+    const result = formatDatetime({ date: '2025-07-13T12:34:56', format: 'dd/MM/yyyy' });
     expect(result).toBe('13/07/2025');
   });
 
