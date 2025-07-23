@@ -24,7 +24,6 @@ const dateArg: TemplateFunctionArg = {
   name: 'date',
   label: 'Timestamp',
   optional: true,
-  defaultValue: '${[ timestamp.iso8601() ]}',
   description: 'Can be a timestamp in milliseconds, ISO string, or anything parseable by JS `new Date()`',
   placeholder: new Date().toISOString(),
 };
