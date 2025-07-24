@@ -1,3 +1,13 @@
 {
-  "productName": "yaak"
+  "productName": "yaak",
+  "bundle": {
+    "linux": {
+      "deb": {
+        "desktopTemplate": "./template.desktop"
+      },
+      "rpm": {
+        "desktopTemplate": "./template.desktop"
+      }
+    }
+  }
 }
