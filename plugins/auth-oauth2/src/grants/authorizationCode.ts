@@ -2,7 +2,7 @@ import type { Context } from '@yaakapp/api';
 import { createHash, randomBytes } from 'node:crypto';
 import { fetchAccessToken } from '../fetchAccessToken';
 import { getOrRefreshAccessToken } from '../getOrRefreshAccessToken';
-import type { AccessToken } from '../store';
+import type { AccessToken, TokenStoreArgs } from '../store';
 import { getDataDirKey, storeToken } from '../store';
 
 export const PKCE_SHA256 = 'S256';
@@ -41,7 +41,14 @@ export async function getAuthorizationCode(
     tokenName: 'access_token' | 'id_token';
   },
 ): Promise<AccessToken> {
-  const token = await getOrRefreshAccessToken(ctx, contextId, {
+  const tokenArgs: TokenStoreArgs = {
+    contextId,
+    clientId,
+    accessTokenUrl,
+    authorizationUrl: authorizationUrlRaw,
+  };
+
+  const token = await getOrRefreshAccessToken(ctx, tokenArgs, {
     accessTokenUrl,
     scope,
     clientId,
@@ -128,7 +135,7 @@ export async function getAuthorizationCode(
     ],
   });
 
-  return storeToken(ctx, contextId, response, tokenName);
+  return storeToken(ctx, tokenArgs, response, tokenName);
 }
 
 export function genPkceCodeVerifier() {

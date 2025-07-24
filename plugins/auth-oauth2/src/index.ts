@@ -15,7 +15,7 @@ import {
 import { getClientCredentials } from './grants/clientCredentials';
 import { getImplicit } from './grants/implicit';
 import { getPassword } from './grants/password';
-import type { AccessToken } from './store';
+import type { AccessToken, TokenStoreArgs } from './store';
 import { deleteToken, getToken, resetDataDirKey } from './store';
 
 type GrantType = 'authorization_code' | 'implicit' | 'password' | 'client_credentials';
@@ -83,8 +83,14 @@ export const plugin: PluginDefinition = {
     actions: [
       {
         label: 'Copy Current Token',
-        async onSelect(ctx, { contextId }) {
-          const token = await getToken(ctx, contextId);
+        async onSelect(ctx, { contextId, values }) {
+          const tokenArgs: TokenStoreArgs = {
+            contextId,
+            authorizationUrl: stringArg(values, 'authorizationUrl'),
+            accessTokenUrl: stringArg(values, 'accessTokenUrl'),
+            clientId: stringArg(values, 'clientId'),
+          };
+          const token = await getToken(ctx, tokenArgs);
           if (token == null) {
             await ctx.toast.show({ message: 'No token to copy', color: 'warning' });
           } else {
@@ -99,8 +105,14 @@ export const plugin: PluginDefinition = {
       },
       {
         label: 'Delete Token',
-        async onSelect(ctx, { contextId }) {
-          if (await deleteToken(ctx, contextId)) {
+        async onSelect(ctx, { contextId, values }) {
+          const tokenArgs: TokenStoreArgs = {
+            contextId,
+            authorizationUrl: stringArg(values, 'authorizationUrl'),
+            accessTokenUrl: stringArg(values, 'accessTokenUrl'),
+            clientId: stringArg(values, 'clientId'),
+          };
+          if (await deleteToken(ctx, tokenArgs)) {
             await ctx.toast.show({ message: 'Token deleted', color: 'success' });
           } else {
             await ctx.toast.show({ message: 'No token to delete', color: 'warning' });
@@ -281,8 +293,14 @@ export const plugin: PluginDefinition = {
       {
         type: 'accordion',
         label: 'Access Token Response',
-        async dynamic(ctx, { contextId }) {
-          const token = await getToken(ctx, contextId);
+        async dynamic(ctx, { contextId, values }) {
+          const tokenArgs: TokenStoreArgs = {
+            contextId,
+            authorizationUrl: stringArg(values, 'authorizationUrl'),
+            accessTokenUrl: stringArg(values, 'accessTokenUrl'),
+            clientId: stringArg(values, 'clientId'),
+          };
+          const token = await getToken(ctx, tokenArgs);
           if (token == null) {
             return { hidden: true };
           }
@@ -316,9 +334,10 @@ export const plugin: PluginDefinition = {
             accessTokenUrl === '' || accessTokenUrl.match(/^https?:\/\//)
               ? accessTokenUrl
               : `https://${accessTokenUrl}`,
-          authorizationUrl: authorizationUrl === '' || authorizationUrl.match(/^https?:\/\//)
-            ? authorizationUrl
-            : `https://${authorizationUrl}`,
+          authorizationUrl:
+            authorizationUrl === '' || authorizationUrl.match(/^https?:\/\//)
+              ? authorizationUrl
+              : `https://${authorizationUrl}`,
           clientId: stringArg(values, 'clientId'),
           clientSecret: stringArg(values, 'clientSecret'),
           redirectUri: stringArgOrNull(values, 'redirectUri'),

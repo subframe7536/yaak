@@ -55,11 +55,6 @@ pub async fn send_http_request<R: Runtime>(
     let response_id = og_response.id.clone();
     let response = Arc::new(Mutex::new(og_response.clone()));
 
-    let cb = PluginTemplateCallback::new(
-        window.app_handle(),
-        &PluginWindowContext::new(window),
-        RenderPurpose::Send,
-    );
     let update_source = UpdateSource::from_window(window);
 
     let (resolved_request, auth_context_id) = match resolve_http_request(window, unrendered_request)
@@ -74,6 +69,12 @@ pub async fn send_http_request<R: Runtime>(
             ));
         }
     };
+
+    let cb = PluginTemplateCallback::new(
+        window.app_handle(),
+        &PluginWindowContext::new(window),
+        RenderPurpose::Send,
+    );
 
     let request =
         match render_http_request(&resolved_request, &base_environment, environment.as_ref(), &cb)

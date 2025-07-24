@@ -18,7 +18,9 @@ use crate::native_template_functions::template_function_secure;
 use crate::nodejs::start_nodejs_plugin_runtime;
 use crate::plugin_handle::PluginHandle;
 use crate::server_ws::PluginRuntimeServerWebsocket;
+use crate::template_callback::PluginTemplateCallback;
 use log::{error, info, warn};
+use serde_json::json;
 use std::collections::HashMap;
 use std::env;
 use std::path::{Path, PathBuf};
@@ -30,10 +32,13 @@ use tokio::fs::read_dir;
 use tokio::net::TcpListener;
 use tokio::sync::{Mutex, mpsc};
 use tokio::time::{Instant, timeout};
+use yaak_models::models::Environment;
 use yaak_models::query_manager::QueryManagerExt;
+use yaak_models::render::make_vars_hashmap;
 use yaak_models::util::generate_id;
 use yaak_templates::error::Error::RenderError;
 use yaak_templates::error::Result as TemplateResult;
+use yaak_templates::render_json_value_raw;
 
 #[derive(Clone)]
 pub struct PluginManager {
@@ -569,6 +574,8 @@ impl PluginManager {
     pub async fn get_http_authentication_config<R: Runtime>(
         &self,
         window: &WebviewWindow<R>,
+        base_environment: &Environment,
+        environment: Option<&Environment>,
         auth_name: &str,
         values: HashMap<String, JsonPrimitive>,
         request_id: &str,
@@ -579,13 +586,23 @@ impl PluginManager {
             .find_map(|(p, r)| if r.name == auth_name { Some(p) } else { None })
             .ok_or(PluginNotFoundErr(auth_name.into()))?;
 
+        let vars = &make_vars_hashmap(&base_environment, environment);
+        let cb = PluginTemplateCallback::new(
+            window.app_handle(),
+            &PluginWindowContext::new(&window),
+            RenderPurpose::Preview,
+        );
+        let rendered_values = render_json_value_raw(json!(values), vars, &cb).await?;
         let context_id = format!("{:x}", md5::compute(request_id.to_string()));
         let event = self
             .send_to_plugin_and_wait(
                 &PluginWindowContext::new(window),
                 &plugin,
                 &InternalEventPayload::GetHttpAuthenticationConfigRequest(
-                    GetHttpAuthenticationConfigRequest { values, context_id },
+                    GetHttpAuthenticationConfigRequest {
+                        values: serde_json::from_value(rendered_values)?,
+                        context_id,
+                    },
                 ),
             )
             .await?;
@@ -602,11 +619,24 @@ impl PluginManager {
     pub async fn call_http_authentication_action<R: Runtime>(
         &self,
         window: &WebviewWindow<R>,
+        base_environment: &Environment,
+        environment: Option<&Environment>,
         auth_name: &str,
         action_index: i32,
         values: HashMap<String, JsonPrimitive>,
         model_id: &str,
     ) -> Result<()> {
+        let vars = &make_vars_hashmap(&base_environment, environment);
+        let rendered_values = render_json_value_raw(
+            json!(values),
+            vars,
+            &PluginTemplateCallback::new(
+                window.app_handle(),
+                &PluginWindowContext::new(&window),
+                RenderPurpose::Preview,
+            ),
+        )
+        .await?;
         let results = self.get_http_authentication_summaries(window).await?;
         let plugin = results
             .iter()
@@ -621,7 +651,10 @@ impl PluginManager {
                 CallHttpAuthenticationActionRequest {
                     index: action_index,
                     plugin_ref_id: plugin.clone().ref_id,
-                    args: CallHttpAuthenticationActionArgs { context_id, values },
+                    args: CallHttpAuthenticationActionArgs {
+                        context_id,
+                        values: serde_json::from_value(rendered_values)?,
+                    },
                 },
             ),
         )

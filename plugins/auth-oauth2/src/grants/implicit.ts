@@ -1,7 +1,7 @@
 import type { Context } from '@yaakapp/api';
-import { isTokenExpired } from '../getAccessTokenIfNotExpired';
-import type { AccessToken, AccessTokenRawResponse} from '../store';
+import type { AccessToken, AccessTokenRawResponse } from '../store';
 import { getToken, storeToken } from '../store';
+import { isTokenExpired } from '../util';
 
 export async function getImplicit(
   ctx: Context,
@@ -26,7 +26,13 @@ export async function getImplicit(
     tokenName: 'access_token' | 'id_token';
   },
 ): Promise<AccessToken> {
-  const token = await getToken(ctx, contextId);
+  const tokenArgs = {
+    contextId,
+    clientId,
+    accessTokenUrl: null,
+    authorizationUrl: authorizationUrlRaw,
+  };
+  const token = await getToken(ctx, tokenArgs);
   if (token != null && !isTokenExpired(token)) {
     return token;
   }
@@ -82,7 +88,7 @@ export async function getImplicit(
 
         const response = Object.fromEntries(params) as unknown as AccessTokenRawResponse;
         try {
-          resolve(storeToken(ctx, contextId, response));
+          resolve(storeToken(ctx, tokenArgs, response));
         } catch (err) {
           reject(err);
         }

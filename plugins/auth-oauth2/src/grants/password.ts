@@ -1,7 +1,7 @@
 import type { Context } from '@yaakapp/api';
 import { fetchAccessToken } from '../fetchAccessToken';
 import { getOrRefreshAccessToken } from '../getOrRefreshAccessToken';
-import type { AccessToken} from '../store';
+import type { AccessToken, TokenStoreArgs } from '../store';
 import { storeToken } from '../store';
 
 export async function getPassword(
@@ -27,7 +27,13 @@ export async function getPassword(
     credentialsInBody: boolean;
   },
 ): Promise<AccessToken> {
-  const token = await getOrRefreshAccessToken(ctx, contextId, {
+  const tokenArgs: TokenStoreArgs = {
+    contextId,
+    clientId,
+    accessTokenUrl,
+    authorizationUrl: null,
+  };
+  const token = await getOrRefreshAccessToken(ctx, tokenArgs, {
     accessTokenUrl,
     scope,
     clientId,
@@ -52,5 +58,5 @@ export async function getPassword(
     ],
   });
 
-  return storeToken(ctx, contextId, response);
+  return storeToken(ctx, tokenArgs, response);
 }

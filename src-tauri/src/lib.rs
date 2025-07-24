@@ -35,7 +35,13 @@ use yaak_models::models::{
 };
 use yaak_models::query_manager::QueryManagerExt;
 use yaak_models::util::{BatchUpsertResult, UpdateSource, get_workspace_export_resources};
-use yaak_plugins::events::{CallGrpcRequestActionArgs, CallGrpcRequestActionRequest, CallHttpRequestActionArgs, CallHttpRequestActionRequest, Color, FilterResponse, GetGrpcRequestActionsResponse, GetHttpAuthenticationConfigResponse, GetHttpAuthenticationSummaryResponse, GetHttpRequestActionsResponse, GetTemplateFunctionsResponse, InternalEvent, InternalEventPayload, JsonPrimitive, PluginWindowContext, RenderPurpose, ShowToastRequest};
+use yaak_plugins::events::{
+    CallGrpcRequestActionArgs, CallGrpcRequestActionRequest, CallHttpRequestActionArgs,
+    CallHttpRequestActionRequest, Color, FilterResponse, GetGrpcRequestActionsResponse,
+    GetHttpAuthenticationConfigResponse, GetHttpAuthenticationSummaryResponse,
+    GetHttpRequestActionsResponse, GetTemplateFunctionsResponse, InternalEvent,
+    InternalEventPayload, JsonPrimitive, PluginWindowContext, RenderPurpose, ShowToastRequest,
+};
 use yaak_plugins::manager::PluginManager;
 use yaak_plugins::plugin_meta::PluginMetadata;
 use yaak_plugins::template_callback::PluginTemplateCallback;
@@ -818,9 +824,29 @@ async fn cmd_get_http_authentication_config<R: Runtime>(
     auth_name: &str,
     values: HashMap<String, JsonPrimitive>,
     request_id: &str,
+    environment_id: Option<&str>,
+    workspace_id: &str,
 ) -> YaakResult<GetHttpAuthenticationConfigResponse> {
+    let base_environment = window.db().get_base_environment(&workspace_id)?;
+    let environment = match environment_id {
+        Some(id) => match window.db().get_environment(id) {
+            Ok(env) => Some(env),
+            Err(e) => {
+                warn!("Failed to find environment by id {id} {}", e);
+                None
+            }
+        },
+        None => None,
+    };
     Ok(plugin_manager
-        .get_http_authentication_config(&window, auth_name, values, request_id)
+        .get_http_authentication_config(
+            &window,
+            &base_environment,
+            environment.as_ref(),
+            auth_name,
+            values,
+            request_id,
+        )
         .await?)
 }
 
@@ -872,9 +898,30 @@ async fn cmd_call_http_authentication_action<R: Runtime>(
     action_index: i32,
     values: HashMap<String, JsonPrimitive>,
     model_id: &str,
+    workspace_id: &str,
+    environment_id: Option<&str>,
 ) -> YaakResult<()> {
+    let base_environment = window.db().get_base_environment(&workspace_id)?;
+    let environment = match environment_id {
+        Some(id) => match window.db().get_environment(id) {
+            Ok(env) => Some(env),
+            Err(e) => {
+                warn!("Failed to find environment by id {id} {}", e);
+                None
+            }
+        },
+        None => None,
+    };
     Ok(plugin_manager
-        .call_http_authentication_action(&window, auth_name, action_index, values, model_id)
+        .call_http_authentication_action(
+            &window,
+            &base_environment,
+            environment.as_ref(),
+            auth_name,
+            action_index,
+            values,
+            model_id,
+        )
         .await?)
 }
 
@@ -1238,7 +1285,10 @@ pub fn run() {
                                 let _ = app_handle.emit(
                                     "show_toast",
                                     ShowToastRequest {
-                                        message: format!("Error handling deep link: {}", e.to_string()),
+                                        message: format!(
+                                            "Error handling deep link: {}",
+                                            e.to_string()
+                                        ),
                                         color: Some(Color::Danger),
                                         icon: None,
                                     },
