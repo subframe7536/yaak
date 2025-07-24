@@ -1,9 +1,10 @@
+import { type } from '@tauri-apps/plugin-os';
 import { settingsAtom } from '@yaakapp-internal/models';
 import classNames from 'classnames';
 import { useAtomValue } from 'jotai';
 import type { CSSProperties, HTMLAttributes, ReactNode } from 'react';
 import React, { useMemo } from 'react';
-import { useStoplightsVisible } from '../hooks/useStoplightsVisible';
+import { useIsFullscreen } from '../hooks/useIsFullscreen';
 import { HEADER_SIZE_LG, HEADER_SIZE_MD, WINDOW_CONTROLS_WIDTH } from '../lib/constants';
 import { WindowControls } from './WindowControls';
 
@@ -23,7 +24,7 @@ export function HeaderSize({
   children,
 }: HeaderSizeProps) {
   const settings = useAtomValue(settingsAtom);
-  const stoplightsVisible = useStoplightsVisible();
+  const isFullscreen = useIsFullscreen();
   const finalStyle = useMemo<CSSProperties>(() => {
     const s = { ...style };
 
@@ -31,20 +32,22 @@ export function HeaderSize({
     if (size === 'md') s.minHeight = HEADER_SIZE_MD;
     if (size === 'lg') s.minHeight = HEADER_SIZE_LG;
 
-    // Add large padding for window controls
-    if (stoplightsVisible && !ignoreControlsSpacing) {
-      s.paddingLeft = 72 / settings.interfaceScale;
-    } else if (!stoplightsVisible && !ignoreControlsSpacing && !settings.hideWindowControls) {
+    if (type() === 'macos') {
+      if (!isFullscreen) {
+        // Add large padding for window controls
+        s.paddingLeft = 72 / settings.interfaceScale;
+      }
+    } else if (!ignoreControlsSpacing && !settings.hideWindowControls) {
       s.paddingRight = WINDOW_CONTROLS_WIDTH;
     }
 
     return s;
   }, [
     ignoreControlsSpacing,
+    isFullscreen,
     settings.hideWindowControls,
     settings.interfaceScale,
     size,
-    stoplightsVisible,
     style,
   ]);
 
