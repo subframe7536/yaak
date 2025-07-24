@@ -488,10 +488,11 @@ pub async fn send_http_request<R: Runtime>(
                 };
             }
 
-            let mut query_pairs = sendable_req.url_mut().query_pairs_mut();
-            for p in plugin_result.set_query_parameters.unwrap_or_default() {
-                println!("Adding query parameter: {:?}", p);
-                query_pairs.append_pair(&p.name, &p.value);
+            if let Some(params) = plugin_result.set_query_parameters {
+                let mut query_pairs = sendable_req.url_mut().query_pairs_mut();
+                for p in params {
+                    query_pairs.append_pair(&p.name, &p.value);
+                }
             }
         }
     }

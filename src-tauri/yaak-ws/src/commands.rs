@@ -294,9 +294,11 @@ pub(crate) async fn connect<R: Runtime>(
                     _ => continue,
                 };
             }
-            let mut query_pairs = url.query_pairs_mut();
-            for p in plugin_result.set_query_parameters.unwrap_or_default() {
-                query_pairs.append_pair(&p.name, &p.value);
+            if let Some(params) = plugin_result.set_query_parameters {
+                let mut query_pairs = url.query_pairs_mut();
+                for p in params {
+                    query_pairs.append_pair(&p.name, &p.value);
+                }
             }
         }
     }
