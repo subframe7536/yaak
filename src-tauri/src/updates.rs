@@ -66,6 +66,14 @@ impl YaakUpdater {
         mode: UpdateMode,
         update_trigger: UpdateTrigger,
     ) -> Result<bool> {
+        // Only AppImage supports updates on Linux, so skip if it's not
+        #[cfg(target_os = "linux")]
+        {
+            if std::env::var("APPIMAGE").is_err() {
+                return Ok(false);
+            }
+        }
+
         let settings = window.db().get_settings();
         let update_key = format!("{:x}", md5::compute(settings.id));
         self.last_update_check = SystemTime::now();
