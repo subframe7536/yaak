@@ -13,7 +13,10 @@ use yaak_models::models::Plugin;
 use yaak_models::query_manager::QueryManagerExt;
 use yaak_models::util::UpdateSource;
 
-pub async fn delete_and_uninstall<R: Runtime>(window: &WebviewWindow<R>, plugin_id: &str) -> Result<Plugin> {
+pub async fn delete_and_uninstall<R: Runtime>(
+    window: &WebviewWindow<R>,
+    plugin_id: &str,
+) -> Result<Plugin> {
     let plugin_manager = window.state::<PluginManager>();
     let plugin = window.db().delete_plugin_by_id(plugin_id, &UpdateSource::from_window(&window))?;
     plugin_manager.uninstall(&PluginWindowContext::new(&window), plugin.directory.as_str()).await?;
@@ -25,6 +28,7 @@ pub async fn download_and_install<R: Runtime>(
     name: &str,
     version: Option<String>,
 ) -> Result<PluginVersion> {
+    info!("Installing plugin {} {}", name, version.clone().unwrap_or_default());
     let plugin_manager = window.state::<PluginManager>();
     let plugin_version = get_plugin(window.app_handle(), name, version).await?;
     let resp = download_plugin_archive(window.app_handle(), &plugin_version).await?;

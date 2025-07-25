@@ -649,7 +649,13 @@ pub enum JsonPrimitive {
 pub struct CallHttpAuthenticationResponse {
     /// HTTP headers to add to the request. Existing headers will be replaced, while
     /// new headers will be added.
-    pub set_headers: Vec<HttpHeader>,
+    #[ts(optional)]
+    pub set_headers: Option<Vec<HttpHeader>>,
+
+    /// Query parameters to add to the request. Existing params will be replaced, while
+    /// new params will be added.
+    #[ts(optional)]
+    pub set_query_parameters: Option<Vec<HttpHeader>>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
@@ -968,6 +974,8 @@ pub struct CallTemplateFunctionRequest {
 #[ts(export, export_to = "gen_events.ts")]
 pub struct CallTemplateFunctionResponse {
     pub value: Option<String>,
+    #[ts(optional)]
+    pub error: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]

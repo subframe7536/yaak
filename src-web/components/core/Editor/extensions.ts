@@ -36,6 +36,7 @@ import {
 import { tags as t } from '@lezer/highlight';
 import type { EnvironmentVariable } from '@yaakapp-internal/models';
 import { graphql } from 'cm6-graphql';
+import type { GraphQLSchema } from 'graphql';
 import { activeRequestIdAtom } from '../../../hooks/useActiveRequestId';
 import { jotaiStore } from '../../../lib/jotai';
 import { renderMarkdown } from '../../../lib/markdown';
@@ -107,6 +108,7 @@ export function getLanguageExtension({
   onClickMissingVariable,
   onClickPathParameter,
   completionOptions,
+  graphQLSchema,
 }: {
   useTemplating: boolean;
   environmentVariables: EnvironmentVariable[];
@@ -114,6 +116,7 @@ export function getLanguageExtension({
   onClickMissingVariable: (name: string, tagValue: string, startPos: number) => void;
   onClickPathParameter: (name: string) => void;
   completionOptions: TwigCompletionOption[];
+  graphQLSchema: GraphQLSchema | null;
 } & Pick<EditorProps, 'language' | 'autocomplete'>) {
   const extraExtensions: Extension[] = [];
 
@@ -129,7 +132,7 @@ export function getLanguageExtension({
   // GraphQL is a special exception
   if (language === 'graphql') {
     return [
-      graphql(undefined, {
+      graphql(graphQLSchema ?? undefined, {
         async onCompletionInfoRender(gqlCompletionItem): Promise<Node | null> {
           if (!gqlCompletionItem.documentation) return null;
           const innerHTML = await renderMarkdown(gqlCompletionItem.documentation);

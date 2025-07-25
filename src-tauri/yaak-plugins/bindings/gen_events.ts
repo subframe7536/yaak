@@ -21,7 +21,12 @@ export type CallHttpAuthenticationResponse = {
  * HTTP headers to add to the request. Existing headers will be replaced, while
  * new headers will be added.
  */
-setHeaders: Array<HttpHeader>, };
+setHeaders?: Array<HttpHeader>, 
+/**
+ * Query parameters to add to the request. Existing params will be replaced, while
+ * new params will be added.
+ */
+setQueryParameters?: Array<HttpHeader>, };
 
 export type CallHttpRequestActionArgs = { httpRequest: HttpRequest, };
 
@@ -31,7 +36,7 @@ export type CallTemplateFunctionArgs = { purpose: RenderPurpose, values: { [key 
 
 export type CallTemplateFunctionRequest = { name: string, args: CallTemplateFunctionArgs, };
 
-export type CallTemplateFunctionResponse = { value: string | null, };
+export type CallTemplateFunctionResponse = { value: string | null, error?: string, };
 
 export type CloseWindowRequest = { label: string, };
 

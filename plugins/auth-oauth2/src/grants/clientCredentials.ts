@@ -1,7 +1,8 @@
 import type { Context } from '@yaakapp/api';
 import { fetchAccessToken } from '../fetchAccessToken';
-import { isTokenExpired } from '../getAccessTokenIfNotExpired';
+import type { TokenStoreArgs } from '../store';
 import { getToken, storeToken } from '../store';
+import { isTokenExpired } from '../util';
 
 export async function getClientCredentials(
   ctx: Context,
@@ -22,7 +23,13 @@ export async function getClientCredentials(
     credentialsInBody: boolean;
   },
 ) {
-  const token = await getToken(ctx, contextId);
+  const tokenArgs: TokenStoreArgs = {
+    contextId,
+    clientId,
+    accessTokenUrl,
+    authorizationUrl: null,
+  };
+  const token = await getToken(ctx, tokenArgs);
   if (token && !isTokenExpired(token)) {
     return token;
   }
@@ -38,5 +45,5 @@ export async function getClientCredentials(
     params: [],
   });
 
-  return storeToken(ctx, contextId, response);
+  return storeToken(ctx, tokenArgs, response);
 }

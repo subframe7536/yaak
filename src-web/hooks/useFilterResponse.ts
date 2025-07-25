@@ -21,6 +21,10 @@ export function useFilterResponse({
         filter,
       })) as FilterResponse;
 
+      if (result.error) {
+        console.log("Failed to filter response:", result.error);
+      }
+
       return result;
     },
   });

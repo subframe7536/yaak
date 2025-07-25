@@ -1,12 +1,12 @@
 import type { Context, HttpRequest } from '@yaakapp/api';
 import { readFileSync } from 'node:fs';
-import { isTokenExpired } from './getAccessTokenIfNotExpired';
-import type { AccessToken, AccessTokenRawResponse } from './store';
+import type { AccessToken, AccessTokenRawResponse, TokenStoreArgs } from './store';
 import { deleteToken, getToken, storeToken } from './store';
+import { isTokenExpired } from './util';
 
 export async function getOrRefreshAccessToken(
   ctx: Context,
-  contextId: string,
+  tokenArgs: TokenStoreArgs,
   {
     scope,
     accessTokenUrl,
@@ -23,7 +23,7 @@ export async function getOrRefreshAccessToken(
     forceRefresh?: boolean;
   },
 ): Promise<AccessToken | null> {
-  const token = await getToken(ctx, contextId);
+  const token = await getToken(ctx, tokenArgs);
   if (token == null) {
     return null;
   }
@@ -75,7 +75,7 @@ export async function getOrRefreshAccessToken(
     // Bad refresh token, so we'll force it to fetch a fresh access token by deleting
     // and returning null;
     console.log('[oauth2] Unauthorized refresh_token request');
-    await deleteToken(ctx, contextId);
+    await deleteToken(ctx, tokenArgs);
     return null;
   }
 
@@ -108,5 +108,5 @@ export async function getOrRefreshAccessToken(
     refresh_token: response.refresh_token ?? token.response.refresh_token,
   };
 
-  return storeToken(ctx, contextId, newResponse);
+  return storeToken(ctx, tokenArgs, newResponse);
 }

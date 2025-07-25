@@ -43,8 +43,10 @@ pub async fn download_plugin_archive<R: Runtime>(
     };
     let resp = yaak_api_client(app_handle)?.get(url.clone()).send().await?;
     if !resp.status().is_success() {
+        warn!("Failed to download plugin: {name} {version}");
         return Err(ApiErr(format!("{} response to {}", resp.status(), url.to_string())));
     }
+    info!("Downloaded plugin: {url}");
     Ok(resp)
 }
 

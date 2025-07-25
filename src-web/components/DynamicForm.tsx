@@ -12,7 +12,7 @@ import type {
 } from '@yaakapp-internal/plugins';
 import classNames from 'classnames';
 import { useAtomValue } from 'jotai';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useActiveRequest } from '../hooks/useActiveRequest';
 import { useRandomKey } from '../hooks/useRandomKey';
 import { capitalize } from '../lib/capitalize';
@@ -182,23 +182,24 @@ function FormInputs<T extends Record<string, JsonPrimitive>>({
             );
           case 'accordion':
             return (
-              <DetailsBanner
-                key={i}
-                summary={input.label}
-                className={classNames(disabled && 'opacity-disabled')}
-              >
-                <div className="mb-3 px-3">
-                  <FormInputs
-                    data={data}
-                    disabled={disabled}
-                    inputs={input.inputs}
-                    setDataAttr={setDataAttr}
-                    stateKey={stateKey}
-                    autocompleteFunctions={autocompleteFunctions || false}
-                    autocompleteVariables={autocompleteVariables}
-                  />
-                </div>
-              </DetailsBanner>
+              <div key={i}>
+                <DetailsBanner
+                  summary={input.label}
+                  className={classNames('!mb-auto', disabled && 'opacity-disabled')}
+                >
+                  <div className="mb-3 px-3">
+                    <FormInputs
+                      data={data}
+                      disabled={disabled}
+                      inputs={input.inputs}
+                      setDataAttr={setDataAttr}
+                      stateKey={stateKey}
+                      autocompleteFunctions={autocompleteFunctions || false}
+                      autocompleteVariables={autocompleteVariables}
+                    />
+                  </div>
+                </DetailsBanner>
+              </div>
             );
           case 'banner':
             return (
@@ -309,6 +310,7 @@ function EditorArg({
           autocomplete={arg.completionOptions ? { options: arg.completionOptions } : undefined}
           disabled={arg.disabled}
           language={arg.language}
+          readOnly={arg.readOnly}
           onChange={onChange}
           heightMode="auto"
           defaultValue={value === DYNAMIC_FORM_NULL_ARG ? arg.defaultValue : value}
@@ -329,9 +331,9 @@ function EditorArg({
                   showDialog({
                     id: 'id',
                     size: 'full',
-                    title: 'Edit Value',
+                    title: arg.readOnly ? 'View Value' : 'Edit Value',
                     className: '!max-w-[50rem] !max-h-[60rem]',
-                    description: (
+                    description: arg.label && (
                       <Label
                         htmlFor={id}
                         required={!arg.optional}
@@ -355,6 +357,7 @@ function EditorArg({
                           }
                           disabled={arg.disabled}
                           language={arg.language}
+                          readOnly={arg.readOnly}
                           onChange={onChange}
                           defaultValue={value === DYNAMIC_FORM_NULL_ARG ? arg.defaultValue : value}
                           placeholder={arg.placeholder ?? undefined}
@@ -432,7 +435,14 @@ function HttpRequestArg({
 }) {
   const folders = useAtomValue(foldersAtom);
   const httpRequests = useAtomValue(httpRequestsAtom);
-  const activeRequest = useActiveRequest();
+  const activeHttpRequest = useActiveRequest('http_request');
+
+  useEffect(() => {
+    if (value === DYNAMIC_FORM_NULL_ARG && activeHttpRequest) {
+      onChange(activeHttpRequest.id);
+    }
+  }, [activeHttpRequest, onChange, value]);
+
   return (
     <Select
       label={arg.label ?? arg.name}
@@ -446,7 +456,7 @@ function HttpRequestArg({
           return {
             label:
               buildRequestBreadcrumbs(r, folders).join(' / ') +
-              (r.id == activeRequest?.id ? ' (current)' : ''),
+              (r.id == activeHttpRequest?.id ? ' (current)' : ''),
             value: r.id,
           };
         }),

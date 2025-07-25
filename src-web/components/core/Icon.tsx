@@ -92,7 +92,9 @@ const icons = {
   plug: lucide.Plug,
   plus: lucide.PlusIcon,
   plus_circle: lucide.PlusCircleIcon,
+  puzzle: lucide.PuzzleIcon,
   refresh: lucide.RefreshCwIcon,
+  rocket: lucide.RocketIcon,
   save: lucide.SaveIcon,
   search: lucide.SearchIcon,
   send_horizontal: lucide.SendHorizonalIcon,
@@ -140,7 +142,7 @@ export const Icon = memo(function Icon({
       title={title}
       className={classNames(
         className,
-        !spin && 'transform-cpu',
+        !spin && 'transform-gpu',
         spin && 'animate-spin',
         'flex-shrink-0',
         size === 'xl' && 'h-6 w-6',

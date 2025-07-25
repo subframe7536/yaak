@@ -55,11 +55,6 @@ pub async fn send_http_request<R: Runtime>(
     let response_id = og_response.id.clone();
     let response = Arc::new(Mutex::new(og_response.clone()));
 
-    let cb = PluginTemplateCallback::new(
-        window.app_handle(),
-        &PluginWindowContext::new(window),
-        RenderPurpose::Send,
-    );
     let update_source = UpdateSource::from_window(window);
 
     let (resolved_request, auth_context_id) = match resolve_http_request(window, unrendered_request)
@@ -74,6 +69,12 @@ pub async fn send_http_request<R: Runtime>(
             ));
         }
     };
+
+    let cb = PluginTemplateCallback::new(
+        window.app_handle(),
+        &PluginWindowContext::new(window),
+        RenderPurpose::Send,
+    );
 
     let request =
         match render_http_request(&resolved_request, &base_environment, environment.as_ref(), &cb)
@@ -452,10 +453,7 @@ pub async fn send_http_request<R: Runtime>(
         Some(authentication_type) => {
             let req = CallHttpAuthenticationRequest {
                 context_id: format!("{:x}", md5::compute(auth_context_id)),
-                values: serde_json::from_value(
-                    serde_json::to_value(&request.authentication).unwrap(),
-                )
-                .unwrap(),
+                values: serde_json::from_value(serde_json::to_value(&request.authentication)?)?,
                 url: sendable_req.url().to_string(),
                 method: sendable_req.method().to_string(),
                 headers: sendable_req
@@ -482,11 +480,20 @@ pub async fn send_http_request<R: Runtime>(
             };
 
             let headers = sendable_req.headers_mut();
-            for header in plugin_result.set_headers {
-                headers.insert(
-                    HeaderName::from_str(&header.name).unwrap(),
-                    HeaderValue::from_str(&header.value).unwrap(),
-                );
+            for header in plugin_result.set_headers.unwrap_or_default() {
+                match (HeaderName::from_str(&header.name), HeaderValue::from_str(&header.value)) {
+                    (Ok(name), Ok(value)) => {
+                        headers.insert(name, value);
+                    }
+                    _ => continue,
+                };
+            }
+
+            if let Some(params) = plugin_result.set_query_parameters {
+                let mut query_pairs = sendable_req.url_mut().query_pairs_mut();
+                for p in params {
+                    query_pairs.append_pair(&p.name, &p.value);
+                }
             }
         }
     }

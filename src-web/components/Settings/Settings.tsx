@@ -69,7 +69,7 @@ export default function Settings({ hide }: Props) {
         layout="horizontal"
         value={tab}
         addBorders
-        tabListClassName="min-w-[10rem] bg-surface x-theme-sidebar border-r border-border"
+        tabListClassName="min-w-[10rem] bg-surface x-theme-sidebar border-r border-border pl-3"
         label="Settings"
         onChangeValue={setTab}
         tabs={tabs.map((value) => ({ value, label: capitalize(value) }))}

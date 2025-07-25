@@ -84,7 +84,7 @@ export function Tabs({
           tabListClassName,
           addBorders && '!-ml-1',
           'flex items-center hide-scrollbars mb-2',
-          layout === 'horizontal' && 'h-full overflow-auto p-2',
+          layout === 'horizontal' && 'h-full overflow-auto p-2 -mr-2',
           layout === 'vertical' && 'overflow-x-auto overflow-y-visible ',
           // Give space for button focus states within overflow boundary.
           layout === 'vertical' && 'py-1 -ml-5 pl-3 pr-1',
@@ -108,7 +108,7 @@ export function Tabs({
                 : layout === 'vertical'
                   ? 'border-border-subtle'
                   : 'border-transparent',
-              layout === 'horizontal' && 'flex justify-between',
+              layout === 'horizontal' && 'flex justify-between min-w-[10rem]',
             );
 
             if ('options' in t) {
@@ -177,7 +177,7 @@ export const TabContent = memo(function TabContent({
       <div
         tabIndex={-1}
         data-tab={value}
-        className={classNames(className, 'tab-content', 'hidden w-full h-full py-2')}
+        className={classNames(className, 'tab-content', 'hidden w-full h-full pt-2')}
       >
         {children}
       </div>

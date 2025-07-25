@@ -253,12 +253,11 @@ export class PluginInstance {
         const auth = this.#mod.authentication;
         if (typeof auth?.onApply === 'function') {
           applyFormInputDefaults(auth.args, payload.values);
-          const result = await auth.onApply(ctx, payload);
           this.#sendPayload(
             windowContext,
             {
               type: 'call_http_authentication_response',
-              setHeaders: result.setHeaders,
+              ...(await auth.onApply(ctx, payload)),
             },
             replyId,
           );
@@ -309,15 +308,27 @@ export class PluginInstance {
         const fn = this.#mod.templateFunctions.find((a) => a.name === payload.name);
         if (typeof fn?.onRender === 'function') {
           applyFormInputDefaults(fn.args, payload.args.values);
-          const result = await fn.onRender(ctx, payload.args);
-          this.#sendPayload(
-            windowContext,
-            {
-              type: 'call_template_function_response',
-              value: result ?? null,
-            },
-            replyId,
-          );
+          try {
+            const result = await fn.onRender(ctx, payload.args);
+            this.#sendPayload(
+              windowContext,
+              {
+                type: 'call_template_function_response',
+                value: result ?? null,
+              },
+              replyId,
+            );
+          } catch (err) {
+            this.#sendPayload(
+              windowContext,
+              {
+                type: 'call_template_function_response',
+                value: null,
+                error: `${err}`.replace(/^Error:\s*/g, ''),
+              },
+              replyId,
+            );
+          }
           return;
         }
       }
@@ -579,7 +590,7 @@ export class PluginInstance {
             event.windowContext,
             payload,
           );
-          return result.data;
+          return result.data as any;
         },
       },
       store: {

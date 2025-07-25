@@ -34,27 +34,18 @@ export async function convertToCurl(request: Partial<HttpRequest>) {
   let finalUrl = request.url || '';
   const urlParams = (request.urlParameters ?? []).filter(onlyEnabled);
   if (urlParams.length > 0) {
-    try {
-      // Build url using URL class
-      const urlObj = new URL(finalUrl);
-      urlParams.forEach(p => {
-        urlObj.searchParams.append(p.name, p.value);
-      });
-      finalUrl = urlObj.toString();
-    } catch {
-      // Build manually
-      const [base, hash] = finalUrl.split('#');
-      const separator = base!.includes('?') ? '&' : '?';
-      const queryString = urlParams
-        .map(p => `${encodeURIComponent(p.name)}=${encodeURIComponent(p.value)}`)
-        .join('&');
-      finalUrl = base + separator + queryString + (hash ? `#${hash}` : '');
-    }
+    // Build url
+    const [base, hash] = finalUrl.split('#');
+    const separator = base!.includes('?') ? '&' : '?';
+    const queryString = urlParams
+      .map(p => `${encodeURIComponent(p.name)}=${encodeURIComponent(p.value)}`)
+      .join('&');
+    finalUrl = base + separator + queryString + (hash ? `#${hash}` : '');
   }
-  
+
   xs.push(quote(finalUrl));
   xs.push(NEWLINE);
-  
+
   // Add headers
   for (const h of (request.headers ?? []).filter(onlyEnabled)) {
     xs.push('--header', quote(`${h.name}: ${h.value}`));

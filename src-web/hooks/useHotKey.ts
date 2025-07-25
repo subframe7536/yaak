@@ -26,8 +26,8 @@ export type HotkeyAction =
   | 'workspace_settings.show';
 
 const hotkeys: Record<HotkeyAction, string[]> = {
-  'app.zoom_in': ['CmdCtrl+='],
-  'app.zoom_out': ['CmdCtrl+-'],
+  'app.zoom_in': ['CmdCtrl+Equal'],
+  'app.zoom_out': ['CmdCtrl+Minus'],
   'app.zoom_reset': ['CmdCtrl+0'],
   'command_palette.toggle': ['CmdCtrl+k'],
   'environmentEditor.toggle': ['CmdCtrl+Shift+E', 'CmdCtrl+Shift+e'],
@@ -66,6 +66,8 @@ const hotkeyLabels: Record<HotkeyAction, string> = {
   'url_bar.focus': 'Focus URL',
   'workspace_settings.show': 'Open Workspace Settings',
 };
+
+const layoutInsensitiveKeys = ['Equal', 'Minus', 'BracketLeft', 'BracketRight', 'Backquote'];
 
 export const hotkeyActions: HotkeyAction[] = Object.keys(hotkeys) as (keyof typeof hotkeys)[];
 
@@ -106,7 +108,8 @@ export function useHotKey(
         return;
       }
 
-      currentKeys.current.add(e.key);
+      const keyToAdd = layoutInsensitiveKeys.includes(e.code) ? e.code : e.key;
+      currentKeys.current.add(keyToAdd);
 
       const currentKeysWithModifiers = new Set(currentKeys.current);
       if (e.altKey) currentKeysWithModifiers.add('Alt');
@@ -150,7 +153,9 @@ export function useHotKey(
       if (options.enable === false) {
         return;
       }
-      currentKeys.current.delete(e.key);
+
+      const keyToRemove = layoutInsensitiveKeys.includes(e.code) ? e.code : e.key;
+      currentKeys.current.delete(keyToRemove);
 
       // Clear all keys if no longer holding modifier
       // HACK: This is to get around the case of DOWN SHIFT -> DOWN : -> UP SHIFT -> UP ;

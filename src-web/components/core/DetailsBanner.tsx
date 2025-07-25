@@ -21,10 +21,12 @@ export function DetailsBanner({ className, color, summary, children, ...extraPro
               'w-0 h-0 border-t-[0.3em] border-b-[0.3em] border-l-[0.5em] border-r-0',
               'border-t-transparent border-b-transparent border-l-text-subtle',
             )}
-          ></div>
+          />
           {summary}
         </summary>
+        <div className="mt-1.5">
         {children}
+        </div>
       </details>
     </Banner>
   );
