@@ -19,7 +19,7 @@ use crate::nodejs::start_nodejs_plugin_runtime;
 use crate::plugin_handle::PluginHandle;
 use crate::server_ws::PluginRuntimeServerWebsocket;
 use crate::template_callback::PluginTemplateCallback;
-use log::{debug, error, info, warn};
+use log::{error, info, warn};
 use serde_json::json;
 use std::collections::HashMap;
 use std::env;

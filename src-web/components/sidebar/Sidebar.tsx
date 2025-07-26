@@ -344,7 +344,7 @@ export function Sidebar({ className }: Props) {
         'h-full grid grid-rows-[minmax(0,1fr)_auto]',
       )}
     >
-      <div className="pb-3 overflow-x-visible overflow-y-scroll pt-2">
+      <div className="pb-3 overflow-x-visible overflow-y-scroll pt-2 pr-0.5">
         <ContextMenu
           triggerPosition={showMainContextMenu}
           items={mainContextMenuItems}
