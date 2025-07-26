@@ -19,7 +19,7 @@ use crate::nodejs::start_nodejs_plugin_runtime;
 use crate::plugin_handle::PluginHandle;
 use crate::server_ws::PluginRuntimeServerWebsocket;
 use crate::template_callback::PluginTemplateCallback;
-use log::{error, info, warn};
+use log::{debug, error, info, warn};
 use serde_json::json;
 use std::collections::HashMap;
 use std::env;
@@ -31,6 +31,7 @@ use tauri::{AppHandle, Manager, Runtime, WebviewWindow, is_dev};
 use tokio::fs::read_dir;
 use tokio::net::TcpListener;
 use tokio::sync::{Mutex, mpsc};
+use tokio::sync::mpsc::error::TrySendError;
 use tokio::time::{Instant, timeout};
 use yaak_models::models::Environment;
 use yaak_models::query_manager::QueryManagerExt;
@@ -91,7 +92,14 @@ impl PluginManager {
             while let Some(event) = events_rx.recv().await {
                 for (tx_id, tx) in subscribers.lock().await.iter_mut() {
                     if let Err(e) = tx.try_send(event.clone()) {
-                        warn!("Failed to send event to subscriber {tx_id} {e:?}");
+                        match e {
+                            TrySendError::Full(e) => {
+                                error!("Failed to send event to full subscriber {tx_id} {e:?}");
+                            }
+                            TrySendError::Closed(_) => {
+                                // Subscriber already unsubscribed
+                            }
+                        }
                     }
                 }
             }
@@ -240,16 +248,13 @@ impl PluginManager {
         )
         .await??;
 
-        let mut plugins = self.plugins.lock().await;
+        if !matches!(event.payload, InternalEventPayload::BootResponse) {
+            return Err(UnknownEventErr);
+        }
 
-        // Remove the existing plugin (if exists) before adding this one
+        let mut plugins = self.plugins.lock().await;
         plugins.retain(|p| p.dir != dir);
         plugins.push(plugin_handle.clone());
-
-        let _ = match event.payload {
-            InternalEventPayload::BootResponse(resp) => resp,
-            _ => return Err(UnknownEventErr),
-        };
 
         Ok(())
     }
@@ -363,7 +368,7 @@ impl PluginManager {
         payload: &InternalEventPayload,
         plugins: Vec<PluginHandle>,
     ) -> Result<Vec<InternalEvent>> {
-        let label = format!("wait[{}]", plugins.len());
+        let label = format!("wait[{}.{}]", plugins.len(), payload.type_name());
         let (rx_id, mut rx) = self.subscribe(label.as_str()).await;
 
         // 1. Build the events with IDs and everything
@@ -411,7 +416,7 @@ impl PluginManager {
         let events = sub_events_fut.await.expect("Thread didn't succeed");
 
         // 5. Unsubscribe
-        self.unsubscribe(rx_id.as_str()).await;
+        self.unsubscribe(&rx_id).await;
 
         Ok(events)
     }

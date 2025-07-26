@@ -150,7 +150,7 @@ pub(crate) async fn handle_plugin_event<R: Runtime>(
             Box::pin(handle_plugin_event(app_handle, &toast_event, plugin_handle)).await;
             None
         }
-        InternalEventPayload::ReloadResponse(r) => {
+        InternalEventPayload::ReloadResponse(req) => {
             let plugins = app_handle.db().list_plugins().unwrap();
             for plugin in plugins {
                 if plugin.directory != plugin_handle.dir {
@@ -163,16 +163,20 @@ pub(crate) async fn handle_plugin_event<R: Runtime>(
                 };
                 app_handle.db().upsert_plugin(&new_plugin, &UpdateSource::Plugin).unwrap();
             }
-            let toast_event = plugin_handle.build_event_to_send(
-                &window_context,
-                &InternalEventPayload::ShowToastRequest(ShowToastRequest {
-                    message: format!("Reloaded plugin {}@{}", r.name, r.version),
-                    icon: Some(Icon::Info),
-                    ..Default::default()
-                }),
-                None,
-            );
-            Box::pin(handle_plugin_event(app_handle, &toast_event, plugin_handle)).await;
+
+            if !req.silent {
+                let info = plugin_handle.info();
+                let toast_event = plugin_handle.build_event_to_send(
+                    &window_context,
+                    &InternalEventPayload::ShowToastRequest(ShowToastRequest {
+                        message: format!("Reloaded plugin {}@{}", info.name, info.version),
+                        icon: Some(Icon::Info),
+                        ..Default::default()
+                    }),
+                    None,
+                );
+                Box::pin(handle_plugin_event(app_handle, &toast_event, plugin_handle)).await;
+            }
             None
         }
         InternalEventPayload::SendHttpRequestRequest(req) => {

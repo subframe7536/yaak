@@ -6,12 +6,16 @@ import type { ImporterPlugin } from './ImporterPlugin';
 import type { TemplateFunctionPlugin } from './TemplateFunctionPlugin';
 import type { ThemePlugin } from './ThemePlugin';
 
-export type { Context } from './Context';
+import type { Context } from './Context';
+
+export type { Context };
 
 /**
  * The global structure of a Yaak plugin
  */
 export type PluginDefinition = {
+  init?: (ctx: Context) => void | Promise<void>;
+  dispose?: () => void | Promise<void>;
   importer?: ImporterPlugin;
   themes?: ThemePlugin[];
   filter?: FilterPlugin;

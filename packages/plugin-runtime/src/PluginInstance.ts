@@ -1,6 +1,5 @@
 import {
   BootRequest,
-  BootResponse,
   DeleteKeyValueResponse,
   FindHttpResponsesResponse,
   FormInput,
@@ -56,19 +55,19 @@ export class PluginInstance {
     // Reload plugin if the JS or package.json changes
     const windowContextNone: PluginWindowContext = { type: 'none' };
 
-    this.#mod = {};
+    this.#mod = {} as any;
     this.#pkg = JSON.parse(readFileSync(this.#pathPkg(), 'utf8'));
 
-    const bootResponse: BootResponse = {
-      name: this.#pkg.name ?? 'unknown',
-      version: this.#pkg.version ?? '0.0.1',
-    };
-
     const fileChangeCallback = async () => {
+      await this.#mod?.dispose?.();
       this.#importModule();
+      await this.#mod?.init?.(this.#newCtx({ type: 'none' }));
       return this.#sendPayload(
         windowContextNone,
-        { type: 'reload_response', ...bootResponse },
+        {
+          type: 'reload_response',
+          silent: false,
+        },
         null,
       );
     };
@@ -85,23 +84,20 @@ export class PluginInstance {
     this.#appToPluginEvents.emit(event);
   }
 
-  terminate() {
+  async terminate() {
+    await this.#mod?.dispose?.();
     this.#unimportModule();
   }
 
   async #onMessage(event: InternalEvent) {
-    const ctx = this.#newCtx(event);
+    const ctx = this.#newCtx(event.windowContext);
 
     const { windowContext, payload, id: replyId } = event;
+
     try {
       if (payload.type === 'boot_request') {
-        // console.log('Plugin initialized', pkg.name, { capabilities, enableWatch });
-        const payload: InternalEventPayload = {
-          type: 'boot_response',
-          name: this.#pkg.name ?? 'unknown',
-          version: this.#pkg.version ?? '0.0.1',
-        };
-        this.#sendPayload(windowContext, payload, replyId);
+        await this.#mod?.init?.(ctx);
+        this.#sendPayload(windowContext, { type: 'boot_response' }, replyId);
         return;
       }
 
@@ -109,6 +105,7 @@ export class PluginInstance {
         const payload: InternalEventPayload = {
           type: 'terminate_response',
         };
+        await this.terminate();
         this.#sendPayload(windowContext, payload, replyId);
         return;
       }
@@ -332,10 +329,6 @@ export class PluginInstance {
           return;
         }
       }
-
-      if (payload.type === 'reload_request') {
-        this.#importModule();
-      }
     } catch (err) {
       const error = `${err}`.replace(/^Error:\s*/g, '');
       console.log('Plugin call threw exception', payload.type, '→', error);
@@ -447,11 +440,11 @@ export class PluginInstance {
     this.#sendEvent(eventToSend);
   }
 
-  #newCtx(event: InternalEvent): Context {
+  #newCtx(windowContext: PluginWindowContext): Context {
     return {
       clipboard: {
         copyText: async (text) => {
-          await this.#sendAndWaitForReply(event.windowContext, {
+          await this.#sendAndWaitForReply(windowContext, {
             type: 'copy_text_request',
             text,
           });
@@ -459,7 +452,7 @@ export class PluginInstance {
       },
       toast: {
         show: async (args) => {
-          await this.#sendAndWaitForReply(event.windowContext, {
+          await this.#sendAndWaitForReply(windowContext, {
             type: 'show_toast_request',
             ...args,
           });
@@ -476,21 +469,21 @@ export class PluginInstance {
               onClose?.();
             }
           };
-          this.#sendAndListenForEvents(event.windowContext, payload, onEvent);
+          this.#sendAndListenForEvents(windowContext, payload, onEvent);
           return {
             close: () => {
               const closePayload: InternalEventPayload = {
                 type: 'close_window_request',
                 label: args.label,
               };
-              this.#sendPayload(event.windowContext, closePayload, null);
+              this.#sendPayload(windowContext, closePayload, null);
             },
           };
         },
       },
       prompt: {
         text: async (args) => {
-          const reply: PromptTextResponse = await this.#sendAndWaitForReply(event.windowContext, {
+          const reply: PromptTextResponse = await this.#sendAndWaitForReply(windowContext, {
             type: 'prompt_text_request',
             ...args,
           });
@@ -504,7 +497,7 @@ export class PluginInstance {
             ...args,
           } as const;
           const { httpResponses } = await this.#sendAndWaitForReply<FindHttpResponsesResponse>(
-            event.windowContext,
+            windowContext,
             payload,
           );
           return httpResponses;
@@ -517,7 +510,7 @@ export class PluginInstance {
             ...args,
           } as const;
           const { grpcRequest } = await this.#sendAndWaitForReply<RenderGrpcRequestResponse>(
-            event.windowContext,
+            windowContext,
             payload,
           );
           return grpcRequest;
@@ -530,7 +523,7 @@ export class PluginInstance {
             ...args,
           } as const;
           const { httpRequest } = await this.#sendAndWaitForReply<GetHttpRequestByIdResponse>(
-            event.windowContext,
+            windowContext,
             payload,
           );
           return httpRequest;
@@ -541,7 +534,7 @@ export class PluginInstance {
             ...args,
           } as const;
           const { httpResponse } = await this.#sendAndWaitForReply<SendHttpRequestResponse>(
-            event.windowContext,
+            windowContext,
             payload,
           );
           return httpResponse;
@@ -552,7 +545,7 @@ export class PluginInstance {
             ...args,
           } as const;
           const { httpRequest } = await this.#sendAndWaitForReply<RenderHttpRequestResponse>(
-            event.windowContext,
+            windowContext,
             payload,
           );
           return httpRequest;
@@ -565,7 +558,7 @@ export class PluginInstance {
             ...args,
           } as const;
           const { value } = await this.#sendAndWaitForReply<GetCookieValueResponse>(
-            event.windowContext,
+            windowContext,
             payload,
           );
           return value;
@@ -573,7 +566,7 @@ export class PluginInstance {
         listNames: async () => {
           const payload = { type: 'list_cookie_names_request' } as const;
           const { names } = await this.#sendAndWaitForReply<ListCookieNamesResponse>(
-            event.windowContext,
+            windowContext,
             payload,
           );
           return names;
@@ -587,7 +580,7 @@ export class PluginInstance {
         render: async (args) => {
           const payload = { type: 'template_render_request', ...args } as const;
           const result = await this.#sendAndWaitForReply<TemplateRenderResponse>(
-            event.windowContext,
+            windowContext,
             payload,
           );
           return result.data as any;
@@ -597,7 +590,7 @@ export class PluginInstance {
         get: async <T>(key: string) => {
           const payload = { type: 'get_key_value_request', key } as const;
           const result = await this.#sendAndWaitForReply<GetKeyValueResponse>(
-            event.windowContext,
+            windowContext,
             payload,
           );
           return result.value ? (JSON.parse(result.value) as T) : undefined;
@@ -609,15 +602,20 @@ export class PluginInstance {
             key,
             value: valueStr,
           };
-          await this.#sendAndWaitForReply<GetKeyValueResponse>(event.windowContext, payload);
+          await this.#sendAndWaitForReply<GetKeyValueResponse>(windowContext, payload);
         },
         delete: async (key: string) => {
           const payload = { type: 'delete_key_value_request', key } as const;
           const result = await this.#sendAndWaitForReply<DeleteKeyValueResponse>(
-            event.windowContext,
+            windowContext,
             payload,
           );
           return result.deleted;
+        },
+      },
+      plugin: {
+        reload: () => {
+          this.#sendPayload({ type: 'none' }, { type: 'reload_response', silent: true }, null);
         },
       },
     };

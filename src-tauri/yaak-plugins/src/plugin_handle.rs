@@ -2,7 +2,6 @@ use crate::error::Result;
 use crate::events::{InternalEvent, InternalEventPayload, PluginWindowContext};
 use crate::plugin_meta::{PluginMetadata, get_plugin_meta};
 use crate::util::gen_id;
-use log::info;
 use std::path::Path;
 use std::sync::Arc;
 use tokio::sync::{Mutex, mpsc};
@@ -56,13 +55,6 @@ impl PluginHandle {
             payload: payload.clone(),
             window_context: window_context.clone(),
         }
-    }
-
-    pub async fn terminate(&self, window_context: &PluginWindowContext) -> Result<()> {
-        info!("Terminating plugin {}", self.dir);
-        let event =
-            self.build_event_to_send(window_context, &InternalEventPayload::TerminateRequest, None);
-        self.send(&event).await
     }
 
     pub async fn send(&self, event: &InternalEvent) -> Result<()> {

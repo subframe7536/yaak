@@ -61,4 +61,7 @@ export interface Context {
   templates: {
     render<T extends JsonValue>(args: TemplateRenderRequest & { data: T }): Promise<T>;
   };
+  plugin: {
+    reload(): void;
+  };
 }
