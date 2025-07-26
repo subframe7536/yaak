@@ -30,8 +30,8 @@ use tauri::path::BaseDirectory;
 use tauri::{AppHandle, Manager, Runtime, WebviewWindow, is_dev};
 use tokio::fs::read_dir;
 use tokio::net::TcpListener;
-use tokio::sync::{Mutex, mpsc};
 use tokio::sync::mpsc::error::TrySendError;
+use tokio::sync::{Mutex, mpsc};
 use tokio::time::{Instant, timeout};
 use yaak_models::models::Environment;
 use yaak_models::query_manager::QueryManagerExt;
@@ -205,7 +205,12 @@ impl PluginManager {
         plugin: &PluginHandle,
     ) -> Result<()> {
         // Terminate the plugin
-        plugin.terminate(window_context).await?;
+        self.send_to_plugin_and_wait(
+            window_context,
+            plugin,
+            &InternalEventPayload::TerminateRequest,
+        )
+        .await?;
 
         // Remove the plugin from the list
         let mut plugins = self.plugins.lock().await;
