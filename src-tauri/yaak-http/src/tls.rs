@@ -10,7 +10,7 @@ pub fn get_config(validate_certificates: bool) -> ClientConfig {
     let config_builder = ClientConfig::builder_with_provider(arc_crypto_provider)
         .with_safe_default_protocol_versions()
         .unwrap();
-    if validate_certificates {
+    let mut client = if validate_certificates {
         // Use platform-native verifier to validate certificates
         config_builder.with_platform_verifier().unwrap().with_no_client_auth()
     } else {
@@ -18,7 +18,10 @@ pub fn get_config(validate_certificates: bool) -> ClientConfig {
             .dangerous()
             .with_custom_certificate_verifier(Arc::new(NoVerifier))
             .with_no_client_auth()
-    }
+    };
+    // Required for http/2 support
+    client.alpn_protocols = vec![b"h2".to_vec(), b"http/1.1".to_vec()];
+    client
 }
 
 // Copied from reqwest: https://github.com/seanmonstar/reqwest/blob/595c80b1fbcdab73ac2ae93e4edc3406f453df25/src/tls.rs#L608
