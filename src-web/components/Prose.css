@@ -116,7 +116,7 @@
 
   pre {
     @apply bg-surface-highlight text-text !important;
-    @apply px-4 py-3 rounded-md;
+    @apply pl-4 py-3 rounded-md;
     @apply overflow-auto whitespace-pre;
     @apply text-editor font-mono;
 
