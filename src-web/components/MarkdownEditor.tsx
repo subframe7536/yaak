@@ -47,7 +47,7 @@ export function MarkdownEditor({
       <p className="text-text-subtlest">No description</p>
     ) : (
       <div className="overflow-y-auto max-h-full [&_*]:cursor-auto [&_*]:select-auto">
-        <Markdown className="max-w-lg">{defaultValue}</Markdown>
+        <Markdown className="max-w-lg select-auto cursor-auto">{defaultValue}</Markdown>
       </div>
     );
 
