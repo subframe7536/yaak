@@ -449,7 +449,7 @@ function HttpRequestArg({
       name={arg.name}
       onChange={onChange}
       help={arg.description}
-      value={value === DYNAMIC_FORM_NULL_ARG ? activeHttpRequest?.id ?? value : value}
+      value={value}
       disabled={arg.disabled}
       options={[
         ...httpRequests.map((r) => {
