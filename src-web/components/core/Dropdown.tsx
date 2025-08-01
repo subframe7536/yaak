@@ -436,7 +436,7 @@ const Menu = forwardRef<Omit<DropdownRef, 'open' | 'isOpen' | 'toggle' | 'items'
       const heightBelow = docRect.height - triggerShape.bottom;
       const horizontalSpaceRemaining = docRect.width - triggerShape.left;
       const top = triggerShape.bottom;
-      const onRight = horizontalSpaceRemaining < 200;
+      const onRight = horizontalSpaceRemaining < 300;
       const upsideDown = heightBelow < heightAbove && heightBelow < items.length * 25 + 20 + 200;
       const triggerWidth = triggerShape.right - triggerShape.left;
       return {

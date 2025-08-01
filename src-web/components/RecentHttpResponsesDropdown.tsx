@@ -34,14 +34,14 @@ export const RecentHttpResponsesDropdown = function ResponsePane({
           label: 'Save to File',
           onSelect: saveResponse.mutate,
           leftSlot: <Icon icon="save" />,
-          hidden: responses.length === 0,
+          hidden: responses.length === 0 || !!activeResponse.error,
           disabled: activeResponse.state !== 'closed' && activeResponse.status >= 100,
         },
         {
           label: 'Copy Body',
           onSelect: copyResponse.mutate,
           leftSlot: <Icon icon="copy" />,
-          hidden: responses.length === 0,
+          hidden: responses.length === 0 || !!activeResponse.error,
           disabled: activeResponse.state !== 'closed' && activeResponse.status >= 100,
         },
         {

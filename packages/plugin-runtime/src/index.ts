@@ -46,7 +46,7 @@ async function handleIncoming(msg: string) {
   }
 
   if (pluginEvent.payload.type === 'terminate_request') {
-    plugin.terminate();
+    await plugin.terminate();
     console.log('Terminated plugin worker', pluginEvent.pluginRefId);
     delete plugins[pluginEvent.pluginRefId];
   }

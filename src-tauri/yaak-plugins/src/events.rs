@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::collections::HashMap;
 use tauri::{Runtime, WebviewWindow};
 use ts_rs::TS;
@@ -64,10 +65,9 @@ impl PluginWindowContext {
 #[ts(export, export_to = "gen_events.ts")]
 pub enum InternalEventPayload {
     BootRequest(BootRequest),
-    BootResponse(BootResponse),
+    BootResponse,
 
-    ReloadRequest(EmptyPayload),
-    ReloadResponse(BootResponse),
+    ReloadResponse(ReloadResponse),
 
     TerminateRequest,
     TerminateResponse,
@@ -161,6 +161,17 @@ pub enum InternalEventPayload {
     ErrorResponse(ErrorResponse),
 }
 
+impl InternalEventPayload {
+    pub fn type_name(&self) -> String {
+        if let Ok(Value::Object(map)) = serde_json::to_value(self) {
+            map.get("type").map(|s| s.as_str().unwrap_or("unknown").to_string())
+        } else {
+            None
+        }
+        .unwrap_or("invalid_event".to_string())
+    }
+}
+
 #[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
 #[serde(default)]
 #[ts(export, type = "{}", export_to = "gen_events.ts")]
@@ -184,9 +195,8 @@ pub struct BootRequest {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
 #[serde(default, rename_all = "camelCase")]
 #[ts(export, export_to = "gen_events.ts")]
-pub struct BootResponse {
-    pub name: String,
-    pub version: String,
+pub struct ReloadResponse {
+    pub silent: bool,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]

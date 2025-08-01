@@ -46,8 +46,8 @@ export function MarkdownEditor({
     defaultValue.length === 0 ? (
       <p className="text-text-subtlest">No description</p>
     ) : (
-      <div className="overflow-y-auto max-h-full [&_*]:cursor-auto [&_*]:select-auto">
-        <Markdown className="max-w-lg">{defaultValue}</Markdown>
+      <div className="pr-1.5 overflow-y-auto max-h-full [&_*]:cursor-auto [&_*]:select-auto">
+        <Markdown className="max-w-lg select-auto cursor-auto">{defaultValue}</Markdown>
       </div>
     );
 
@@ -59,6 +59,7 @@ export function MarkdownEditor({
       className={classNames(
         'group/markdown',
         'relative w-full h-full pt-1.5 rounded-md gap-x-1.5',
+        'min-w-0', // Not sure why this is needed
         className,
       )}
     >

@@ -19,7 +19,7 @@ export function useResolvedTheme() {
         settings.themeLight,
         settings.themeDark,
       );
-      return { ...data, ...await getThemes() };
+      return { ...data, ...(await getThemes()) };
     },
   });
 }

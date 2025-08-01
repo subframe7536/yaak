@@ -21,7 +21,7 @@ export class PluginHandle {
     this.#instance.postMessage(event);
   }
 
-  terminate() {
-    this.#instance.terminate();
+  async terminate() {
+    await this.#instance.terminate();
   }
 }
