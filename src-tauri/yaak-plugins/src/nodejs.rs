@@ -1,12 +1,12 @@
 use crate::error::Result;
-use log::info;
+use log::{info, warn};
 use serde;
 use serde::Deserialize;
 use std::net::SocketAddr;
 use tauri::path::BaseDirectory;
 use tauri::{AppHandle, Manager, Runtime};
-use tauri_plugin_shell::process::CommandEvent;
 use tauri_plugin_shell::ShellExt;
+use tauri_plugin_shell::process::CommandEvent;
 use tokio::sync::watch::Receiver;
 
 #[derive(Deserialize, Default)]
@@ -44,10 +44,10 @@ pub async fn start_nodejs_plugin_runtime<R: Runtime>(
         while let Some(event) = child_rx.recv().await {
             match event {
                 CommandEvent::Stderr(line) => {
-                    print!("{}", String::from_utf8(line).unwrap());
+                    warn!("{}", String::from_utf8_lossy(&line).trim_end_matches(&['\n', '\r'][..]));
                 }
                 CommandEvent::Stdout(line) => {
-                    print!("{}", String::from_utf8(line).unwrap());
+                    info!("{}", String::from_utf8_lossy(&line).trim_end_matches(&['\n', '\r'][..]));
                 }
                 _ => {}
             }
