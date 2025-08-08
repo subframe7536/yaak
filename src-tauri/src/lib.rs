@@ -1389,12 +1389,15 @@ pub fn run() {
                 } => {
                     let w = app_handle.get_webview_window(&label).unwrap();
                     let h = app_handle.clone();
+
                     // Run update check whenever the window is focused
                     tauri::async_runtime::spawn(async move {
-                        let val: State<'_, Mutex<YaakUpdater>> = h.state();
-                        let update_mode = get_update_mode(&w).await.unwrap();
-                        if let Err(e) = val.lock().await.maybe_check(&w, update_mode).await {
-                            warn!("Failed to check for updates {e:?}");
+                        if w.db().get_settings().autoupdate {
+                            let val: State<'_, Mutex<YaakUpdater>> = h.state();
+                            let update_mode = get_update_mode(&w).await.unwrap();
+                            if let Err(e) = val.lock().await.maybe_check(&w, update_mode).await {
+                                warn!("Failed to check for updates {e:?}");
+                            };
                         };
                     });
 

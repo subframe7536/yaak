@@ -31,6 +31,7 @@ impl<'a> DbContext<'a> {
             theme_dark: "yaak-dark".to_string(),
             theme_light: "yaak-light".to_string(),
             update_channel: "stable".to_string(),
+            autoupdate: true,
             colored_methods: false,
         };
         self.upsert(&settings, &UpdateSource::Background).expect("Failed to upsert settings")

@@ -49,6 +49,21 @@ export function SettingsGeneral() {
           onClick={() => checkForUpdates.mutateAsync()}
         />
       </div>
+
+      <Select
+        name="autoupdate"
+        value={settings.autoupdate ? 'auto' : 'manual'}
+        label="Update Behavior"
+        labelPosition="left"
+        size="sm"
+        labelClassName="w-[14rem]"
+        onChange={(v) => patchModel(settings, { autoupdate: v === 'auto' })}
+        options={[
+          { label: 'Automatic', value: 'auto' },
+          { label: 'Manual', value: 'manual' },
+        ]}
+      />
+
       <Select
         name="switchWorkspaceBehavior"
         label="Workspace Window Behavior"
