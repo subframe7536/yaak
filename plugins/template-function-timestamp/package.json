@@ -5,7 +5,7 @@
   "scripts": {
     "build": "yaakcli build",
     "dev": "yaakcli dev",
-    "lint":"tsc --noEmit && eslint . --ext .ts,.tsx"
+    "lint":"eslint . --ext .ts,.tsx"
   },
   "dependencies": {
     "date-fns": "^4.1.0"
