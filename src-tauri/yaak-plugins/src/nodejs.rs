@@ -1,19 +1,11 @@
 use crate::error::Result;
 use log::{info, warn};
-use serde;
-use serde::Deserialize;
 use std::net::SocketAddr;
 use tauri::path::BaseDirectory;
 use tauri::{AppHandle, Manager, Runtime};
-use tauri_plugin_shell::ShellExt;
 use tauri_plugin_shell::process::CommandEvent;
+use tauri_plugin_shell::ShellExt;
 use tokio::sync::watch::Receiver;
-
-#[derive(Deserialize, Default)]
-#[serde(default, rename_all = "camelCase")]
-struct PortFile {
-    port: i32,
-}
 
 pub async fn start_nodejs_plugin_runtime<R: Runtime>(
     app: &AppHandle<R>,
