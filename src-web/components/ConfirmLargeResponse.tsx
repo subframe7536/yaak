@@ -51,7 +51,7 @@ export function ConfirmLargeResponse({ children, response }: Props) {
               color="secondary"
               variant="border"
               size="xs"
-              text={() => getResponseBodyText({ responseId: response.id, filter: null })}
+              text={() => getResponseBodyText({ response, filter: null })}
             />
           )}
         </HStack>

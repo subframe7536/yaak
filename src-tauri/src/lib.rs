@@ -720,13 +720,10 @@ async fn cmd_format_json(text: &str) -> YaakResult<String> {
 #[tauri::command]
 async fn cmd_http_response_body<R: Runtime>(
     window: WebviewWindow<R>,
-    app_handle: AppHandle<R>,
     plugin_manager: State<'_, PluginManager>,
-    response_id: &str,
+    response: HttpResponse,
     filter: Option<&str>,
 ) -> YaakResult<FilterResponse> {
-    let response = app_handle.db().get_http_response(response_id)?;
-
     let body_path = match response.body_path {
         None => {
             return Err(GenericError("Response body path not set".to_string()));
@@ -836,7 +833,7 @@ async fn cmd_get_http_authentication_config<R: Runtime>(
         AnyModel::Workspace(m) => (m.id, None),
         m => {
             return Err(GenericError(format!("Unsupported model to call auth config {m:?}")));
-        },
+        }
     };
 
     let environment_chain =

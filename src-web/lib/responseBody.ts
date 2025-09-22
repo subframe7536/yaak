@@ -4,14 +4,14 @@ import type { ServerSentEvent } from '@yaakapp-internal/sse';
 import { invokeCmd } from './tauri';
 
 export async function getResponseBodyText({
-  responseId,
+  response,
   filter,
 }: {
-  responseId: string;
+  response: HttpResponse;
   filter: string | null;
 }): Promise<string | null> {
   const result = await invokeCmd<FilterResponse>('cmd_http_response_body', {
-    responseId,
+    response,
     filter,
   });
 

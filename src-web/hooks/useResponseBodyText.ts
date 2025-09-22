@@ -17,6 +17,6 @@ export function useResponseBodyText({
       response.contentLength,
       filter ?? '',
     ],
-    queryFn: () => getResponseBodyText({ responseId: response.id, filter }),
+    queryFn: () => getResponseBodyText({ response, filter }),
   });
 }
