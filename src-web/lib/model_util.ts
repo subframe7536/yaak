@@ -51,3 +51,11 @@ export function getCharsetFromContentType(headers: HttpResponseHeader[]): string
 export function isBaseEnvironment(environment: Environment): boolean {
   return environment.parentId == null;
 }
+
+export function isSubEnvironment(environment: Environment): boolean {
+  return environment.parentModel == 'environment';
+}
+
+export function isFolderEnvironment(environment: Environment): boolean {
+  return environment.parentModel == 'folder';
+}

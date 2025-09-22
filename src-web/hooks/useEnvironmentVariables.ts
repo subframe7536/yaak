@@ -1,16 +1,22 @@
 import type { Environment, EnvironmentVariable } from '@yaakapp-internal/models';
 import { foldersAtom } from '@yaakapp-internal/models';
+import { useAtomValue } from 'jotai';
 import { useMemo } from 'react';
 import { jotaiStore } from '../lib/jotai';
+import { isFolderEnvironment } from '../lib/model_util';
+import { useActiveEnvironment } from './useActiveEnvironment';
 import { useActiveRequest } from './useActiveRequest';
 import { useEnvironmentsBreakdown } from './useEnvironmentsBreakdown';
 import { useParentFolders } from './useParentFolders';
 
-export function useEnvironmentVariables(environmentId: string | null) {
-  const { baseEnvironment, folderEnvironments, subEnvironments } = useEnvironmentsBreakdown();
-  const activeEnvironment = subEnvironments.find((e) => e.id === environmentId) ?? null;
+export function useEnvironmentVariables(targetEnvironmentId: string | null) {
+  const { baseEnvironment, folderEnvironments, allEnvironments } = useEnvironmentsBreakdown();
+  const activeEnvironment = useActiveEnvironment();
+  const targetEnvironment = allEnvironments.find((e) => e.id === targetEnvironmentId) ?? null;
   const activeRequest = useActiveRequest();
-  const parentFolders = useParentFolders(activeRequest);
+  const folders = useAtomValue(foldersAtom);
+  const activeFolder = folders.find((f) => f.id === targetEnvironment?.parentId) ?? null;
+  const parentFolders = useParentFolders(activeFolder ?? activeRequest);
 
   return useMemo(() => {
     const varMap: Record<string, WrappedEnvironmentVariable> = {};
@@ -18,9 +24,15 @@ export function useEnvironmentVariables(environmentId: string | null) {
       wrapVariables(folderEnvironments.find((fe) => fe.parentId === f.id) ?? null),
     );
 
+    // Folder environments also can auto-complete from the active environment
+    const activeEnvironmentVariables =
+      targetEnvironment != null && isFolderEnvironment(targetEnvironment)
+        ? wrapVariables(activeEnvironment)
+        : [];
+
     const allVariables = [
       ...folderVariables,
-      ...wrapVariables(activeEnvironment),
+      ...activeEnvironmentVariables,
       ...wrapVariables(baseEnvironment),
     ];
 
@@ -32,7 +44,7 @@ export function useEnvironmentVariables(environmentId: string | null) {
     }
 
     return Object.values(varMap);
-  }, [activeEnvironment, baseEnvironment, folderEnvironments, parentFolders]);
+  }, [activeEnvironment, baseEnvironment, folderEnvironments, parentFolders, targetEnvironment]);
 }
 
 export interface WrappedEnvironmentVariable {

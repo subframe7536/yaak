@@ -24,7 +24,7 @@ import { EnvironmentColorIndicator } from './EnvironmentColorIndicator';
 import { EnvironmentSharableTooltip } from './EnvironmentSharableTooltip';
 
 export function EnvironmentEditor({
-  environment: selectedEnvironment,
+  environment,
   hideName,
   className,
 }: {
@@ -32,7 +32,7 @@ export function EnvironmentEditor({
   hideName?: boolean;
   className?: string;
 }) {
-  const workspaceId = selectedEnvironment.workspaceId;
+  const workspaceId = environment.workspaceId;
   const isEncryptionEnabled = useIsEncryptionEnabled();
   const valueVisibility = useKeyValue<boolean>({
     namespace: 'global',
@@ -41,15 +41,15 @@ export function EnvironmentEditor({
   });
   const { allEnvironments } = useEnvironmentsBreakdown();
   const handleChange = useCallback(
-    (variables: PairWithId[]) => patchModel(selectedEnvironment, { variables }),
-    [selectedEnvironment],
+    (variables: PairWithId[]) => patchModel(environment, { variables }),
+    [environment],
   );
   const [forceUpdateKey, regenerateForceUpdateKey] = useRandomKey();
 
   // Gather a list of env names from other environments to help the user get them aligned
   const nameAutocomplete = useMemo<GenericCompletionConfig>(() => {
     const options: GenericCompletionOption[] = [];
-    if (isBaseEnvironment(selectedEnvironment)) {
+    if (isBaseEnvironment(environment)) {
       return { options };
     }
 
@@ -59,8 +59,10 @@ export function EnvironmentEditor({
       const containingEnvs = allEnvironments.filter((e) =>
         e.variables.some((v) => v.name === name),
       );
-      const isAlreadyInActive = containingEnvs.find((e) => e.id === selectedEnvironment.id);
-      if (isAlreadyInActive) continue;
+      const isAlreadyInActive = containingEnvs.find((e) => e.id === environment.id);
+      if (isAlreadyInActive) {
+        continue;
+      }
       options.push({
         label: name,
         type: 'constant',
@@ -68,7 +70,7 @@ export function EnvironmentEditor({
       });
     }
     return { options };
-  }, [selectedEnvironment, allEnvironments]);
+  }, [environment, allEnvironments]);
 
   const validateName = useCallback((name: string) => {
     // Empty just means the variable doesn't have a name yet and is unusable
@@ -79,10 +81,8 @@ export function EnvironmentEditor({
   const valueType = !isEncryptionEnabled && valueVisibility.value ? 'text' : 'password';
   const allVariableAreEncrypted = useMemo(
     () =>
-      selectedEnvironment.variables.every(
-        (v) => v.value === '' || analyzeTemplate(v.value) !== 'insecure',
-      ),
-    [selectedEnvironment.variables],
+      environment.variables.every((v) => v.value === '' || analyzeTemplate(v.value) !== 'insecure'),
+    [environment.variables],
   );
 
   const encryptEnvironment = (environment: Environment) => {
@@ -100,11 +100,11 @@ export function EnvironmentEditor({
   return (
     <VStack space={4} className={className}>
       <Heading className="w-full flex items-center gap-0.5">
-        <EnvironmentColorIndicator clickToEdit environment={selectedEnvironment ?? null} />
-        {!hideName && <div className="mr-2">{selectedEnvironment?.name}</div>}
+        <EnvironmentColorIndicator clickToEdit environment={environment ?? null} />
+        {!hideName && <div className="mr-2">{environment?.name}</div>}
         {isEncryptionEnabled ? (
           !allVariableAreEncrypted ? (
-            <BadgeButton color="notice" onClick={() => encryptEnvironment(selectedEnvironment)}>
+            <BadgeButton color="notice" onClick={() => encryptEnvironment(environment)}>
               Encrypt All Variables
             </BadgeButton>
           ) : (
@@ -121,21 +121,21 @@ export function EnvironmentEditor({
           color="secondary"
           rightSlot={<EnvironmentSharableTooltip />}
           onClick={async () => {
-            await patchModel(selectedEnvironment, { public: !selectedEnvironment.public });
+            await patchModel(environment, { public: !environment.public });
           }}
         >
-          {selectedEnvironment.public ? 'Sharable' : 'Private'}
+          {environment.public ? 'Sharable' : 'Private'}
         </BadgeButton>
       </Heading>
-      {selectedEnvironment.public && (!isEncryptionEnabled || !allVariableAreEncrypted) && (
+      {environment.public && (!isEncryptionEnabled || !allVariableAreEncrypted) && (
         <DismissibleBanner
-          id={`warn-unencrypted-${selectedEnvironment.id}`}
+          id={`warn-unencrypted-${environment.id}`}
           color="notice"
           className="mr-3"
           actions={[
             {
               label: 'Encrypt Variables',
-              onClick: () => encryptEnvironment(selectedEnvironment),
+              onClick: () => encryptEnvironment(environment),
               color: 'primary',
             },
           ]}
@@ -153,15 +153,11 @@ export function EnvironmentEditor({
           valueType={valueType}
           valueAutocompleteVariables
           valueAutocompleteFunctions
-          forceUpdateKey={`${selectedEnvironment.id}::${forceUpdateKey}`}
-          pairs={selectedEnvironment.variables}
+          forceUpdateKey={`${environment.id}::${forceUpdateKey}`}
+          pairs={environment.variables}
           onChange={handleChange}
-          stateKey={`environment.${selectedEnvironment.id}`}
-          forcedEnvironmentId={
-            // Editing the base environment should resolve variables using the active environment.
-            // Editing a sub environment should resolve variables as if it's the active environment
-            isBaseEnvironment(selectedEnvironment) ? undefined : selectedEnvironment.id
-          }
+          stateKey={`environment.${environment.id}`}
+          forcedEnvironmentId={environment.id}
         />
       </div>
     </VStack>

@@ -51,6 +51,7 @@ impl<'a> DbContext<'a> {
                 &Environment {
                     workspace_id: workspace_id.to_string(),
                     name: "Global Variables".to_string(),
+                    parent_model: "workspace".to_string(),
                     ..Default::default()
                 },
                 &UpdateSource::Background,
