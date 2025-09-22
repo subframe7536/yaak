@@ -27,7 +27,6 @@ import {
   useMemo,
   useRef,
 } from 'react';
-import { activeEnvironmentIdAtom } from '../../../hooks/useActiveEnvironment';
 import type { WrappedEnvironmentVariable } from '../../../hooks/useEnvironmentVariables';
 import { useEnvironmentVariables } from '../../../hooks/useEnvironmentVariables';
 import { useRequestEditor } from '../../../hooks/useRequestEditor';
@@ -138,9 +137,7 @@ export const Editor = forwardRef<EditorView | undefined, EditorProps>(function E
 ) {
   const settings = useAtomValue(settingsAtom);
 
-  const activeEnvironmentId = useAtomValue(activeEnvironmentIdAtom);
-  const environmentId = forcedEnvironmentId ?? activeEnvironmentId ?? null;
-  const allEnvironmentVariables = useEnvironmentVariables(environmentId);
+  const allEnvironmentVariables = useEnvironmentVariables(forcedEnvironmentId ?? null);
   const environmentVariables = autocompleteVariables ? allEnvironmentVariables : emptyVariables;
   const useTemplating = !!(autocompleteFunctions || autocompleteVariables || autocomplete);
 

@@ -26,7 +26,7 @@ export function useEnvironmentVariables(targetEnvironmentId: string | null) {
 
     // Folder environments also can auto-complete from the active environment
     const activeEnvironmentVariables =
-      targetEnvironment != null && isFolderEnvironment(targetEnvironment)
+      targetEnvironment == null || isFolderEnvironment(targetEnvironment)
         ? wrapVariables(activeEnvironment)
         : [];
 

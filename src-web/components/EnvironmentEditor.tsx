@@ -136,7 +136,7 @@ export function EnvironmentEditor({
             {
               label: 'Encrypt Variables',
               onClick: () => encryptEnvironment(environment),
-              color: 'primary',
+              color: 'success',
             },
           ]}
         >

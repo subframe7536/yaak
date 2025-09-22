@@ -5,9 +5,9 @@ import { useMemo } from 'react';
 export function useEnvironmentsBreakdown() {
   const allEnvironments = useAtomValue(environmentsAtom);
   return useMemo(() => {
-    const baseEnvironments = allEnvironments.filter((e) => e.parentId == null) ?? [];
+    const baseEnvironments = allEnvironments.filter((e) => e.parentModel == 'workspace') ?? [];
     const subEnvironments =
-      allEnvironments.filter((e) => e.parentModel === 'environment' && e.parentId != null) ?? [];
+      allEnvironments.filter((e) => e.parentModel === 'environment') ?? [];
     const folderEnvironments =
       allEnvironments.filter((e) => e.parentModel === 'folder' && e.parentId != null) ?? [];
 

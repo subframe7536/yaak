@@ -26,7 +26,7 @@ impl<'a> DbContext<'a> {
         let environments = self.list_environments_ensure_base(workspace_id)?;
         let base_environments = environments
             .into_iter()
-            .filter(|e| e.parent_id.is_none())
+            .filter(|e| e.parent_model == "workspace")
             .collect::<Vec<Environment>>();
 
         if base_environments.len() > 1 {
@@ -44,7 +44,7 @@ impl<'a> DbContext<'a> {
         let mut environments =
             self.find_many::<Environment>(EnvironmentIden::WorkspaceId, workspace_id, None)?;
 
-        let base_environment = environments.iter().find(|e| e.parent_id.is_none());
+        let base_environment = environments.iter().find(|e| e.parent_model == "workspace");
 
         if let None = base_environment {
             let e = self.upsert_environment(
