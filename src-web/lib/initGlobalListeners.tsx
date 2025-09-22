@@ -1,7 +1,6 @@
 import { emit } from '@tauri-apps/api/event';
 import { openUrl } from '@tauri-apps/plugin-opener';
-import type { InternalEvent } from '@yaakapp-internal/plugins';
-import type { ShowToastRequest } from '@yaakapp/api';
+import type { InternalEvent, ShowToastRequest } from '@yaakapp-internal/plugins';
 import { openSettings } from '../commands/openSettings';
 import { Button } from '../components/core/Button';
 

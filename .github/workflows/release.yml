@@ -72,6 +72,9 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Run bootstrap
+        run: npm run bootstrap
+
       - name: Run lint
         run: npm run lint
 

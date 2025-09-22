@@ -1,5 +1,5 @@
 import type { EditorView } from '@codemirror/view';
-import type { Color } from '@yaakapp/api';
+import type { Color } from '@yaakapp-internal/plugins';
 import classNames from 'classnames';
 import type { ReactNode } from 'react';
 import {
