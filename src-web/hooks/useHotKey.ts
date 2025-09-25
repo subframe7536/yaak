@@ -40,7 +40,7 @@ const hotkeys: Record<HotkeyAction, string[]> = {
   'request_switcher.prev': ['Control+Tab'],
   'request_switcher.toggle': ['CmdCtrl+p'],
   'settings.show': ['CmdCtrl+,'],
-  'sidebar.delete_selected_item': ['Delete'],
+  'sidebar.delete_selected_item': ['Delete', 'CmdCtrl+Backspace'],
   'sidebar.focus': ['CmdCtrl+b'],
   'url_bar.focus': ['CmdCtrl+l'],
   'workspace_settings.show': ['CmdCtrl+;'],
