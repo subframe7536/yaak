@@ -1,6 +1,7 @@
 import type { TemplateFunctionArg } from '@yaakapp-internal/plugins';
 import type { PluginDefinition } from '@yaakapp/api';
 
+import type { ContextFn } from 'date-fns';
 import {
   addDays,
   addHours,
@@ -24,7 +25,8 @@ const dateArg: TemplateFunctionArg = {
   name: 'date',
   label: 'Timestamp',
   optional: true,
-  description: 'Can be a timestamp in milliseconds, ISO string, or anything parseable by JS `new Date()`',
+  description:
+    'Can be a timestamp in milliseconds, ISO string, or anything parseable by JS `new Date()`',
   placeholder: new Date().toISOString(),
 };
 
@@ -148,8 +150,12 @@ export function calculateDatetime(args: { date?: string; expression?: string }):
   return jsDate.toISOString();
 }
 
-export function formatDatetime(args: { date?: string; format?: string }): string {
+export function formatDatetime(args: {
+  date?: string;
+  format?: string;
+  in?: ContextFn<Date>;
+}): string {
   const { date, format = 'yyyy-MM-dd HH:mm:ss' } = args;
   const d = parseDateString(date ?? '');
-  return formatDate(d, String(format));
+  return formatDate(d, String(format), { in: args.in });
 }
