@@ -47,7 +47,9 @@ export function HttpAuthenticationEditor({ model }: Props) {
   if (model.authenticationType != null && authConfig.data == null) {
     return (
       <EmptyStateText>
-        Unknown authentication <InlineCode>{authConfig.data}</InlineCode>
+        <p>
+          Auth plugin not found for <InlineCode>{model.authenticationType}</InlineCode>
+        </p>
       </EmptyStateText>
     );
   }

@@ -1,7 +1,5 @@
 use crate::db_context::DbContext;
-use crate::error::Error::{
-    MissingBaseEnvironment, MultipleBaseEnvironments, MultipleFolderEnvironments,
-};
+use crate::error::Error::{MissingBaseEnvironment, MultipleBaseEnvironments};
 use crate::error::Result;
 use crate::models::{Environment, EnvironmentIden, EnvironmentVariable};
 use crate::util::UpdateSource;
