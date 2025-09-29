@@ -7,7 +7,7 @@ use base64::Engine;
 use base64::prelude::BASE64_STANDARD;
 use std::collections::HashMap;
 use keyring::Error::NoEntry;
-use log::debug;
+use log::{debug, info};
 use tauri::{AppHandle, Runtime};
 use yaak_crypto::manager::EncryptionManagerExt;
 use yaak_templates::error::Error::RenderError;
@@ -198,10 +198,20 @@ pub fn template_function_keychain_run(args: HashMap<String, serde_json::Value>) 
     let service = args.get("service").and_then(|v| v.as_str()).unwrap_or_default().to_owned();
     let user = args.get("account").and_then(|v| v.as_str()).unwrap_or_default().to_owned();
     debug!("Getting password for service {} and user {}", service, user);
-    let entry = keyring::Entry::new(&service, &user).map_err(|e| RenderError(e.to_string()))?;
+    let entry = match keyring::Entry::new(&service, &user) {
+        Ok(e) => e,
+        Err(e) => {
+            debug!("Failed to initialize keyring entry for '{}' and '{}' {:?}", service, user, e);
+            return Ok("".to_string()) // Don't fail for invalid args
+        }
+    };
+
     match entry.get_password() {
         Ok(p) => Ok(p),
-        Err(NoEntry) => Err(RenderError(format!("No password found for '{}' and '{}'", service, user))),
+        Err(NoEntry) => {
+            info!("No password found for '{}' and '{}'", service, user);
+            Ok("".to_string()) // Don't fail for missing passwords
+        },
         Err(e) => Err(RenderError(e.to_string())),
     }
 }
