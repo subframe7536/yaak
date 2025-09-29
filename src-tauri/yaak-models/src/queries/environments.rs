@@ -5,7 +5,7 @@ use crate::error::Error::{
 use crate::error::Result;
 use crate::models::{Environment, EnvironmentIden, EnvironmentVariable};
 use crate::util::UpdateSource;
-use log::info;
+use log::{info, warn};
 
 impl<'a> DbContext<'a> {
     pub fn get_environment(&self, id: &str) -> Result<Environment> {
@@ -13,12 +13,10 @@ impl<'a> DbContext<'a> {
     }
 
     pub fn get_environment_by_folder_id(&self, folder_id: &str) -> Result<Option<Environment>> {
-        let environments: Vec<Environment> =
+        let mut environments: Vec<Environment> =
             self.find_many(EnvironmentIden::ParentId, folder_id, None)?;
-        if environments.len() > 1 {
-            return Err(MultipleFolderEnvironments(folder_id.to_string()));
-        }
-
+        // Sort so we return the most recently updated environment
+        environments.sort_by(|a, b| b.updated_at.cmp(&a.updated_at));
         Ok(environments.get(0).cloned())
     }
 
@@ -91,6 +89,23 @@ impl<'a> DbContext<'a> {
         self.upsert_environment(&environment, source)
     }
 
+    /// Find other environments with the same parent folder
+    fn list_duplicate_folder_environments(&self, environment: &Environment) -> Vec<Environment> {
+        if environment.parent_model != "folder" {
+            return Vec::new();
+        }
+
+        self.list_environments_ensure_base(&environment.workspace_id)
+            .unwrap_or_default()
+            .into_iter()
+            .filter(|e| {
+                e.id != environment.id
+                    && e.parent_model == "folder"
+                    && e.parent_id == environment.parent_id
+            })
+            .collect()
+    }
+
     pub fn upsert_environment(
         &self,
         environment: &Environment,
@@ -102,8 +117,31 @@ impl<'a> DbContext<'a> {
             .filter(|v| !v.name.is_empty() || !v.value.is_empty())
             .cloned()
             .collect::<Vec<EnvironmentVariable>>();
+
+        // Sometimes a new environment can be created via sync/import, so we'll just delete
+        // the others when that happens. Not the best, but it's good for now.
+        let duplicates = self.list_duplicate_folder_environments(environment);
+        for duplicate in duplicates {
+            warn!(
+                "Deleting duplicate environment {} for folder {:?}",
+                duplicate.id, environment.parent_id
+            );
+            _ = self.delete(&duplicate, source);
+        }
+
+        // Automatically update the environment name based on the folder name
+        let mut name = environment.name.clone();
+        match (environment.parent_model.as_str(), environment.parent_id.as_deref()) {
+            ("folder", Some(folder_id)) => {
+                let folder = self.get_folder(folder_id)?;
+                name = format!("{} Environment", folder.name);
+            }
+            _ => {}
+        }
+
         self.upsert(
             &Environment {
+                name,
                 variables: cleaned_variables,
                 ..environment.clone()
             },
