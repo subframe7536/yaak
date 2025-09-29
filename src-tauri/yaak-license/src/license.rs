@@ -155,6 +155,7 @@ pub async fn check_license<R: Runtime>(window: &WebviewWindow<R>) -> Result<Lice
         app_version: window.package_info().version.to_string(),
     };
     let activation_id = get_activation_id(window.app_handle()).await;
+
     let settings = window.db().get_settings();
     let trial_end = settings.created_at.add(Duration::from_secs(TRIAL_SECONDS));
 

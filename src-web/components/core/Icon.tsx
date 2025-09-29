@@ -39,6 +39,7 @@ const icons = {
   code: lucide.CodeIcon,
   columns_2: lucide.Columns2Icon,
   command: lucide.CommandIcon,
+  credit_card: lucide.CreditCardIcon,
   cookie: lucide.CookieIcon,
   copy: lucide.CopyIcon,
   copy_check: lucide.CopyCheck,

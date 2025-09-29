@@ -1,13 +1,16 @@
 import { type } from '@tauri-apps/plugin-os';
 import { useFonts } from '@yaakapp-internal/fonts';
+import { useLicense } from '@yaakapp-internal/license';
 import type { EditorKeymap } from '@yaakapp-internal/models';
 import { patchModel, settingsAtom } from '@yaakapp-internal/models';
 import { useAtomValue } from 'jotai';
 import React from 'react';
 import { activeWorkspaceAtom } from '../../hooks/useActiveWorkspace';
 import { clamp } from '../../lib/clamp';
+import { showConfirm } from '../../lib/confirm';
 import { Checkbox } from '../core/Checkbox';
 import { Icon } from '../core/Icon';
+import { Link } from '../core/Link';
 import { Select } from '../core/Select';
 import { HStack, VStack } from '../core/Stacks';
 
@@ -28,6 +31,7 @@ export function SettingsInterface() {
   const workspace = useAtomValue(activeWorkspaceAtom);
   const settings = useAtomValue(settingsAtom);
   const fonts = useFonts();
+  const license = useLicense();
 
   if (settings == null || workspace == null) {
     return null;
@@ -123,6 +127,31 @@ export function SettingsInterface() {
         title="Colorize Request Methods"
         onChange={(coloredMethods) => patchModel(settings, { coloredMethods })}
       />
+      {license.check.data?.type === 'personal_use' && (
+        <Checkbox
+          checked={!settings.licenseBadge}
+          title="Hide personal use badge"
+          onChange={async (hide) => {
+            if (hide) {
+              const confirmed = await showConfirm({
+                id: 'hide-license-badge',
+                title: 'Hide License Badge',
+                confirmText: 'Hide Badge',
+                description: (
+                  <>
+                    Only proceed if you’re using Yaak for personal projects only. If you’re using it
+                    at work, please <Link href="https://yaak.app/">Purchase a License</Link>.
+                  </>
+                ),
+                requireTyping: 'Personal Use',
+                color: 'notice',
+              });
+              if (!confirmed) return;
+            }
+            await patchModel(settings, { licenseBadge: !hide });
+          }}
+        />
+      )}
 
       {type() !== 'macos' && (
         <Checkbox

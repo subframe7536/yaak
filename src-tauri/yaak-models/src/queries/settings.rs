@@ -33,6 +33,7 @@ impl<'a> DbContext<'a> {
             update_channel: "stable".to_string(),
             autoupdate: true,
             colored_methods: false,
+            hide_license_badge: false,
         };
         self.upsert(&settings, &UpdateSource::Background).expect("Failed to upsert settings")
     }

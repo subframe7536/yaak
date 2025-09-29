@@ -11,6 +11,7 @@
     "core:event:allow-emit",
     "core:event:allow-listen",
     "core:event:allow-unlisten",
+    "core:path:allow-resolve-directory",
     "os:allow-os-type",
     "clipboard-manager:allow-clear",
     "clipboard-manager:allow-write-text",

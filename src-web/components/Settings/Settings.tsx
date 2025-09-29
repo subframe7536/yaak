@@ -74,22 +74,22 @@ export default function Settings({ hide }: Props) {
         onChangeValue={setTab}
         tabs={tabs.map((value) => ({ value, label: capitalize(value) }))}
       >
-        <TabContent value={TAB_GENERAL} className="overflow-y-auto h-full px-4">
+        <TabContent value={TAB_GENERAL} className="overflow-y-auto h-full p-8">
           <SettingsGeneral />
         </TabContent>
-        <TabContent value={TAB_INTERFACE} className="overflow-y-auto h-full px-4">
+        <TabContent value={TAB_INTERFACE} className="overflow-y-auto h-full p-8">
           <SettingsInterface />
         </TabContent>
-        <TabContent value={TAB_THEME} className="overflow-y-auto h-full px-4">
+        <TabContent value={TAB_THEME} className="overflow-y-auto h-full p-8">
           <SettingsTheme />
         </TabContent>
-        <TabContent value={TAB_PLUGINS} className="h-full px-4 grid grid-rows-1">
+        <TabContent value={TAB_PLUGINS} className="h-full grid grid-rows-1 p-8">
           <SettingsPlugins />
         </TabContent>
-        <TabContent value={TAB_PROXY} className="overflow-y-auto h-full px-4">
+        <TabContent value={TAB_PROXY} className="overflow-y-auto h-full p-8!">
           <SettingsProxy />
         </TabContent>
-        <TabContent value={TAB_LICENSE} className="overflow-y-auto h-full px-4">
+        <TabContent value={TAB_LICENSE} className="overflow-y-auto h-full px-8 !py-4">
           <SettingsLicense />
         </TabContent>
       </Tabs>
