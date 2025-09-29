@@ -10,7 +10,8 @@ import { DetailsBanner } from './core/DetailsBanner';
 import type { GenericCompletionConfig } from './core/Editor/genericCompletion';
 import type { InputProps } from './core/Input';
 import type { Pair, PairEditorProps } from './core/PairEditor';
-import { ensurePairId, PairEditorRow } from './core/PairEditor';
+import { PairEditorRow } from './core/PairEditor';
+import { ensurePairId } from './core/PairEditor.util';
 import { PairOrBulkEditor } from './core/PairOrBulkEditor';
 import { HStack } from './core/Stacks';
 

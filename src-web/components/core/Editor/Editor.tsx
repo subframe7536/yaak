@@ -66,7 +66,7 @@ export interface EditorProps {
   autoSelect?: boolean;
   autocomplete?: GenericCompletionConfig;
   autocompleteFunctions?: boolean;
-  autocompleteVariables?: boolean;
+  autocompleteVariables?: boolean | ((v: WrappedEnvironmentVariable) => boolean);
   className?: string;
   defaultValue?: string | null;
   disableTabIndent?: boolean;
@@ -138,8 +138,13 @@ export const Editor = forwardRef<EditorView | undefined, EditorProps>(function E
   const settings = useAtomValue(settingsAtom);
 
   const allEnvironmentVariables = useEnvironmentVariables(forcedEnvironmentId ?? null);
-  const environmentVariables = autocompleteVariables ? allEnvironmentVariables : emptyVariables;
   const useTemplating = !!(autocompleteFunctions || autocompleteVariables || autocomplete);
+  const environmentVariables = useMemo(() => {
+    if (!autocompleteVariables) return emptyVariables;
+    return typeof autocompleteVariables === 'function'
+      ? allEnvironmentVariables.filter(autocompleteVariables)
+      : allEnvironmentVariables;
+  }, [allEnvironmentVariables, autocompleteVariables]);
 
   if (settings && wrapLines === undefined) {
     wrapLines = settings.editorSoftWrap;

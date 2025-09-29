@@ -3,7 +3,7 @@ import { foldersAtom } from '@yaakapp-internal/models';
 import { useAtomValue } from 'jotai';
 import { useMemo } from 'react';
 import { jotaiStore } from '../lib/jotai';
-import { isFolderEnvironment } from '../lib/model_util';
+import { isBaseEnvironment, isFolderEnvironment } from '../lib/model_util';
 import { useActiveEnvironment } from './useActiveEnvironment';
 import { useActiveRequest } from './useActiveRequest';
 import { useEnvironmentsBreakdown } from './useEnvironmentsBreakdown';
@@ -24,11 +24,13 @@ export function useEnvironmentVariables(targetEnvironmentId: string | null) {
       wrapVariables(folderEnvironments.find((fe) => fe.parentId === f.id) ?? null),
     );
 
-    // Folder environments also can auto-complete from the active environment
+    // Add active environment variables to everything except sub environments
     const activeEnvironmentVariables =
-      targetEnvironment == null || isFolderEnvironment(targetEnvironment)
+      targetEnvironment == null || // Editing request
+      isFolderEnvironment(targetEnvironment) || // Editing folder variables
+      isBaseEnvironment(targetEnvironment) // Editing global variables
         ? wrapVariables(activeEnvironment)
-        : [];
+        : wrapVariables(targetEnvironment); // Add own variables for sub environments
 
     const allVariables = [
       ...folderVariables,

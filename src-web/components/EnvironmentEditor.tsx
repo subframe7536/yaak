@@ -17,7 +17,7 @@ import { DismissibleBanner } from './core/DismissibleBanner';
 import type { GenericCompletionConfig } from './core/Editor/genericCompletion';
 import { Heading } from './core/Heading';
 import type { PairWithId } from './core/PairEditor';
-import { ensurePairId } from './core/PairEditor';
+import { ensurePairId } from './core/PairEditor.util';
 import { PairOrBulkEditor } from './core/PairOrBulkEditor';
 import { VStack } from './core/Stacks';
 import { EnvironmentColorIndicator } from './EnvironmentColorIndicator';
@@ -151,7 +151,7 @@ export function EnvironmentEditor({
           namePlaceholder="VAR_NAME"
           nameValidate={validateName}
           valueType={valueType}
-          valueAutocompleteVariables
+          valueAutocompleteVariables='environment'
           valueAutocompleteFunctions
           forceUpdateKey={`${environment.id}::${forceUpdateKey}`}
           pairs={environment.variables}
