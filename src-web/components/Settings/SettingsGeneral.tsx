@@ -72,7 +72,7 @@ export function SettingsGeneral() {
           help="Automatically download Yaak updates (!50MB) in the background, so they will be immediately ready to install."
           title="Automatically download updates"
           onChange={(autoDownloadUpdates) =>
-            patchModel(workspace, { autoDownloadUpdates })
+            patchModel(settings, { autoDownloadUpdates })
           }
         />
         <Separator className="my-4" />
