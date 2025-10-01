@@ -196,7 +196,7 @@ function InitializedTemplateFunctionDialog({
           </HStack>
           <InlineCode
             className={classNames(
-              'whitespace-pre-wrap select-text cursor-text max-h-[10rem] overflow-y-auto hide-scrollbars',
+              'whitespace-pre-wrap !select-text cursor-text max-h-[10rem] overflow-y-auto hide-scrollbars',
               tooLarge && 'italic text-danger',
             )}
           >
