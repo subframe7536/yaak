@@ -30,9 +30,9 @@
     }
   },
   "bundle": {
-    "createUpdaterArtifacts": "v1Compatible"
-  },
-  "windows": {
-    "signCommand": "trusted-signing-cli -e https://eus.codesigning.azure.net/ -a Yaak -c yaakapp %1"
+    "createUpdaterArtifacts": "v1Compatible",
+    "windows": {
+      "signCommand": "trusted-signing-cli -e https://eus.codesigning.azure.net/ -a Yaak -c yaakapp %1"
+    }
   }
 }
