@@ -1,13 +1,14 @@
 import { type } from '@tauri-apps/plugin-os';
 import { useFonts } from '@yaakapp-internal/fonts';
 import { useLicense } from '@yaakapp-internal/license';
-import type { EditorKeymap } from '@yaakapp-internal/models';
+import type { EditorKeymap, Settings } from '@yaakapp-internal/models';
 import { patchModel, settingsAtom } from '@yaakapp-internal/models';
 import { useAtomValue } from 'jotai';
 import React from 'react';
 import { activeWorkspaceAtom } from '../../hooks/useActiveWorkspace';
 import { clamp } from '../../lib/clamp';
 import { showConfirm } from '../../lib/confirm';
+import { CargoFeature } from '../CargoFeature';
 import { Checkbox } from '../core/Checkbox';
 import { Icon } from '../core/Icon';
 import { Link } from '../core/Link';
@@ -31,7 +32,6 @@ export function SettingsInterface() {
   const workspace = useAtomValue(activeWorkspaceAtom);
   const settings = useAtomValue(settingsAtom);
   const fonts = useFonts();
-  const license = useLicense();
 
   if (settings == null || workspace == null) {
     return null;
@@ -127,31 +127,9 @@ export function SettingsInterface() {
         title="Colorize Request Methods"
         onChange={(coloredMethods) => patchModel(settings, { coloredMethods })}
       />
-      {license.check.data?.type === 'personal_use' && (
-        <Checkbox
-          checked={!settings.licenseBadge}
-          title="Hide personal use badge"
-          onChange={async (hide) => {
-            if (hide) {
-              const confirmed = await showConfirm({
-                id: 'hide-license-badge',
-                title: 'Hide License Badge',
-                confirmText: 'Hide Badge',
-                description: (
-                  <>
-                    Only proceed if you’re using Yaak for personal projects only. If you’re using it
-                    at work, please <Link href="https://yaak.app/">Purchase a License</Link>.
-                  </>
-                ),
-                requireTyping: 'Personal Use',
-                color: 'notice',
-              });
-              if (!confirmed) return;
-            }
-            await patchModel(settings, { licenseBadge: !hide });
-          }}
-        />
-      )}
+      <CargoFeature feature="license">
+        <LicenseSettings settings={settings} />
+      </CargoFeature>
 
       {type() !== 'macos' && (
         <Checkbox
@@ -162,5 +140,46 @@ export function SettingsInterface() {
         />
       )}
     </VStack>
+  );
+}
+function LicenseSettings({ settings }: { settings: Settings }) {
+  const license = useLicense();
+  if (license.check.data?.type !== 'personal_use') {
+    return null;
+  }
+
+  return (
+    <Checkbox
+      checked={settings.hideLicenseBadge}
+      title="Hide personal use badge"
+      onChange={async (hideLicenseBadge) => {
+        if (hideLicenseBadge) {
+          const confirmed = await showConfirm({
+            id: 'hide-license-badge',
+            title: 'Confirm Personal Use',
+            confirmText: 'Confirm',
+            description: (
+              <VStack space={3}>
+                <p>Hey there 👋🏼</p>
+                <p>
+                  Yaak is free for personal projects and learning.{' '}
+                  <strong>If you’re using Yaak at work, a license is required.</strong>
+                </p>
+                <p>
+                  Licenses help keep Yaak independent and sustainable.{' '}
+                  <Link href="https://yaak.app/pricing?s=badge">Purchase a License →</Link>
+                </p>
+              </VStack>
+            ),
+            requireTyping: 'Personal Use',
+            color: 'info',
+          });
+          if (!confirmed) {
+            return; // Cancel
+          }
+        }
+        await patchModel(settings, { hideLicenseBadge });
+      }}
+    />
   );
 }

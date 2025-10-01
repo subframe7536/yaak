@@ -1,7 +1,7 @@
+use std::sync::atomic::{AtomicBool, Ordering};
 use crate::commands::{install, search, uninstall, updates};
 use crate::manager::PluginManager;
 use log::info;
-use std::process::exit;
 use tauri::plugin::{Builder, TauriPlugin};
 use tauri::{generate_handler, Manager, RunEvent, Runtime, State};
 
@@ -20,6 +20,8 @@ pub mod api;
 pub mod install;
 pub mod plugin_meta;
 
+static EXITING: AtomicBool = AtomicBool::new(false);
+
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
     Builder::new("yaak-plugins")
         .invoke_handler(generate_handler![search, install, uninstall, updates])
@@ -31,12 +33,15 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
         .on_event(|app, e| match e {
             // TODO: Also exit when app is force-quit (eg. cmd+r in IntelliJ runner)
             RunEvent::ExitRequested { api, .. } => {
+                if EXITING.swap(true, Ordering::SeqCst) {
+                    return; // Only exit once to prevent infinite recursion
+                }
                 api.prevent_exit();
                 tauri::async_runtime::block_on(async move {
                     info!("Exiting plugin runtime due to app exit");
                     let manager: State<PluginManager> = app.state();
                     manager.terminate().await;
-                    exit(0);
+                    app.exit(0);
                 });
             }
             _ => {}

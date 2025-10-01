@@ -37,6 +37,7 @@
     "plugins/template-function-uuid",
     "plugins/template-function-xml",
     "plugins/themes-yaak",
+    "src-tauri",
     "src-tauri/yaak-crypto",
     "src-tauri/yaak-git",
     "src-tauri/yaak-fonts",
@@ -53,7 +54,7 @@
   "scripts": {
     "start": "npm run app-dev",
     "app-build": "tauri build",
-    "app-dev": "tauri dev --no-watch --config ./src-tauri/tauri-dev.conf.json",
+    "app-dev": "tauri dev --no-watch --config ./src-tauri/tauri.development.conf.json",
     "migration": "node scripts/create-migration.cjs",
     "build": "npm run --workspaces --if-present build",
     "build-plugins": "npm run --workspaces --if-present build",

@@ -26,6 +26,7 @@ use tauri_plugin_log::{Builder, Target, TargetKind};
 use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 use tokio::sync::Mutex;
 use tokio::task::block_in_place;
+use tokio::time;
 use yaak_common::window::WorkspaceWindowTrait;
 use yaak_grpc::manager::{DynamicMessage, GrpcHandle};
 use yaak_grpc::{Code, ServiceDefinition, deserialize_message, serialize_message};
@@ -688,6 +689,12 @@ async fn cmd_grpc_go<R: Runtime>(
 }
 
 #[tauri::command]
+async fn cmd_restart<R: Runtime>(app_handle: AppHandle<R>) -> YaakResult<()> {
+    app_handle.request_restart();
+    Ok(())
+}
+
+#[tauri::command]
 async fn cmd_send_ephemeral_request<R: Runtime>(
     mut request: HttpRequest,
     environment_id: Option<&str>,
@@ -1207,7 +1214,12 @@ async fn cmd_check_for_updates<R: Runtime>(
     yaak_updater: State<'_, Mutex<YaakUpdater>>,
 ) -> YaakResult<bool> {
     let update_mode = get_update_mode(&window).await?;
-    Ok(yaak_updater.lock().await.check_now(&window, update_mode, UpdateTrigger::User).await?)
+    let settings = window.db().get_settings();
+    Ok(yaak_updater
+        .lock()
+        .await
+        .check_now(&window, update_mode, settings.auto_download_updates, UpdateTrigger::User)
+        .await?)
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -1349,6 +1361,7 @@ pub fn run() {
             cmd_plugin_info,
             cmd_reload_plugins,
             cmd_render_template,
+            cmd_restart,
             cmd_save_response,
             cmd_send_ephemeral_request,
             cmd_send_http_request,
@@ -1393,10 +1406,16 @@ pub fn run() {
                         let w = app_handle.get_webview_window(&label).unwrap();
                         let h = app_handle.clone();
                         tauri::async_runtime::spawn(async move {
-                            if w.db().get_settings().autoupdate {
+                            let settings = w.db().get_settings();
+                            if settings.autoupdate {
+                                time::sleep(Duration::from_secs(3)).await; // Wait a bit so it's not so jarring
                                 let val: State<'_, Mutex<YaakUpdater>> = h.state();
                                 let update_mode = get_update_mode(&w).await.unwrap();
-                                if let Err(e) = val.lock().await.maybe_check(&w, update_mode).await
+                                if let Err(e) = val
+                                    .lock()
+                                    .await
+                                    .maybe_check(&w, settings.auto_download_updates, update_mode)
+                                    .await
                                 {
                                     warn!("Failed to check for updates {e:?}");
                                 }
@@ -1472,7 +1491,7 @@ fn monitor_plugin_events<R: Runtime>(app_handle: &AppHandle<R>) {
 }
 
 async fn call_frontend<R: Runtime>(
-    window: WebviewWindow<R>,
+    window: &WebviewWindow<R>,
     event: &InternalEvent,
 ) -> Option<InternalEventPayload> {
     window.emit_to(window.label(), "plugin_event", event.clone()).unwrap();

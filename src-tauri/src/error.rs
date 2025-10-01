@@ -20,8 +20,12 @@ pub enum Error {
     GitError(#[from] yaak_git::error::Error),
 
     #[error(transparent)]
+    TokioTimeoutElapsed(#[from] tokio::time::error::Elapsed),
+
+    #[error(transparent)]
     WebsocketError(#[from] yaak_ws::error::Error),
 
+    #[cfg(feature = "license")]
     #[error(transparent)]
     LicenseError(#[from] yaak_license::error::Error),
 

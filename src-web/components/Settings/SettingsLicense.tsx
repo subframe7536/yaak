@@ -62,7 +62,7 @@ function SettingsLicenseCmp() {
             <p>
               <Link
                 noUnderline
-                href="https://yaak.app/pricing"
+                href="https://yaak.app/pricing?s=learn"
                 className="text-sm text-notice opacity-80 hover:opacity-100"
               >
                 Learn More
@@ -90,7 +90,7 @@ function SettingsLicenseCmp() {
           <Button
             color="secondary"
             size="sm"
-            onClick={() => openUrl('https://yaak.app/dashboard')}
+            onClick={() => openUrl('https://yaak.app/dashboard?s=support')}
             rightSlot={<Icon icon="external_link" />}
           >
             Direct Support
@@ -104,7 +104,7 @@ function SettingsLicenseCmp() {
           <Button
             color="secondary"
             size="sm"
-            onClick={() => openUrl('https://yaak.app/pricing?ref=app.yaak.desktop')}
+            onClick={() => openUrl('https://yaak.app/pricing?s=purchase&ref=app.yaak.desktop')}
             rightSlot={<Icon icon="external_link" />}
           >
             Purchase

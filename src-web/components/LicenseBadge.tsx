@@ -4,7 +4,6 @@ import { settingsAtom } from '@yaakapp-internal/models';
 import { useAtomValue } from 'jotai';
 import type { ReactNode } from 'react';
 import { openSettings } from '../commands/openSettings';
-import { appInfo } from '../lib/appInfo';
 import { CargoFeature } from './CargoFeature';
 import { BadgeButton } from './core/BadgeButton';
 import type { ButtonProps } from './core/Button';
@@ -30,10 +29,6 @@ export function LicenseBadge() {
 function LicenseBadgeCmp() {
   const { check } = useLicense();
   const settings = useAtomValue(settingsAtom);
-
-  if (appInfo.isDev) {
-    return null;
-  }
 
   if (check.error) {
     // Failed to check for license. Probably a network or server error so just don't

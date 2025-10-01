@@ -1,8 +1,6 @@
 {
-  "$schema": "../gen/schemas/capabilities.json",
-  "identifier": "main",
-  "description": "Main permissions",
-  "local": true,
+  "identifier": "default",
+  "description": "Default capabilities for all build variants",
   "windows": [
     "*"
   ],
@@ -55,7 +53,6 @@
     "yaak-crypto:default",
     "yaak-fonts:default",
     "yaak-git:default",
-    "yaak-license:default",
     "yaak-mac-window:default",
     "yaak-models:default",
     "yaak-plugins:default",

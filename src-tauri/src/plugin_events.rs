@@ -51,7 +51,7 @@ pub(crate) async fn handle_plugin_event<R: Runtime>(
         InternalEventPayload::PromptTextRequest(_) => {
             let window = get_window_from_window_context(app_handle, &window_context)
                 .expect("Failed to find window for render");
-            call_frontend(window, event).await
+            call_frontend(&window, event).await
         }
         InternalEventPayload::FindHttpResponsesRequest(req) => {
             let http_responses = app_handle

@@ -34,6 +34,7 @@ impl<'a> DbContext<'a> {
             autoupdate: true,
             colored_methods: false,
             hide_license_badge: false,
+            auto_download_updates: true,
         };
         self.upsert(&settings, &UpdateSource::Background).expect("Failed to upsert settings")
     }

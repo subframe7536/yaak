@@ -122,6 +122,7 @@ pub struct Settings {
     pub update_channel: String,
     pub hide_license_badge: bool,
     pub autoupdate: bool,
+    pub auto_download_updates: bool,
 }
 
 impl UpsertModelInfo for Settings {
@@ -172,6 +173,7 @@ impl UpsertModelInfo for Settings {
             (UpdateChannel, self.update_channel.into()),
             (HideLicenseBadge, self.hide_license_badge.into()),
             (Autoupdate, self.autoupdate.into()),
+            (AutoDownloadUpdates, self.auto_download_updates.into()),
             (ColoredMethods, self.colored_methods.into()),
             (Proxy, proxy.into()),
         ])
@@ -196,6 +198,7 @@ impl UpsertModelInfo for Settings {
             SettingsIden::UpdateChannel,
             SettingsIden::HideLicenseBadge,
             SettingsIden::Autoupdate,
+            SettingsIden::AutoDownloadUpdates,
             SettingsIden::ColoredMethods,
         ]
     }
@@ -226,6 +229,7 @@ impl UpsertModelInfo for Settings {
             hide_window_controls: row.get("hide_window_controls")?,
             update_channel: row.get("update_channel")?,
             autoupdate: row.get("autoupdate")?,
+            auto_download_updates: row.get("auto_download_updates")?,
             hide_license_badge: row.get("hide_license_badge")?,
             colored_methods: row.get("colored_methods")?,
         })

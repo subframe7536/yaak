@@ -7868,6 +7868,7 @@ dependencies = [
  "thiserror 2.0.12",
  "tokio",
  "tokio-stream",
+ "ts-rs",
  "uuid",
  "yaak-common",
  "yaak-crypto",
