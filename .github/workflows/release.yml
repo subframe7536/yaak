@@ -113,5 +113,5 @@ jobs:
           releaseName: 'Release __VERSION__'
           releaseBody: '[Changelog __VERSION__](https://yaak.app/blog/__VERSION__)'
           releaseDraft: true
-          prerelease: false
-          args: '${{ matrix.args }} --features "updater license"'
+          prerelease: true
+          args: '${{ matrix.args }} --config ./src-tauri/tauri.commercial.conf.json'
