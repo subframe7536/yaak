@@ -38,7 +38,7 @@ impl<R: Runtime> TemplateCallback for PluginTemplateCallback<R> {
 
         if fn_name == "secure" {
             return template_function_secure_run(&self.app_handle, args, &self.window_context);
-        } else if fn_name == "keyring" {
+        } else if fn_name == "keychain" || fn_name == "keyring" {
             return template_function_keychain_run(args);
         }
 

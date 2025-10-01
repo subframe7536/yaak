@@ -5,9 +5,9 @@ use crate::events::{
 use crate::template_callback::PluginTemplateCallback;
 use base64::Engine;
 use base64::prelude::BASE64_STANDARD;
-use std::collections::HashMap;
 use keyring::Error::NoEntry;
 use log::{debug, info};
+use std::collections::HashMap;
 use tauri::{AppHandle, Runtime};
 use yaak_crypto::manager::EncryptionManagerExt;
 use yaak_templates::error::Error::RenderError;
@@ -36,9 +36,9 @@ pub(crate) fn template_function_secure() -> TemplateFunction {
 
 pub(crate) fn template_function_keyring() -> TemplateFunction {
     TemplateFunction {
-        name: "keyring".to_string(),
-        description: Some("Get a password from the OS keychain/keyring".to_string()),
-        aliases: None,
+        name: "keychain".to_string(),
+        description: Some("Get a password from the OS keychain or keyring".to_string()),
+        aliases: Some(vec!["keyring".to_string()]),
         args: vec![
             TemplateFunctionArg::FormInput(FormInput::Text(FormInputText {
                 base: FormInputBase {
@@ -202,7 +202,7 @@ pub fn template_function_keychain_run(args: HashMap<String, serde_json::Value>) 
         Ok(e) => e,
         Err(e) => {
             debug!("Failed to initialize keyring entry for '{}' and '{}' {:?}", service, user, e);
-            return Ok("".to_string()) // Don't fail for invalid args
+            return Ok("".to_string()); // Don't fail for invalid args
         }
     };
 
@@ -211,7 +211,7 @@ pub fn template_function_keychain_run(args: HashMap<String, serde_json::Value>) 
         Err(NoEntry) => {
             info!("No password found for '{}' and '{}'", service, user);
             Ok("".to_string()) // Don't fail for missing passwords
-        },
+        }
         Err(e) => Err(RenderError(e.to_string())),
     }
 }

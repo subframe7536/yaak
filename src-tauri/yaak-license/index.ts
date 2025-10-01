@@ -33,7 +33,7 @@ export function useLicense() {
     };
   }, []);
 
-  const check = useQuery({
+  const check = useQuery<LicenseCheckStatus | null, string>({
     refetchInterval: 1000 * 60 * 60 * 12, // Refetch every 12 hours
     refetchOnWindowFocus: false,
     queryKey: CHECK_QUERY_KEY,
