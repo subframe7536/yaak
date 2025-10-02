@@ -15,7 +15,7 @@ const details: Record<
   commercial_use: null,
   invalid_license: { label: 'License Error', color: 'danger' },
   personal_use: { label: 'Personal Use', color: 'notice' },
-  trialing: { label: 'Personal Use', color: 'info' },
+  trialing: { label: 'Trialing', color: 'info' },
 };
 
 export function LicenseBadge() {
@@ -46,11 +46,6 @@ function LicenseBadgeCmp() {
     return null;
   }
 
-  // User is trialing but has already seen the message, so hide badge
-  if (check.data.type === 'trialing') {
-    return null;
-  }
-
   const detail = details[check.data.type];
   if (detail == null) {
     return null;
@@ -59,9 +54,7 @@ function LicenseBadgeCmp() {
   return (
     <BadgeButton
       color={detail.color}
-      onClick={async () => {
-        openSettings.mutate('license');
-      }}
+      onClick={() => openSettings.mutate('license')}
     >
       {detail.label}
     </BadgeButton>

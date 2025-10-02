@@ -35,17 +35,17 @@ function SettingsLicenseCmp() {
       {check.data?.type === 'commercial_use' ? (
         <Banner color="success">Your license is active 🥳</Banner>
       ) : check.data?.type == 'trialing' ? (
-        <Banner color="success" className="flex flex-col gap-3 max-w-lg">
-          <p className="select-text">
+        <Banner color="info" className="flex flex-col gap-3 max-w-lg">
+          <p>
             <strong>
               {pluralizeCount('day', differenceInDays(check.data.end, new Date()))} remaining
             </strong>{' '}
-            on trial
+            on your commercial-use trial
           </p>
         </Banner>
       ) : check.data?.type == 'personal_use' ? (
-        <Banner color="success" className="flex flex-col gap-3 max-w-lg">
-          <p>Your free trial has ended</p>
+        <Banner color="notice" className="flex flex-col gap-3 max-w-lg">
+          <p>You are able to use Yaak for personal use only</p>
         </Banner>
       ) : null}
 
@@ -98,16 +98,21 @@ function SettingsLicenseCmp() {
         </HStack>
       ) : (
         <HStack space={2}>
-          <Button color="primary" size="sm" onClick={toggleActivateFormVisible}>
-            Activate
-          </Button>
           <Button
+            variant="border"
             color="secondary"
             size="sm"
+            onClick={toggleActivateFormVisible}
+          >
+            Activate License
+          </Button>
+          <Button
+            size="sm"
+            color="primary"
             onClick={() => openUrl('https://yaak.app/pricing?s=purchase&ref=app.yaak.desktop')}
             rightSlot={<Icon icon="external_link" />}
           >
-            Purchase
+            Purchase License
           </Button>
         </HStack>
       )}
