@@ -90,7 +90,7 @@ function SettingsLicenseCmp() {
           <Button
             color="secondary"
             size="sm"
-            onClick={() => openUrl('https://yaak.app/dashboard?s=support')}
+            onClick={() => openUrl('https://yaak.app/dashboard?s=support&ref=app.yaak.desktop')}
             rightSlot={<Icon icon="external_link" />}
           >
             Direct Support
