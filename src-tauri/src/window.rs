@@ -6,6 +6,8 @@ use tauri::{
 };
 use tauri_plugin_opener::OpenerExt;
 use tokio::sync::mpsc;
+use crate::error::Error::GenericError;
+use crate::error::Result;
 
 const DEFAULT_WINDOW_WIDTH: f64 = 1100.0;
 const DEFAULT_WINDOW_HEIGHT: f64 = 600.0;
@@ -32,9 +34,9 @@ pub(crate) struct CreateWindowConfig<'s> {
 pub(crate) fn create_window<R: Runtime>(
     handle: &AppHandle<R>,
     config: CreateWindowConfig,
-) -> WebviewWindow<R> {
+) -> Result<WebviewWindow<R>> {
     #[allow(unused_variables)]
-    let menu = app_menu(handle).unwrap();
+    let menu = app_menu(handle)?;
 
     // This causes the window to not be clickable (in AppImage), so disable on Linux
     #[cfg(not(target_os = "linux"))]
@@ -55,12 +57,12 @@ pub(crate) fn create_window<R: Runtime>(
         #[cfg(not(target_os = "macos"))]
         {
             use std::fs;
-            let dir = handle.path().temp_dir().unwrap().join("yaak_sessions").join(key);
-            fs::create_dir_all(dir.clone()).unwrap();
+            let dir = handle.path().app_data_dir()?.join("window-sessions").join(key);
+            fs::create_dir_all(dir.clone())?;
             win_builder = win_builder.data_directory(dir);
         }
 
-        // macOS doesn't support data dir so must use this fn instead
+        // macOS doesn't support `data_directory()` so must use this fn instead
         #[cfg(target_os = "macos")]
         {
             let hash = md5::compute(key.as_bytes());
@@ -108,11 +110,11 @@ pub(crate) fn create_window<R: Runtime>(
 
     if let Some(w) = handle.webview_windows().get(config.label) {
         info!("Webview with label {} already exists. Focusing existing", config.label);
-        w.set_focus().unwrap();
-        return w.to_owned();
+        w.set_focus()?;
+        return Ok(w.to_owned());
     }
 
-    let win = win_builder.build().unwrap();
+    let win = win_builder.build()?;
 
     if let Some(tx) = config.close_tx {
         win.on_window_event(move |event| match event {
@@ -174,10 +176,10 @@ pub(crate) fn create_window<R: Runtime>(
         }
     });
 
-    win
+    Ok(win)
 }
 
-pub(crate) fn create_main_window(handle: &AppHandle, url: &str) -> WebviewWindow {
+pub(crate) fn create_main_window(handle: &AppHandle, url: &str) -> Result<WebviewWindow> {
     let mut counter = 0;
     let label = loop {
         let label = format!("{MAIN_WINDOW_PREFIX}{counter}");
@@ -211,7 +213,7 @@ pub(crate) fn create_child_window(
     label: &str,
     title: &str,
     inner_size: (f64, f64),
-) -> WebviewWindow {
+) -> Result<WebviewWindow> {
     let app_handle = parent_window.app_handle();
     let label = format!("{OTHER_WINDOW_PREFIX}_{label}");
     let scale_factor = parent_window.scale_factor().unwrap();
@@ -235,7 +237,7 @@ pub(crate) fn create_child_window(
         ..Default::default()
     };
 
-    let child_window = create_window(&app_handle, config);
+    let child_window = create_window(&app_handle, config)?;
 
     // NOTE: These listeners will remain active even when the windows close. Unfortunately,
     //   there's no way to unlisten to events for now, so we just have to be defensive.
@@ -272,5 +274,5 @@ pub(crate) fn create_child_window(
         });
     }
 
-    child_window
+    Ok(child_window)
 }

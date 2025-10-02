@@ -1198,13 +1198,13 @@ async fn cmd_new_child_window(
     title: &str,
     inner_size: (f64, f64),
 ) -> YaakResult<()> {
-    window::create_child_window(&parent_window, url, label, title, inner_size);
+    window::create_child_window(&parent_window, url, label, title, inner_size)?;
     Ok(())
 }
 
 #[tauri::command]
 async fn cmd_new_main_window(app_handle: AppHandle, url: &str) -> YaakResult<()> {
-    window::create_main_window(&app_handle, url);
+    window::create_main_window(&app_handle, url)?;
     Ok(())
 }
 

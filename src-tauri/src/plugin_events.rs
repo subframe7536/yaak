@@ -7,16 +7,16 @@ use crate::{
 };
 use chrono::Utc;
 use cookie::Cookie;
-use log::warn;
+use log::{error, warn};
 use tauri::{AppHandle, Emitter, Manager, Runtime, State};
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use yaak_models::models::{HttpResponse, Plugin};
 use yaak_models::query_manager::QueryManagerExt;
 use yaak_models::util::UpdateSource;
 use yaak_plugins::events::{
-    Color, DeleteKeyValueResponse, EmptyPayload, FindHttpResponsesResponse, GetCookieValueResponse,
-    GetHttpRequestByIdResponse, GetKeyValueResponse, Icon, InternalEvent, InternalEventPayload,
-    ListCookieNamesResponse, PluginWindowContext, RenderGrpcRequestResponse,
+    Color, DeleteKeyValueResponse, EmptyPayload, ErrorResponse, FindHttpResponsesResponse,
+    GetCookieValueResponse, GetHttpRequestByIdResponse, GetKeyValueResponse, Icon, InternalEvent,
+    InternalEventPayload, ListCookieNamesResponse, PluginWindowContext, RenderGrpcRequestResponse,
     RenderHttpRequestResponse, SendHttpRequestResponse, SetKeyValueResponse, ShowToastRequest,
     TemplateRenderResponse, WindowNavigateEvent,
 };
@@ -124,6 +124,7 @@ pub(crate) async fn handle_plugin_event<R: Runtime>(
             Some(InternalEventPayload::TemplateRenderResponse(TemplateRenderResponse { data }))
         }
         InternalEventPayload::ErrorResponse(resp) => {
+            error!("Plugin error: {}: {:?}", resp.error, resp);
             let toast_event = plugin_handle.build_event_to_send(
                 &window_context,
                 &InternalEventPayload::ShowToastRequest(ShowToastRequest {
@@ -218,20 +219,29 @@ pub(crate) async fn handle_plugin_event<R: Runtime>(
             }))
         }
         InternalEventPayload::OpenWindowRequest(req) => {
-            let label = req.label;
             let (navigation_tx, mut navigation_rx) = tokio::sync::mpsc::channel(128);
             let (close_tx, mut close_rx) = tokio::sync::mpsc::channel(128);
             let win_config = CreateWindowConfig {
                 url: &req.url,
-                label: &label.clone(),
-                title: &req.title.unwrap_or_default(),
+                label: &req.label,
+                title: &req.title.clone().unwrap_or_default(),
                 navigation_tx: Some(navigation_tx),
                 close_tx: Some(close_tx),
-                inner_size: req.size.map(|s| (s.width, s.height)),
-                data_dir_key: req.data_dir_key,
+                inner_size: req.size.clone().map(|s| (s.width, s.height)),
+                data_dir_key: req.data_dir_key.clone(),
                 ..Default::default()
             };
-            create_window(app_handle, win_config);
+            if let Err(e) = create_window(app_handle, win_config) {
+                let error_event = plugin_handle.build_event_to_send(
+                    &window_context,
+                    &InternalEventPayload::ErrorResponse(ErrorResponse {
+                        error: format!("Failed to create window: {:?}", e),
+                    }),
+                    None,
+                );
+                Box::pin(handle_plugin_event(app_handle, &error_event, plugin_handle)).await;
+                return;
+            }
 
             {
                 let event_id = event.id.clone();
