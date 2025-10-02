@@ -6,7 +6,6 @@ use tauri::{
 };
 use tauri_plugin_opener::OpenerExt;
 use tokio::sync::mpsc;
-use crate::error::Error::GenericError;
 use crate::error::Result;
 
 const DEFAULT_WINDOW_WIDTH: f64 = 1100.0;
