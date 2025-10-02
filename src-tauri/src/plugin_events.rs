@@ -134,6 +134,7 @@ pub(crate) async fn handle_plugin_event<R: Runtime>(
                         resp.error
                     ),
                     color: Some(Color::Danger),
+                    timeout: None,
                     ..Default::default()
                 }),
                 None,

@@ -1304,6 +1304,7 @@ pub fn run() {
                                         ),
                                         color: Some(Color::Danger),
                                         icon: None,
+                                        timeout: None,
                                     },
                                 );
                             };

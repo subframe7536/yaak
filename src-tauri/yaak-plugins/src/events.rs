@@ -494,6 +494,9 @@ pub struct ShowToastRequest {
 
     #[ts(optional)]
     pub icon: Option<Icon>,
+
+    #[ts(optional)]
+    pub timeout: Option<i32>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]

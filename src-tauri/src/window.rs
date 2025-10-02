@@ -56,8 +56,9 @@ pub(crate) fn create_window<R: Runtime>(
         #[cfg(not(target_os = "macos"))]
         {
             use std::fs;
-            let dir = handle.path().app_data_dir()?.join("window-sessions").join(key);
-            fs::create_dir_all(dir.clone())?;
+            let safe_key = format!("{:x}", md5::compute(key.as_bytes()));
+            let dir = handle.path().app_data_dir()?.join("window-sessions").join(safe_key);
+            fs::create_dir_all(&dir)?;
             win_builder = win_builder.data_directory(dir);
         }
 

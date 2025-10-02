@@ -47,6 +47,7 @@ pub(crate) async fn handle_deep_link<R: Runtime>(
                     message: format!("Installed {name}@{}", pv.version),
                     color: Some(Color::Success),
                     icon: None,
+                    timeout: Some(5000),
                 },
             )?;
         }
@@ -90,6 +91,7 @@ pub(crate) async fn handle_deep_link<R: Runtime>(
                             message: "Failed to import data".to_string(),
                             color: Some(Color::Danger),
                             icon: None,
+                            timeout: None,
                         },
                     )?;
                     return Ok(());
@@ -103,6 +105,7 @@ pub(crate) async fn handle_deep_link<R: Runtime>(
                     message: format!("Imported data for {} workspaces", results.workspaces.len()),
                     color: Some(Color::Success),
                     icon: None,
+                    timeout: Some(5000),
                 },
             )?;
         }
