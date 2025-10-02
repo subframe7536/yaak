@@ -62,7 +62,7 @@ function SettingsLicenseCmp() {
             <p>
               <Link
                 noUnderline
-                href="https://yaak.app/pricing?s=learn"
+                href={`https://yaak.app/pricing?s=learn&t=${check.data?.type ?? ''}`}
                 className="text-sm text-notice opacity-80 hover:opacity-100"
               >
                 Learn More
@@ -98,18 +98,17 @@ function SettingsLicenseCmp() {
         </HStack>
       ) : (
         <HStack space={2}>
-          <Button
-            variant="border"
-            color="secondary"
-            size="sm"
-            onClick={toggleActivateFormVisible}
-          >
+          <Button variant="border" color="secondary" size="sm" onClick={toggleActivateFormVisible}>
             Activate License
           </Button>
           <Button
             size="sm"
             color="primary"
-            onClick={() => openUrl('https://yaak.app/pricing?s=purchase&ref=app.yaak.desktop')}
+            onClick={() =>
+              openUrl(
+                `https://yaak.app/pricing?s=purchase&ref=app.yaak.desktop&t=${check.data?.type ?? ''}`,
+              )
+            }
             rightSlot={<Icon icon="external_link" />}
           >
             Purchase License
