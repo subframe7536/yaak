@@ -24,6 +24,7 @@
 <p align="center">
  Development is supported by community-purchased <a href="https://yaak.app/pricing">licenses</a>. You can also <a href="https://github.com/sponsors/gschier">become a sponsor</a> to have your avatar or company logo appear below. 💖
 </p>
+<br/>
 
 <p align="center">
   <!-- sponsors-premium --><a href="https://github.com/MVST-Solutions"><img src="https:&#x2F;&#x2F;github.com&#x2F;MVST-Solutions.png" width="80px" alt="User avatar: MVST-Solutions" /></a>&nbsp;&nbsp;<a href="https://github.com/dharsanb"><img src="https:&#x2F;&#x2F;github.com&#x2F;dharsanb.png" width="80px" alt="User avatar: dharsanb" /></a>&nbsp;&nbsp;<a href="https://github.com/railwayapp"><img src="https:&#x2F;&#x2F;github.com&#x2F;railwayapp.png" width="80px" alt="User avatar: railwayapp" /></a>&nbsp;&nbsp;<a href="https://github.com/caseyamcl"><img src="https:&#x2F;&#x2F;github.com&#x2F;caseyamcl.png" width="80px" alt="User avatar: caseyamcl" /></a>&nbsp;&nbsp;<a href="https://github.com/andriyor"><img src="https:&#x2F;&#x2F;github.com&#x2F;andriyor.png" width="80px" alt="User avatar: andriyor" /></a>&nbsp;&nbsp;<a href="https://github.com/"><img src="https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;JamesIves&#x2F;github-sponsors-readme-action&#x2F;dev&#x2F;.github&#x2F;assets&#x2F;placeholder.png" width="80px" alt="User avatar: " /></a>&nbsp;&nbsp;<!-- sponsors-premium -->
