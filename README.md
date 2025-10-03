@@ -26,7 +26,7 @@
 </p>
 
 <p align="center">
-  <!-- sponsors --><a href="https://github.com/dmmulroy"><img src="https:&#x2F;&#x2F;github.com&#x2F;dmmulroy.png" width="60px" alt="User avatar: Dillon Mulroy" /></a><a href="https://github.com/timcole"><img src="https:&#x2F;&#x2F;github.com&#x2F;timcole.png" width="60px" alt="User avatar: Timothy Cole" /></a><a href="https://github.com/VLZH"><img src="https:&#x2F;&#x2F;github.com&#x2F;VLZH.png" width="60px" alt="User avatar: Vladimir Zhdanov" /></a><a href="https://github.com/terasaka2k"><img src="https:&#x2F;&#x2F;github.com&#x2F;terasaka2k.png" width="60px" alt="User avatar: " /></a><a href="https://github.com/andriyor"><img src="https:&#x2F;&#x2F;github.com&#x2F;andriyor.png" width="60px" alt="User avatar: Andrii Oriekhov" /></a><!-- sponsors -->
+  <!-- sponsors --><a href="https://github.com/dmmulroy"><img src="https:&#x2F;&#x2F;github.com&#x2F;dmmulroy.png" width="50px" alt="User avatar: dmmulroy" /></a>&nbsp;&nbsp;<a href="https://github.com/timcole"><img src="https:&#x2F;&#x2F;github.com&#x2F;timcole.png" width="50px" alt="User avatar: timcole" /></a>&nbsp;&nbsp;<a href="https://github.com/VLZH"><img src="https:&#x2F;&#x2F;github.com&#x2F;VLZH.png" width="50px" alt="User avatar: VLZH" /></a>&nbsp;&nbsp;<a href="https://github.com/terasaka2k"><img src="https:&#x2F;&#x2F;github.com&#x2F;terasaka2k.png" width="50px" alt="User avatar: terasaka2k" /></a>&nbsp;&nbsp;<a href="https://github.com/andriyor"><img src="https:&#x2F;&#x2F;github.com&#x2F;andriyor.png" width="50px" alt="User avatar: andriyor" /></a>&nbsp;&nbsp;<!-- sponsors -->
 </p>
 
 ![Yaak API Client](https://yaak.app/static/screenshot.png)
