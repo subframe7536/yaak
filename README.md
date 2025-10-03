@@ -1,7 +1,31 @@
-# Yaak API Client
 
-Yaak is a desktop API client for interacting with REST, GraphQL, Server Sent Events (SSE), WebSocket, and gRPC
-APIs. It's built using [Tauri](https://tauri.app), Rust, and ReactJS.
+<p align="center">
+  <a href="https://github.com/JamesIves/github-sponsors-readme-action">
+    <img width="200px" src="https://github.com/mountain-loop/yaak/raw/main/src-tauri/icons/icon.png">
+  </a>
+</p>
+<!--<p align="center">
+    <a href="https://github.com/mountain-loop/yaak/actions/workflows/release.yml">
+        <img alt="GitHub Release" src="https://img.shields.io/github/v/release/mountain-loop/yaak?style=flat&color=fushia"></a>
+      <a href="https://github.com/sponsors/gschie" alt="Sponsors on GitHub">
+        <img src="https://img.shields.io/github/sponsors/gschier?style=flat&color=red" /></a>
+    <a href="https://yaak.app/discord">
+        <img alt="Discord" src="https://img.shields.io/discord/1387916086980251832?style=flat&label=Discord&color=blue"></a>
+</p>-->
+
+<h1 align="center">
+  ⭐ Yaak – Desktop API Client ⭐
+</h1>
+
+<p align="center">
+  Yaak is a desktop API client for REST, GraphQL, SSE, WebSocket, and gRPC
+  APIs. It's built using Tauri, Rust, and React.
+</p>
+<p align="center">
+ Development is supported by community-purchased <a href="https://yaak.app/pricing">licenses</a>. You can also <a href="https://github.com/sponsors/gschier">become a sponsor</a> to have your avatar or company logo appear below. 💖
+</p>
+
+<!-- sponsors --><!-- sponsors -->
 
 ![Yaak API Client](https://yaak.app/static/screenshot.png)
 
