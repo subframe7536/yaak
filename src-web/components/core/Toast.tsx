@@ -16,7 +16,7 @@ export interface ToastProps {
   className?: string;
   timeout: number | null;
   action?: (args: { hide: () => void }) => ReactNode;
-  icon?: ShowToastRequest['icon'];
+  icon?: ShowToastRequest['icon'] | null;
   color?: ShowToastRequest['color'];
 }
 
@@ -42,7 +42,7 @@ export function Toast({ children, open, onClose, timeout, action, icon, color }:
     [open],
   );
 
-  const toastIcon = icon ?? (color && color in ICONS && ICONS[color]);
+  const toastIcon = icon === null ? null : icon ?? (color && color in ICONS && ICONS[color]);
 
   return (
     <m.div

@@ -12,11 +12,11 @@ import {
 } from 'react';
 import type { XYCoord } from 'react-dnd';
 import { useDrag, useDrop } from 'react-dnd';
+import type { WrappedEnvironmentVariable } from '../../hooks/useEnvironmentVariables';
 import { useRandomKey } from '../../hooks/useRandomKey';
 import { useToggle } from '../../hooks/useToggle';
 import { languageFromContentType } from '../../lib/contentType';
 import { showDialog } from '../../lib/dialog';
-import { generateId } from '../../lib/generateId';
 import { showPrompt } from '../../lib/prompt';
 import { DropMarker } from '../DropMarker';
 import { SelectFile } from '../SelectFile';
@@ -24,12 +24,14 @@ import { Button } from './Button';
 import { Checkbox } from './Checkbox';
 import type { DropdownItem } from './Dropdown';
 import { Dropdown } from './Dropdown';
+import type { EditorProps } from './Editor/Editor';
 import { Editor } from './Editor/Editor';
 import type { GenericCompletionConfig } from './Editor/genericCompletion';
 import { Icon } from './Icon';
 import { IconButton } from './IconButton';
 import type { InputProps } from './Input';
 import { Input } from './Input';
+import { ensurePairId } from './PairEditor.util';
 import { PlainInput } from './PlainInput';
 import type { RadioDropdownItem } from './RadioDropdown';
 import { RadioDropdown } from './RadioDropdown';
@@ -55,7 +57,7 @@ export type PairEditorProps = {
   stateKey: InputProps['stateKey'];
   valueAutocomplete?: (name: string) => GenericCompletionConfig | undefined;
   valueAutocompleteFunctions?: boolean;
-  valueAutocompleteVariables?: boolean;
+  valueAutocompleteVariables?: boolean | 'environment';
   valuePlaceholder?: string;
   valueType?: InputProps['type'] | ((pair: Pair) => InputProps['type']);
   valueValidate?: InputProps['validate'];
@@ -471,6 +473,15 @@ export function PairEditorRow({
     [pair, onEnd],
   );
 
+  // Filter out the current pair name
+  const valueAutocompleteVariablesFiltered = useMemo<EditorProps['autocompleteVariables']>(() => {
+    if (valueAutocompleteVariables === 'environment') {
+      return (v: WrappedEnvironmentVariable): boolean => v.variable.name !== pair.name;
+    } else {
+      return valueAutocompleteVariables;
+    }
+  }, [pair.name, valueAutocompleteVariables]);
+
   connectDrag(ref);
   connectDrop(ref);
 
@@ -601,7 +612,7 @@ export function PairEditorRow({
               placeholder={valuePlaceholder ?? 'value'}
               autocomplete={valueAutocomplete?.(pair.name)}
               autocompleteFunctions={valueAutocompleteFunctions}
-              autocompleteVariables={valueAutocompleteVariables}
+              autocompleteVariables={valueAutocompleteVariablesFiltered}
             />
           )}
         </div>
@@ -760,13 +771,4 @@ function MultilineEditDialog({
       </div>
     </div>
   );
-}
-
-// eslint-disable-next-line react-refresh/only-export-components
-export function ensurePairId(p: Pair): PairWithId {
-  if (typeof p.id === 'string') {
-    return p as PairWithId;
-  } else {
-    return { ...p, id: p.id ?? generateId() };
-  }
 }

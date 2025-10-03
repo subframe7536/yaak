@@ -68,7 +68,7 @@ jobs:
 
       - name: install dependencies (windows only)
         if: matrix.platform == 'windows-latest'
-        run: cargo install --force trusted-signing-cli --version 0.5.0
+        run: cargo install --force trusted-signing-cli
 
       - name: Install NPM Dependencies
         run: npm ci
@@ -78,8 +78,15 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      # Some things (eg. WASM package) requires building before lint will work
+      - name: Run bootstrap
+        run: npm run bootstrap
+
       - name: Run lint
         run: npm run lint
+
+      - name: Run tests
+        run: npm test
 
       - name: Set version
         run: npm run replace-version
@@ -112,5 +119,5 @@ jobs:
           releaseName: 'Release __VERSION__'
           releaseBody: '[Changelog __VERSION__](https://yaak.app/blog/__VERSION__)'
           releaseDraft: true
-          prerelease: false
-          args: ${{ matrix.args }}
+          prerelease: true
+          args: '${{ matrix.args }} --config ./src-tauri/tauri.commercial.conf.json'

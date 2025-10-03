@@ -1,12 +1,13 @@
 use crate::events::{PluginWindowContext, RenderPurpose};
 use crate::manager::PluginManager;
 use crate::native_template_functions::{
-    template_function_secure_run, template_function_secure_transform_arg,
+    template_function_keychain_run, template_function_secure_run,
+    template_function_secure_transform_arg,
 };
 use std::collections::HashMap;
 use tauri::{AppHandle, Manager, Runtime};
-use yaak_templates::error::Result;
 use yaak_templates::TemplateCallback;
+use yaak_templates::error::Result;
 
 #[derive(Clone)]
 pub struct PluginTemplateCallback<R: Runtime> {
@@ -37,6 +38,8 @@ impl<R: Runtime> TemplateCallback for PluginTemplateCallback<R> {
 
         if fn_name == "secure" {
             return template_function_secure_run(&self.app_handle, args, &self.window_context);
+        } else if fn_name == "keychain" || fn_name == "keyring" {
+            return template_function_keychain_run(args);
         }
 
         let plugin_manager = &*self.app_handle.state::<PluginManager>();
@@ -51,12 +54,7 @@ impl<R: Runtime> TemplateCallback for PluginTemplateCallback<R> {
         Ok(resp)
     }
 
-    fn transform_arg(
-        &self,
-        fn_name: &str,
-        arg_name: &str,
-        arg_value: &str,
-    ) -> Result<String> {
+    fn transform_arg(&self, fn_name: &str, arg_name: &str, arg_value: &str) -> Result<String> {
         if fn_name == "secure" {
             return template_function_secure_transform_arg(
                 &self.app_handle,

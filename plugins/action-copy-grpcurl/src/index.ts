@@ -41,8 +41,8 @@ export async function convert(request: Partial<GrpcRequest>, allProtoFiles: stri
     if (protoDir) {
       inferredIncludes.add(protoDir);
     } else {
-      inferredIncludes.add(path.join(f, '..'));
-      inferredIncludes.add(path.join(f, '..', '..'));
+      inferredIncludes.add(path.posix.join(f, '..'));
+      inferredIncludes.add(path.posix.join(f, '..', '..'));
     }
   }
 

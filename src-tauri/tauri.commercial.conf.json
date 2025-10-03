@@ -1,0 +1,38 @@
+{
+  "build": {
+    "features": [
+      "updater",
+      "license"
+    ]
+  },
+  "app": {
+    "security": {
+      "capabilities": [
+        "default",
+        {
+          "identifier": "release",
+          "windows": [
+            "*"
+          ],
+          "permissions": [
+            "yaak-license:default"
+          ]
+        }
+      ]
+    }
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://update.yaak.app/check/{{target}}/{{arch}}/{{current_version}}"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEMxRDJFREQ1MjExQjdGN0IKUldSN2Z4c2gxZTNTd1FHNCtmYnFXMHVVQzhuNkJOM1cwOFBodmdLall3ckhKenpKUytHSTR1MlkK"
+    }
+  },
+  "bundle": {
+    "createUpdaterArtifacts": "v1Compatible",
+    "windows": {
+      "signCommand": "trusted-signing-cli -e https://eus.codesigning.azure.net/ -a Yaak -c yaakapp %1"
+    }
+  }
+}

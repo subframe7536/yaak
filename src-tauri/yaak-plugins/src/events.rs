@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use std::collections::HashMap;
 use tauri::{Runtime, WebviewWindow};
 use ts_rs::TS;
@@ -163,7 +162,7 @@ pub enum InternalEventPayload {
 
 impl InternalEventPayload {
     pub fn type_name(&self) -> String {
-        if let Ok(Value::Object(map)) = serde_json::to_value(self) {
+        if let Ok(serde_json::Value::Object(map)) = serde_json::to_value(self) {
             map.get("type").map(|s| s.as_str().unwrap_or("unknown").to_string())
         } else {
             None
@@ -495,6 +494,9 @@ pub struct ShowToastRequest {
 
     #[ts(optional)]
     pub icon: Option<Icon>,
+
+    #[ts(optional)]
+    pub timeout: Option<i32>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]

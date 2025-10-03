@@ -7,9 +7,9 @@ use log::debug;
 use reqwest::Method;
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, Manager, Runtime, WebviewWindow};
+use ts_rs::TS;
 use yaak_common::api_client::yaak_api_client;
 use yaak_common::platform::get_os;
-use yaak_license::{LicenseCheckStatus, check_license};
 use yaak_models::query_manager::QueryManagerExt;
 use yaak_models::util::UpdateSource;
 
@@ -24,18 +24,22 @@ pub struct YaakNotifier {
     last_check: SystemTime,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, TS)]
 #[serde(default, rename_all = "camelCase")]
+#[ts(export, export_to = "index.ts")]
 pub struct YaakNotification {
     timestamp: DateTime<Utc>,
     timeout: Option<f64>,
     id: String,
+    title: Option<String>,
     message: String,
+    color: Option<String>,
     action: Option<YaakNotificationAction>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, TS)]
 #[serde(default, rename_all = "camelCase")]
+#[ts(export, export_to = "index.ts")]
 pub struct YaakNotificationAction {
     label: String,
     url: String,
@@ -73,12 +77,20 @@ impl YaakNotifier {
 
         self.last_check = SystemTime::now();
 
-        let license_check = match check_license(window).await? {
-            LicenseCheckStatus::PersonalUse { .. } => "personal".to_string(),
-            LicenseCheckStatus::CommercialUse => "commercial".to_string(),
-            LicenseCheckStatus::InvalidLicense => "invalid_license".to_string(),
-            LicenseCheckStatus::Trialing { .. } => "trialing".to_string(),
+        #[cfg(feature = "license")]
+        let license_check = {
+            use yaak_license::{LicenseCheckStatus, check_license};
+            match check_license(window).await {
+                Ok(LicenseCheckStatus::PersonalUse { .. }) => "personal".to_string(),
+                Ok(LicenseCheckStatus::CommercialUse) => "commercial".to_string(),
+                Ok(LicenseCheckStatus::InvalidLicense) => "invalid_license".to_string(),
+                Ok(LicenseCheckStatus::Trialing { .. }) => "trialing".to_string(),
+                Err(_) => "unknown".to_string(),
+            }
         };
+        #[cfg(not(feature = "license"))]
+        let license_check = "disabled".to_string();
+
         let settings = window.db().get_settings();
         let num_launches = get_num_launches(app_handle).await;
         let info = app_handle.package_info().clone();

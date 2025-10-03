@@ -120,6 +120,9 @@ pub struct Settings {
     pub theme_dark: String,
     pub theme_light: String,
     pub update_channel: String,
+    pub hide_license_badge: bool,
+    pub autoupdate: bool,
+    pub auto_download_updates: bool,
 }
 
 impl UpsertModelInfo for Settings {
@@ -168,6 +171,9 @@ impl UpsertModelInfo for Settings {
             (ThemeDark, self.theme_dark.as_str().into()),
             (ThemeLight, self.theme_light.as_str().into()),
             (UpdateChannel, self.update_channel.into()),
+            (HideLicenseBadge, self.hide_license_badge.into()),
+            (Autoupdate, self.autoupdate.into()),
+            (AutoDownloadUpdates, self.auto_download_updates.into()),
             (ColoredMethods, self.colored_methods.into()),
             (Proxy, proxy.into()),
         ])
@@ -190,6 +196,9 @@ impl UpsertModelInfo for Settings {
             SettingsIden::ThemeDark,
             SettingsIden::ThemeLight,
             SettingsIden::UpdateChannel,
+            SettingsIden::HideLicenseBadge,
+            SettingsIden::Autoupdate,
+            SettingsIden::AutoDownloadUpdates,
             SettingsIden::ColoredMethods,
         ]
     }
@@ -219,6 +228,9 @@ impl UpsertModelInfo for Settings {
             theme_light: row.get("theme_light")?,
             hide_window_controls: row.get("hide_window_controls")?,
             update_channel: row.get("update_channel")?,
+            autoupdate: row.get("autoupdate")?,
+            auto_download_updates: row.get("auto_download_updates")?,
+            hide_license_badge: row.get("hide_license_badge")?,
             colored_methods: row.get("colored_methods")?,
         })
     }
@@ -529,7 +541,13 @@ pub struct Environment {
 
     pub name: String,
     pub public: bool,
+    #[deprecated(
+        note = "parent_model is used instead. This field will be removed when schema field is added for sync/export."
+    )]
+    #[ts(skip)]
     pub base: bool,
+    pub parent_model: String,
+    pub parent_id: Option<String>,
     pub variables: Vec<EnvironmentVariable>,
     pub color: Option<String>,
 }
@@ -564,7 +582,8 @@ impl UpsertModelInfo for Environment {
             (CreatedAt, upsert_date(source, self.created_at)),
             (UpdatedAt, upsert_date(source, self.updated_at)),
             (WorkspaceId, self.workspace_id.into()),
-            (Base, self.base.into()),
+            (ParentId, self.parent_id.into()),
+            (ParentModel, self.parent_model.into()),
             (Color, self.color.into()),
             (Name, self.name.trim().into()),
             (Public, self.public.into()),
@@ -575,7 +594,8 @@ impl UpsertModelInfo for Environment {
     fn update_columns() -> Vec<impl IntoIden> {
         vec![
             EnvironmentIden::UpdatedAt,
-            EnvironmentIden::Base,
+            EnvironmentIden::ParentId,
+            EnvironmentIden::ParentModel,
             EnvironmentIden::Color,
             EnvironmentIden::Name,
             EnvironmentIden::Public,
@@ -588,17 +608,25 @@ impl UpsertModelInfo for Environment {
         Self: Sized,
     {
         let variables: String = row.get("variables")?;
+        let parent_model = row.get("parent_model")?;
+        let base = parent_model == "workspace";
         Ok(Self {
             id: row.get("id")?,
             model: row.get("model")?,
             workspace_id: row.get("workspace_id")?,
             created_at: row.get("created_at")?,
             updated_at: row.get("updated_at")?,
-            base: row.get("base")?,
+            parent_id: row.get("parent_id")?,
+            parent_model,
             color: row.get("color")?,
             name: row.get("name")?,
             public: row.get("public")?,
             variables: serde_json::from_str(variables.as_str()).unwrap_or_default(),
+
+            // Deprecated field, but we need to keep it around for a couple of versions
+            // for compatibility because sync/export don't have a schema field
+            #[allow(deprecated)]
+            base,
         })
     }
 }
@@ -2066,6 +2094,17 @@ macro_rules! define_any_model {
             $(
                 $type($type),
             )*
+        }
+
+        impl AnyModel {
+            #[inline]
+            pub fn id(&self) -> &str {
+                match self {
+                    $(
+                        AnyModel::$type(inner) => &inner.id,
+                    )*
+                }
+            }
         }
 
         $(

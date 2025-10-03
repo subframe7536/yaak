@@ -5,6 +5,8 @@ use crate::events::{
 use crate::template_callback::PluginTemplateCallback;
 use base64::Engine;
 use base64::prelude::BASE64_STANDARD;
+use keyring::Error::NoEntry;
+use log::{debug, info};
 use std::collections::HashMap;
 use tauri::{AppHandle, Runtime};
 use yaak_crypto::manager::EncryptionManagerExt;
@@ -29,6 +31,34 @@ pub(crate) fn template_function_secure() -> TemplateFunction {
                 ..Default::default()
             },
         ))],
+    }
+}
+
+pub(crate) fn template_function_keyring() -> TemplateFunction {
+    TemplateFunction {
+        name: "keychain".to_string(),
+        description: Some("Get a password from the OS keychain or keyring".to_string()),
+        aliases: Some(vec!["keyring".to_string()]),
+        args: vec![
+            TemplateFunctionArg::FormInput(FormInput::Text(FormInputText {
+                base: FormInputBase {
+                    name: "service".to_string(),
+                    label: Some("Service".to_string()),
+                    description: Some("App or URL for the password".to_string()),
+                    ..Default::default()
+                },
+                ..Default::default()
+            })),
+            TemplateFunctionArg::FormInput(FormInput::Text(FormInputText {
+                base: FormInputBase {
+                    name: "account".to_string(),
+                    label: Some("Account".to_string()),
+                    description: Some("Username or email address".to_string()),
+                    ..Default::default()
+                },
+                ..Default::default()
+            })),
+        ],
     }
 }
 
@@ -162,4 +192,26 @@ pub fn encrypt_secure_template_function<R: Runtime>(
         &PluginTemplateCallback::new(app_handle, window_context, RenderPurpose::Preview),
     )?
     .to_string())
+}
+
+pub fn template_function_keychain_run(args: HashMap<String, serde_json::Value>) -> Result<String> {
+    let service = args.get("service").and_then(|v| v.as_str()).unwrap_or_default().to_owned();
+    let user = args.get("account").and_then(|v| v.as_str()).unwrap_or_default().to_owned();
+    debug!("Getting password for service {} and user {}", service, user);
+    let entry = match keyring::Entry::new(&service, &user) {
+        Ok(e) => e,
+        Err(e) => {
+            debug!("Failed to initialize keyring entry for '{}' and '{}' {:?}", service, user, e);
+            return Ok("".to_string()); // Don't fail for invalid args
+        }
+    };
+
+    match entry.get_password() {
+        Ok(p) => Ok(p),
+        Err(NoEntry) => {
+            info!("No password found for '{}' and '{}'", service, user);
+            Ok("".to_string()) // Don't fail for missing passwords
+        }
+        Err(e) => Err(RenderError(e.to_string())),
+    }
 }

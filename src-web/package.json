@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite dev --force",
     "build": "vite build",
-    "lint": "eslint . --ext .ts,.tsx"
+    "lint": "tsc --noEmit && eslint . --ext .ts,.tsx"
   },
   "dependencies": {
     "@codemirror/commands": "^6.8.1",
@@ -27,14 +27,14 @@
     "@tanstack/react-query": "^5.76.1",
     "@tanstack/react-router": "^1.120.3",
     "@tanstack/react-virtual": "^3.13.8",
-    "@tauri-apps/api": "^2.5.0",
-    "@tauri-apps/plugin-clipboard-manager": "^2.2.2",
-    "@tauri-apps/plugin-dialog": "^2.2.2",
-    "@tauri-apps/plugin-fs": "^2.3.0",
-    "@tauri-apps/plugin-log": "^2.4.0",
-    "@tauri-apps/plugin-opener": "^2.2.7",
-    "@tauri-apps/plugin-os": "^2.2.1",
-    "@tauri-apps/plugin-shell": "^2.2.1",
+    "@tauri-apps/api": "^2.8.0",
+    "@tauri-apps/plugin-clipboard-manager": "^2.3.0",
+    "@tauri-apps/plugin-dialog": "^2.4.0",
+    "@tauri-apps/plugin-fs": "^2.4.2",
+    "@tauri-apps/plugin-log": "^2.7.0",
+    "@tauri-apps/plugin-opener": "^2.5.0",
+    "@tauri-apps/plugin-os": "^2.3.1",
+    "@tauri-apps/plugin-shell": "^2.3.1",
     "buffer": "^6.0.3",
     "classnames": "^2.5.1",
     "cm6-graphql": "^0.2.1",
@@ -92,8 +92,8 @@
     "postcss": "^8.5.6",
     "postcss-nesting": "^13.0.2",
     "tailwindcss": "^3.4.17",
-    "vite": "^7.0.4",
-    "vite-plugin-static-copy": "^3.1.1",
+    "vite": "^7.0.7",
+    "vite-plugin-static-copy": "^3.1.2",
     "vite-plugin-svgr": "^4.3.0",
     "vite-plugin-top-level-await": "^1.5.0",
     "vite-plugin-wasm": "^3.5.0"

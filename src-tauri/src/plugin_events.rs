@@ -7,16 +7,16 @@ use crate::{
 };
 use chrono::Utc;
 use cookie::Cookie;
-use log::warn;
+use log::{error, warn};
 use tauri::{AppHandle, Emitter, Manager, Runtime, State};
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use yaak_models::models::{HttpResponse, Plugin};
 use yaak_models::query_manager::QueryManagerExt;
 use yaak_models::util::UpdateSource;
 use yaak_plugins::events::{
-    Color, DeleteKeyValueResponse, EmptyPayload, FindHttpResponsesResponse, GetCookieValueResponse,
-    GetHttpRequestByIdResponse, GetKeyValueResponse, Icon, InternalEvent, InternalEventPayload,
-    ListCookieNamesResponse, PluginWindowContext, RenderGrpcRequestResponse,
+    Color, DeleteKeyValueResponse, EmptyPayload, ErrorResponse, FindHttpResponsesResponse,
+    GetCookieValueResponse, GetHttpRequestByIdResponse, GetKeyValueResponse, Icon, InternalEvent,
+    InternalEventPayload, ListCookieNamesResponse, PluginWindowContext, RenderGrpcRequestResponse,
     RenderHttpRequestResponse, SendHttpRequestResponse, SetKeyValueResponse, ShowToastRequest,
     TemplateRenderResponse, WindowNavigateEvent,
 };
@@ -51,7 +51,7 @@ pub(crate) async fn handle_plugin_event<R: Runtime>(
         InternalEventPayload::PromptTextRequest(_) => {
             let window = get_window_from_window_context(app_handle, &window_context)
                 .expect("Failed to find window for render");
-            call_frontend(window, event).await
+            call_frontend(&window, event).await
         }
         InternalEventPayload::FindHttpResponsesRequest(req) => {
             let http_responses = app_handle
@@ -74,20 +74,15 @@ pub(crate) async fn handle_plugin_event<R: Runtime>(
 
             let workspace =
                 workspace_from_window(&window).expect("Failed to get workspace_id from window URL");
-            let environment = environment_from_window(&window);
-            let base_environment = app_handle
+            let environment_id = environment_from_window(&window).map(|e| e.id);
+            let environment_chain = window
                 .db()
-                .get_base_environment(&workspace.id)
-                .expect("Failed to get base environment");
+                .resolve_environments(&workspace.id, None, environment_id.as_deref())
+                .expect("Failed to resolve environments");
             let cb = PluginTemplateCallback::new(app_handle, &window_context, req.purpose);
-            let grpc_request = render_grpc_request(
-                &req.grpc_request,
-                &base_environment,
-                environment.as_ref(),
-                &cb,
-            )
-            .await
-            .expect("Failed to render grpc request");
+            let grpc_request = render_grpc_request(&req.grpc_request, environment_chain, &cb)
+                .await
+                .expect("Failed to render grpc request");
             Some(InternalEventPayload::RenderGrpcRequestResponse(RenderGrpcRequestResponse {
                 grpc_request,
             }))
@@ -98,20 +93,15 @@ pub(crate) async fn handle_plugin_event<R: Runtime>(
 
             let workspace =
                 workspace_from_window(&window).expect("Failed to get workspace_id from window URL");
-            let environment = environment_from_window(&window);
-            let base_environment = app_handle
+            let environment_id = environment_from_window(&window).map(|e| e.id);
+            let environment_chain = window
                 .db()
-                .get_base_environment(&workspace.id)
-                .expect("Failed to get base environment");
+                .resolve_environments(&workspace.id, None, environment_id.as_deref())
+                .expect("Failed to resolve environments");
             let cb = PluginTemplateCallback::new(app_handle, &window_context, req.purpose);
-            let http_request = render_http_request(
-                &req.http_request,
-                &base_environment,
-                environment.as_ref(),
-                &cb,
-            )
-            .await
-            .expect("Failed to render http request");
+            let http_request = render_http_request(&req.http_request, environment_chain, &cb)
+                .await
+                .expect("Failed to render http request");
             Some(InternalEventPayload::RenderHttpRequestResponse(RenderHttpRequestResponse {
                 http_request,
             }))
@@ -122,18 +112,19 @@ pub(crate) async fn handle_plugin_event<R: Runtime>(
 
             let workspace =
                 workspace_from_window(&window).expect("Failed to get workspace_id from window URL");
-            let environment = environment_from_window(&window);
-            let base_environment = app_handle
+            let environment_id = environment_from_window(&window).map(|e| e.id);
+            let environment_chain = window
                 .db()
-                .get_base_environment(&workspace.id)
-                .expect("Failed to get base environment");
+                .resolve_environments(&workspace.id, None, environment_id.as_deref())
+                .expect("Failed to resolve environments");
             let cb = PluginTemplateCallback::new(app_handle, &window_context, req.purpose);
-            let data = render_json_value(req.data, &base_environment, environment.as_ref(), &cb)
+            let data = render_json_value(req.data, environment_chain, &cb)
                 .await
                 .expect("Failed to render template");
             Some(InternalEventPayload::TemplateRenderResponse(TemplateRenderResponse { data }))
         }
         InternalEventPayload::ErrorResponse(resp) => {
+            error!("Plugin error: {}: {:?}", resp.error, resp);
             let toast_event = plugin_handle.build_event_to_send(
                 &window_context,
                 &InternalEventPayload::ShowToastRequest(ShowToastRequest {
@@ -143,6 +134,7 @@ pub(crate) async fn handle_plugin_event<R: Runtime>(
                         resp.error
                     ),
                     color: Some(Color::Danger),
+                    timeout: None,
                     ..Default::default()
                 }),
                 None,
@@ -228,20 +220,29 @@ pub(crate) async fn handle_plugin_event<R: Runtime>(
             }))
         }
         InternalEventPayload::OpenWindowRequest(req) => {
-            let label = req.label;
             let (navigation_tx, mut navigation_rx) = tokio::sync::mpsc::channel(128);
             let (close_tx, mut close_rx) = tokio::sync::mpsc::channel(128);
             let win_config = CreateWindowConfig {
                 url: &req.url,
-                label: &label.clone(),
-                title: &req.title.unwrap_or_default(),
+                label: &req.label,
+                title: &req.title.clone().unwrap_or_default(),
                 navigation_tx: Some(navigation_tx),
                 close_tx: Some(close_tx),
-                inner_size: req.size.map(|s| (s.width, s.height)),
-                data_dir_key: req.data_dir_key,
+                inner_size: req.size.clone().map(|s| (s.width, s.height)),
+                data_dir_key: req.data_dir_key.clone(),
                 ..Default::default()
             };
-            create_window(app_handle, win_config);
+            if let Err(e) = create_window(app_handle, win_config) {
+                let error_event = plugin_handle.build_event_to_send(
+                    &window_context,
+                    &InternalEventPayload::ErrorResponse(ErrorResponse {
+                        error: format!("Failed to create window: {:?}", e),
+                    }),
+                    None,
+                );
+                Box::pin(handle_plugin_event(app_handle, &error_event, plugin_handle)).await;
+                return;
+            }
 
             {
                 let event_id = event.id.clone();

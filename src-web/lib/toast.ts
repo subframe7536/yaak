@@ -21,7 +21,6 @@ export function showToast({
 
   let delay = 0;
   if (toastWithSameId) {
-    console.log('HIDING TOAST', id);
     hideToast(toastWithSameId);
     // Allow enough time for old toast to animate out
     delay = 200;

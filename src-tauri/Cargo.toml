@@ -32,17 +32,20 @@ strip = true  # Automatically strip symbols from the binary.
 
 [features]
 cargo-clippy = []
+default = []
+updater = []
+license = ["yaak-license"]
 
 [build-dependencies]
-tauri-build = { version = "2.2.0", features = [] }
+tauri-build = { version = "2.4.1", features = [] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 openssl-sys = { version = "0.9.105", features = ["vendored"] } # For Ubuntu installation to work
 
 [dependencies]
+charset = "0.1.5"
 chrono = { workspace = true, features = ["serde"] }
 cookie = "0.18.1"
-encoding_rs = "0.8.35"
 eventsource-client = { git = "https://github.com/yaakapp/rust-eventsource-client", version = "0.14.0" }
 http = { version = "1.2.0", default-features = false }
 log = "0.4.27"
@@ -55,19 +58,20 @@ serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true, features = ["raw_value"] }
 tauri = { workspace = true, features = ["devtools", "protocol-asset"] }
 tauri-plugin-clipboard-manager = "2.3.0"
+tauri-plugin-deep-link = "2.4.3"
 tauri-plugin-dialog = { workspace = true }
-tauri-plugin-fs = "2.4.0"
-tauri-plugin-log = { version = "2.6.0", features = ["colored"] }
-tauri-plugin-opener = "2.4.0"
-tauri-plugin-os = "2.3.0"
+tauri-plugin-fs = "2.4.2"
+tauri-plugin-log = { version = "2.7.0", features = ["colored"] }
+tauri-plugin-opener = "2.5.0"
+tauri-plugin-os = "2.3.1"
 tauri-plugin-shell = { workspace = true }
-tauri-plugin-deep-link = "2.4.0"
-tauri-plugin-single-instance = { version = "2.3.0", features = ["deep-link"] }
+tauri-plugin-single-instance = { version = "2.3.4", features = ["deep-link"] }
 tauri-plugin-updater = "2.9.0"
-tauri-plugin-window-state = "2.3.0"
+tauri-plugin-window-state = "2.4.0"
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["sync"] }
 tokio-stream = "0.1.17"
+ts-rs = { workspace = true }
 uuid = "1.12.1"
 yaak-common = { workspace = true }
 yaak-crypto = { workspace = true }
@@ -75,7 +79,7 @@ yaak-fonts = { workspace = true }
 yaak-git = { path = "yaak-git" }
 yaak-grpc = { path = "yaak-grpc" }
 yaak-http = { workspace = true }
-yaak-license = { path = "yaak-license" }
+yaak-license = { path = "yaak-license", optional = true }
 yaak-mac-window = { path = "yaak-mac-window" }
 yaak-models = { workspace = true }
 yaak-plugins = { workspace = true }
@@ -87,20 +91,21 @@ yaak-ws = { path = "yaak-ws" }
 [workspace.dependencies]
 chrono = "0.4.41"
 hex = "0.4.3"
+keyring = "3.6.3"
 reqwest = "0.12.20"
-serde = "1.0.219"
-serde_json = "1.0.140"
-tauri = "2.6.2"
-tauri-plugin = "2.3.0"
-tauri-plugin-dialog = "2.3.0"
-tauri-plugin-shell = "2.3.0"
-tokio = "1.45.1"
-thiserror = "2.0.12"
-ts-rs = "11.0.1"
 reqwest_cookie_store = "0.8.0"
 rustls = { version = "0.23.27", default-features = false }
 rustls-platform-verifier = "0.6.0"
+serde = "1.0.219"
+serde_json = "1.0.140"
 sha2 = "0.10.9"
+tauri = "2.8.5"
+tauri-plugin = "2.4.0"
+tauri-plugin-dialog = "2.4.0"
+tauri-plugin-shell = "2.3.1"
+thiserror = "2.0.12"
+tokio = "1.45.1"
+ts-rs = "11.0.1"
 yaak-common = { path = "yaak-common" }
 yaak-crypto = { path = "yaak-crypto" }
 yaak-fonts = { path = "yaak-fonts" }

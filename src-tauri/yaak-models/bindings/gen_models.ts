@@ -14,7 +14,7 @@ export type EditorKeymap = "default" | "vim" | "vscode" | "emacs";
 
 export type EncryptedKey = { encryptedKey: string, };
 
-export type Environment = { model: "environment", id: string, workspaceId: string, createdAt: string, updatedAt: string, name: string, public: boolean, base: boolean, variables: Array<EnvironmentVariable>, color: string | null, };
+export type Environment = { model: "environment", id: string, workspaceId: string, createdAt: string, updatedAt: string, name: string, public: boolean, parentModel: string, parentId: string | null, variables: Array<EnvironmentVariable>, color: string | null, };
 
 export type EnvironmentVariable = { enabled?: boolean, name: string, value: string, id?: string, };
 
@@ -62,7 +62,7 @@ export type ProxySetting = { "type": "enabled", http: string, https: string, aut
 
 export type ProxySettingAuth = { user: string, password: string, };
 
-export type Settings = { model: "settings", id: string, createdAt: string, updatedAt: string, appearance: string, coloredMethods: boolean, editorFont: string | null, editorFontSize: number, editorKeymap: EditorKeymap, editorSoftWrap: boolean, hideWindowControls: boolean, interfaceFont: string | null, interfaceFontSize: number, interfaceScale: number, openWorkspaceNewWindow: boolean | null, proxy: ProxySetting | null, themeDark: string, themeLight: string, updateChannel: string, };
+export type Settings = { model: "settings", id: string, createdAt: string, updatedAt: string, appearance: string, coloredMethods: boolean, editorFont: string | null, editorFontSize: number, editorKeymap: EditorKeymap, editorSoftWrap: boolean, hideWindowControls: boolean, interfaceFont: string | null, interfaceFontSize: number, interfaceScale: number, openWorkspaceNewWindow: boolean | null, proxy: ProxySetting | null, themeDark: string, themeLight: string, updateChannel: string, hideLicenseBadge: boolean, autoupdate: boolean, autoDownloadUpdates: boolean, };
 
 export type SyncState = { model: "sync_state", id: string, workspaceId: string, createdAt: string, updatedAt: string, flushedAt: string, modelId: string, checksum: string, relPath: string, syncDir: string, };
 

@@ -6,6 +6,7 @@ import { activeWorkspaceAtom } from '../../hooks/useActiveWorkspace';
 import { appInfo } from '../../lib/appInfo';
 import { useCheckForUpdates } from '../../hooks/useCheckForUpdates';
 import { revealInFinderText } from '../../lib/reveal';
+import { CargoFeature } from '../CargoFeature';
 import { Checkbox } from '../core/Checkbox';
 import { Heading } from '../core/Heading';
 import { IconButton } from '../core/IconButton';
@@ -26,29 +27,57 @@ export function SettingsGeneral() {
 
   return (
     <VStack space={1.5} className="mb-4">
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-1">
+      <CargoFeature feature="updater">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-1">
+          <Select
+            name="updateChannel"
+            label="Update Channel"
+            labelPosition="left"
+            labelClassName="w-[14rem]"
+            size="sm"
+            value={settings.updateChannel}
+            onChange={(updateChannel) => patchModel(settings, { updateChannel })}
+            options={[
+              { label: 'Stable', value: 'stable' },
+              { label: 'Beta (more frequent)', value: 'beta' },
+            ]}
+          />
+          <IconButton
+            variant="border"
+            size="sm"
+            title="Check for updates"
+            icon="refresh"
+            spin={checkForUpdates.isPending}
+            onClick={() => checkForUpdates.mutateAsync()}
+          />
+        </div>
+
         <Select
-          name="updateChannel"
-          label="Update Channel"
+          name="autoupdate"
+          value={settings.autoupdate ? 'auto' : 'manual'}
+          label="Update Behavior"
           labelPosition="left"
-          labelClassName="w-[14rem]"
           size="sm"
-          value={settings.updateChannel}
-          onChange={(updateChannel) => patchModel(settings, { updateChannel })}
+          labelClassName="w-[14rem]"
+          onChange={(v) => patchModel(settings, { autoupdate: v === 'auto' })}
           options={[
-            { label: 'Stable', value: 'stable' },
-            { label: 'Beta (more frequent)', value: 'beta' },
+            { label: 'Automatic', value: 'auto' },
+            { label: 'Manual', value: 'manual' },
           ]}
         />
-        <IconButton
-          variant="border"
-          size="sm"
-          title="Check for updates"
-          icon="refresh"
-          spin={checkForUpdates.isPending}
-          onClick={() => checkForUpdates.mutateAsync()}
+        <Checkbox
+          className="pl-2 mt-1 ml-[14rem]"
+          checked={settings.autoDownloadUpdates}
+          disabled={!settings.autoupdate}
+          help="Automatically download Yaak updates (!50MB) in the background, so they will be immediately ready to install."
+          title="Automatically download updates"
+          onChange={(autoDownloadUpdates) =>
+            patchModel(settings, { autoDownloadUpdates })
+          }
         />
-      </div>
+        <Separator className="my-4" />
+      </CargoFeature>
+
       <Select
         name="switchWorkspaceBehavior"
         label="Workspace Window Behavior"

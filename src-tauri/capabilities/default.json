@@ -1,8 +1,6 @@
 {
-  "$schema": "../gen/schemas/capabilities.json",
-  "identifier": "main",
-  "description": "Main permissions",
-  "local": true,
+  "identifier": "default",
+  "description": "Default capabilities for all build variants",
   "windows": [
     "*"
   ],
@@ -11,6 +9,7 @@
     "core:event:allow-emit",
     "core:event:allow-listen",
     "core:event:allow-unlisten",
+    "core:path:allow-resolve-directory",
     "os:allow-os-type",
     "clipboard-manager:allow-clear",
     "clipboard-manager:allow-write-text",
@@ -54,7 +53,6 @@
     "yaak-crypto:default",
     "yaak-fonts:default",
     "yaak-git:default",
-    "yaak-license:default",
     "yaak-mac-window:default",
     "yaak-models:default",
     "yaak-plugins:default",

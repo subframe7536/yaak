@@ -66,7 +66,20 @@ export function migrateImport(contents: string) {
     }
   }
 
-  return { resources: parsed.resources }; // Should already be in the correct format
+  // Migrate v4 to v5
+  for (const environment of parsed.resources.environments ?? []) {
+    if ('base' in environment && environment.base) {
+      environment.parentModel = 'workspace';
+      environment.parentId = null;
+      delete environment.base;
+    } else if ('base' in environment && !environment.base) {
+      environment.parentModel = 'environment';
+      environment.parentId = null;
+      delete environment.base;
+    }
+  }
+
+  return { resources: parsed.resources };
 }
 
 function isJSObject(obj: unknown) {

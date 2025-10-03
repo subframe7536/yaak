@@ -2,7 +2,8 @@ use crate::error::Error::UnknownModel;
 use crate::error::Result;
 use chrono::NaiveDateTime;
 use log::warn;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
+use serde_yaml::{Mapping, Value};
 use sha1::{Digest, Sha1};
 use std::fs;
 use std::path::Path;
@@ -11,7 +12,7 @@ use yaak_models::models::{
     AnyModel, Environment, Folder, GrpcRequest, HttpRequest, WebsocketRequest, Workspace,
 };
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[derive(Debug, Clone, PartialEq, Serialize, TS)]
 #[serde(rename_all = "snake_case", tag = "type")]
 #[ts(export, export_to = "gen_models.ts")]
 pub enum SyncModel {
@@ -21,6 +22,78 @@ pub enum SyncModel {
     HttpRequest(HttpRequest),
     GrpcRequest(GrpcRequest),
     WebsocketRequest(WebsocketRequest),
+}
+
+impl<'de> Deserialize<'de> for SyncModel {
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        use serde_path_to_error as spte;
+        let mut v = Value::deserialize(deserializer)?;
+        let model = match v.get("model") {
+            Some(Value::String(model)) => model.clone(),
+            _ => "".to_string(),
+        };
+        let model = model.as_str();
+
+        let obj = v
+            .as_mapping_mut()
+            .ok_or_else(|| serde::de::Error::custom("expected object for SyncModel"))?;
+
+        // Dispatch to CHILD types (no recursion)
+        match model {
+            "workspace" => {
+                let x: Workspace = spte::deserialize(v).map_err(serde::de::Error::custom)?;
+                Ok(SyncModel::Workspace(x))
+            }
+            "environment" => {
+                migrate_environment(obj);
+                let x: Environment = spte::deserialize(v).map_err(serde::de::Error::custom)?;
+                Ok(SyncModel::Environment(x))
+            }
+            "folder" => {
+                let x: Folder = spte::deserialize(v).map_err(serde::de::Error::custom)?;
+                Ok(SyncModel::Folder(x))
+            }
+            "http_request" => {
+                let x: HttpRequest = spte::deserialize(v).map_err(serde::de::Error::custom)?;
+                Ok(SyncModel::HttpRequest(x))
+            }
+            "grpc_request" => {
+                let x: GrpcRequest = spte::deserialize(v).map_err(serde::de::Error::custom)?;
+                Ok(SyncModel::GrpcRequest(x))
+            }
+            "websocket_request" => {
+                let x: WebsocketRequest = spte::deserialize(v).map_err(serde::de::Error::custom)?;
+                Ok(SyncModel::WebsocketRequest(x))
+            }
+            other => Err(serde::de::Error::unknown_variant(
+                other,
+                &[
+                    "workspace",
+                    "environment",
+                    "folder",
+                    "http_request",
+                    "grpc_request",
+                    "websocket_request",
+                ],
+            )),
+        }
+    }
+}
+
+fn migrate_environment(obj: &mut Mapping) {
+    match obj.get("base") {
+        Some(Value::Bool(base)) => {
+            if *base {
+                obj.insert("parentModel".into(), "workspace".into());
+            } else {
+                obj.insert("parentModel".into(), "environment".into());
+            }
+        }
+        _ => {}
+    }
 }
 
 impl SyncModel {
@@ -143,5 +216,61 @@ impl TryFrom<AnyModel> for SyncModel {
             AnyModel::SyncState(m) => return Err(UnknownModel(m.model)),
         };
         Ok(m)
+    }
+}
+
+#[cfg(test)]
+mod placeholder_tests {
+    use crate::error::Result;
+    use crate::models::SyncModel;
+
+    #[test]
+    fn deserializes_environment_via_syncmodel_with_fixups() -> Result<()> {
+        let raw = r#"
+type: environment
+model: environment
+id: ev_fAUS49FUN2
+workspaceId: wk_kfSI3JDHd7
+createdAt: 2025-01-11T17:02:58.012792
+updatedAt: 2025-07-23T20:00:46.049649
+name: Global Variables
+public: true
+base: true
+variables: []
+color: null
+"#;
+
+        let m: SyncModel = serde_yaml::from_str(raw)?;
+        match m {
+            SyncModel::Environment(env) => {
+                assert_eq!(env.parent_model, "workspace".to_string());
+                assert_eq!(env.parent_id, None);
+            }
+            _ => panic!("expected base environment"),
+        }
+
+        let raw = r#"
+type: environment
+model: environment
+id: ev_fAUS49FUN2
+workspaceId: wk_kfSI3JDHd7
+createdAt: 2025-01-11T17:02:58.012792
+updatedAt: 2025-07-23T20:00:46.049649
+name: Global Variables
+public: true
+base: false
+variables: []
+color: null
+"#;
+        let m: SyncModel = serde_yaml::from_str(raw)?;
+        match m {
+            SyncModel::Environment(env) => {
+                assert_eq!(env.parent_model, "environment".to_string());
+                assert_eq!(env.parent_id, None);
+            }
+            _ => panic!("expected sub environment"),
+        }
+
+        Ok(())
     }
 }

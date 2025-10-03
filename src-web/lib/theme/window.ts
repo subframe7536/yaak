@@ -118,7 +118,7 @@ function toastColorVariables(color: YaakColor | null): Partial<CSSVariables> {
 
   return {
     text: color.lift(0.8).css(),
-    textSubtle: color.css(),
+    textSubtle: color.lift(0.8).translucify(0.3).css(),
     surface: color.translucify(0.9).css(),
     surfaceHighlight: color.translucify(0.8).css(),
     border: color.lift(0.3).translucify(0.6).css(),

@@ -1,9 +1,10 @@
 import type { LicenseCheckStatus } from '@yaakapp-internal/license';
 import { useLicense } from '@yaakapp-internal/license';
+import { settingsAtom } from '@yaakapp-internal/models';
+import { useAtomValue } from 'jotai';
 import type { ReactNode } from 'react';
 import { openSettings } from '../commands/openSettings';
-import { appInfo } from '../lib/appInfo';
-import { useLicenseConfirmation } from '../hooks/useLicenseConfirmation';
+import { CargoFeature } from './CargoFeature';
 import { BadgeButton } from './core/BadgeButton';
 import type { ButtonProps } from './core/Button';
 
@@ -14,37 +15,34 @@ const details: Record<
   commercial_use: null,
   invalid_license: { label: 'License Error', color: 'danger' },
   personal_use: { label: 'Personal Use', color: 'notice' },
-  trialing: { label: 'Personal Use', color: 'info' },
+  trialing: { label: 'Trialing', color: 'info' },
 };
 
 export function LicenseBadge() {
-  const { check } = useLicense();
-  const [licenseDetails, setLicenseDetails] = useLicenseConfirmation();
+  return (
+    <CargoFeature feature="license">
+      <LicenseBadgeCmp />
+    </CargoFeature>
+  );
+}
 
-  if (appInfo.isDev) {
-    return null;
-  }
+function LicenseBadgeCmp() {
+  const { check } = useLicense();
+  const settings = useAtomValue(settingsAtom);
 
   if (check.error) {
-    return (
-      <BadgeButton color="danger" onClick={() => openSettings.mutate('license')}>
-        License Error
-      </BadgeButton>
-    );
+    // Failed to check for license. Probably a network or server error so just don't
+    // show anything.
+    return null;
   }
 
   // Hasn't loaded yet
-  if (licenseDetails == null || check.data == null) {
+  if (check.data == null) {
     return null;
   }
 
-  // User has confirmed they are using Yaak for personal use only, so hide badge
-  if (licenseDetails.confirmedPersonalUse) {
-    return null;
-  }
-
-  // User is trialing but has already seen the message, so hide badge
-  if (check.data.type === 'trialing' && licenseDetails.hasDismissedTrial) {
+  // Dismissed license badge
+  if (settings.hideLicenseBadge) {
     return null;
   }
 
@@ -56,15 +54,7 @@ export function LicenseBadge() {
   return (
     <BadgeButton
       color={detail.color}
-      onClick={async () => {
-        if (check.data.type === 'trialing') {
-          await setLicenseDetails((v) => ({
-            ...v,
-            hasDismissedTrial: true,
-          }));
-        }
-        openSettings.mutate('license');
-      }}
+      onClick={() => openSettings.mutate('license')}
     >
       {detail.label}
     </BadgeButton>

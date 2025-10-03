@@ -1,5 +1,5 @@
 import type { EditorView } from '@codemirror/view';
-import type { Color } from '@yaakapp/api';
+import type { Color } from '@yaakapp-internal/plugins';
 import classNames from 'classnames';
 import type { ReactNode } from 'react';
 import {
@@ -440,7 +440,7 @@ function EncryptionInput({
   const dropdownItems = useMemo<DropdownItem[]>(
     () => [
       {
-        label: state.obscured ? 'Reveal' : 'Conceal',
+        label: state.obscured ? 'Show' : 'Hide',
         disabled: isEncryptionEnabled && state.fieldType === 'text',
         leftSlot: <Icon icon={state.obscured ? 'eye' : 'eye_closed'} />,
         onSelect: () => setState((s) => ({ ...s, obscured: !s.obscured })),

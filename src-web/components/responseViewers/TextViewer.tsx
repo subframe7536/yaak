@@ -1,10 +1,11 @@
+import type { HttpResponse } from '@yaakapp-internal/models';
 import classNames from 'classnames';
 import type { ReactNode } from 'react';
 import { useCallback, useMemo } from 'react';
 import { createGlobalState } from 'react-use';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
-import { useFilterResponse } from '../../hooks/useFilterResponse';
 import { useFormatText } from '../../hooks/useFormatText';
+import { useResponseBodyText } from '../../hooks/useResponseBodyText';
 import type { EditorProps } from '../core/Editor/Editor';
 import { Editor } from '../core/Editor/Editor';
 import { hyperlink } from '../core/Editor/hyperlink/extension';
@@ -18,13 +19,13 @@ interface Props {
   className?: string;
   text: string;
   language: EditorProps['language'];
-  responseId: string;
+  response: HttpResponse;
   requestId: string;
 }
 
 const useFilterText = createGlobalState<Record<string, string | null>>({});
 
-export function TextViewer({ language, text, responseId, requestId, pretty, className }: Props) {
+export function TextViewer({ language, text, response, requestId, pretty, className }: Props) {
   const [filterTextMap, setFilterTextMap] = useFilterText();
   const filterText = filterTextMap[requestId] ?? null;
   const debouncedFilterText = useDebouncedValue(filterText);
@@ -36,7 +37,7 @@ export function TextViewer({ language, text, responseId, requestId, pretty, clas
   );
 
   const isSearching = filterText != null;
-  const filteredResponse = useFilterResponse({ filter: debouncedFilterText ?? '', responseId });
+  const filteredResponse = useResponseBodyText({ response, filter: debouncedFilterText ?? null });
 
   const toggleSearch = useCallback(() => {
     if (isSearching) {
@@ -58,7 +59,7 @@ export function TextViewer({ language, text, responseId, requestId, pretty, clas
         <div key="input" className="w-full !opacity-100">
           <Input
             key={requestId}
-            validate={!(filteredResponse.error || filteredResponse.data?.error)}
+            validate={!filteredResponse.error}
             hideLabel
             autoFocus
             containerClassName="bg-surface"
@@ -69,7 +70,7 @@ export function TextViewer({ language, text, responseId, requestId, pretty, clas
             defaultValue={filterText}
             onKeyDown={(e) => e.key === 'Escape' && toggleSearch()}
             onChange={setFilterText}
-            stateKey={`filter.${responseId}`}
+            stateKey={`filter.${response.id}`}
           />
         </div>,
       );
@@ -91,13 +92,12 @@ export function TextViewer({ language, text, responseId, requestId, pretty, clas
   }, [
     canFilter,
     filterText,
-    filteredResponse.data?.error,
     filteredResponse.error,
     filteredResponse.isPending,
     isSearching,
     language,
     requestId,
-    responseId,
+    response,
     setFilterText,
     toggleSearch,
   ]);
@@ -112,7 +112,7 @@ export function TextViewer({ language, text, responseId, requestId, pretty, clas
     if (filteredResponse.error) {
       body = '';
     } else {
-      body = filteredResponse.data?.content != null ? filteredResponse.data.content : '';
+      body = filteredResponse.data != null ? filteredResponse.data : '';
     }
   } else {
     body = formattedBody;

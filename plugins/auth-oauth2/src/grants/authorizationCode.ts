@@ -88,9 +88,9 @@ export async function getAuthorizationCode(
   const code = await new Promise<string>(async (resolve, reject) => {
     let foundCode = false;
     const { close } = await ctx.window.openUrl({
+      dataDirKey,
       url: authorizationUrlStr,
       label: 'oauth-authorization-url',
-      dataDirKey,
       async onClose() {
         if (!foundCode) {
           reject(new Error('Authorization window closed'));
