@@ -16,6 +16,7 @@ jobs:
         uses: JamesIves/github-sponsors-readme-action@v1
         with:
           token: ${{ secrets.SPONSORS_PAT }}
+          template: '<a href="https://github.com/{{{ login }}}"><img src="{{{ avatarUrl }}}" width="50px" alt="User avatar: {{{ login }}}" /></a>&nbsp;&nbsp;'
           file: 'README.md'
 
       # ⚠️ Note: You can use any deployment step here to automatically push the README
