@@ -1397,32 +1397,32 @@ pub fn run() {
                         let _ = db.cancel_pending_websocket_connections();
                     });
                 }
-                RunEvent::WindowEvent {
-                    event: WindowEvent::Focused(true),
-                    label,
-                    ..
-                } => {
-                    if cfg!(feature = "updater") {
-                        // Run update check whenever the window is focused
-                        let w = app_handle.get_webview_window(&label).unwrap();
-                        let h = app_handle.clone();
-                        tauri::async_runtime::spawn(async move {
-                            let settings = w.db().get_settings();
-                            if settings.autoupdate {
-                                time::sleep(Duration::from_secs(3)).await; // Wait a bit so it's not so jarring
-                                let val: State<'_, Mutex<YaakUpdater>> = h.state();
-                                let update_mode = get_update_mode(&w).await.unwrap();
-                                if let Err(e) = val
-                                    .lock()
-                                    .await
-                                    .maybe_check(&w, settings.auto_download_updates, update_mode)
-                                    .await
-                                {
-                                    warn!("Failed to check for updates {e:?}");
-                                }
-                            };
-                        });
-                    }
+                // RunEvent::WindowEvent {
+                //     event: WindowEvent::Focused(true),
+                //     label,
+                //     ..
+                // } => {
+                //     if cfg!(feature = "updater") {
+                //         // Run update check whenever the window is focused
+                //         let w = app_handle.get_webview_window(&label).unwrap();
+                //         let h = app_handle.clone();
+                //         tauri::async_runtime::spawn(async move {
+                //             let settings = w.db().get_settings();
+                //             if settings.autoupdate {
+                //                 time::sleep(Duration::from_secs(3)).await; // Wait a bit so it's not so jarring
+                //                 let val: State<'_, Mutex<YaakUpdater>> = h.state();
+                //                 let update_mode = get_update_mode(&w).await.unwrap();
+                //                 if let Err(e) = val
+                //                     .lock()
+                //                     .await
+                //                     .maybe_check(&w, settings.auto_download_updates, update_mode)
+                //                     .await
+                //                 {
+                //                     warn!("Failed to check for updates {e:?}");
+                //                 }
+                //             };
+                //         });
+                //     }
 
                 //     let h = app_handle.clone();
                 //     tauri::async_runtime::spawn(async move {
