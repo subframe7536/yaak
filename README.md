@@ -26,7 +26,10 @@
 </p>
 
 <p align="center">
-  <!-- sponsors --><a href="https://github.com/dmmulroy"><img src="https:&#x2F;&#x2F;github.com&#x2F;dmmulroy.png" width="50px" alt="User avatar: dmmulroy" /></a>&nbsp;&nbsp;<a href="https://github.com/timcole"><img src="https:&#x2F;&#x2F;github.com&#x2F;timcole.png" width="50px" alt="User avatar: timcole" /></a>&nbsp;&nbsp;<a href="https://github.com/VLZH"><img src="https:&#x2F;&#x2F;github.com&#x2F;VLZH.png" width="50px" alt="User avatar: VLZH" /></a>&nbsp;&nbsp;<a href="https://github.com/terasaka2k"><img src="https:&#x2F;&#x2F;github.com&#x2F;terasaka2k.png" width="50px" alt="User avatar: terasaka2k" /></a>&nbsp;&nbsp;<a href="https://github.com/andriyor"><img src="https:&#x2F;&#x2F;github.com&#x2F;andriyor.png" width="50px" alt="User avatar: andriyor" /></a>&nbsp;&nbsp;<!-- sponsors -->
+  <!-- sponsors-premium --><!-- sponsors-premium -->
+</p>
+<p align="center">
+  <!-- sponsors-base --><!-- sponsors-base -->
 </p>
 
 ![Yaak API Client](https://yaak.app/static/screenshot.png)
@@ -60,4 +63,3 @@ visit [`DEVELOPMENT.md`](DEVELOPMENT.md) for tips on setting up your environment
 - [Yaak vs Postman](https://yaak.app/alternatives/postman)
 - [Yaak vs Bruno](https://yaak.app/alternatives/bruno)
 - [Yaak vs Insomnia](https://yaak.app/alternatives/insomnia)
-
