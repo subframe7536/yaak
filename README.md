@@ -25,9 +25,7 @@
  Development is supported by community-purchased <a href="https://yaak.app/pricing">licenses</a>. You can also <a href="https://github.com/sponsors/gschier">become a sponsor</a> to have your avatar or company logo appear below. 💖
 </p>
 
-<p align="center">
 <!-- sponsors --><a href="https://github.com/dmmulroy"><img src="https:&#x2F;&#x2F;github.com&#x2F;dmmulroy.png" width="60px" alt="User avatar: Dillon Mulroy" /></a><a href="https://github.com/timcole"><img src="https:&#x2F;&#x2F;github.com&#x2F;timcole.png" width="60px" alt="User avatar: Timothy Cole" /></a><a href="https://github.com/VLZH"><img src="https:&#x2F;&#x2F;github.com&#x2F;VLZH.png" width="60px" alt="User avatar: Vladimir Zhdanov" /></a><a href="https://github.com/terasaka2k"><img src="https:&#x2F;&#x2F;github.com&#x2F;terasaka2k.png" width="60px" alt="User avatar: " /></a><a href="https://github.com/andriyor"><img src="https:&#x2F;&#x2F;github.com&#x2F;andriyor.png" width="60px" alt="User avatar: Andrii Oriekhov" /></a><!-- sponsors -->
-</p>
 
 ![Yaak API Client](https://yaak.app/static/screenshot.png)
 
