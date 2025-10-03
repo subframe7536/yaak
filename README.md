@@ -18,7 +18,7 @@
 </h1>
 
 <p align="center">
-  Yaak is a desktop API client for REST, GraphQL, SSE, WebSocket, and gRPC
+  A desktop API client for REST, GraphQL, SSE, WebSocket, and gRPC
   APIs. It's built using Tauri, Rust, and React.
 </p>
 <p align="center">
