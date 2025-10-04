@@ -42,7 +42,7 @@ Built with [Tauri](https://tauri.app), Rust, and React, it’s fast, lightweight
 
 ### 🔐 Stay secure
 - Use OAuth 2.0, JWT, Basic Auth, or custom plugins for authentication.
-- Secure sensitive values with end-to-end encryption.
+- Secure sensitive values with encrypted secrets. 
 - Store secrets in your OS keychain.
 
 ### ☁️ Organize & collaborate
@@ -68,4 +68,3 @@ visit [`DEVELOPMENT.md`](DEVELOPMENT.md) for tips on setting up your environment
 - [Yaak vs Postman](https://yaak.app/alternatives/postman)
 - [Yaak vs Bruno](https://yaak.app/alternatives/bruno)
 - [Yaak vs Insomnia](https://yaak.app/alternatives/insomnia)
-
