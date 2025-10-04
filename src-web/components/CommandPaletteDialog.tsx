@@ -5,7 +5,7 @@ import { useAtomValue } from 'jotai';
 import type { KeyboardEvent, ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createFolder } from '../commands/commands';
-import { createEnvironmentAndActivate } from '../commands/createEnvironment';
+import { createSubEnvironmentAndActivate } from '../commands/createEnvironment';
 import { openSettings } from '../commands/openSettings';
 import { switchWorkspace } from '../commands/switchWorkspace';
 import { useActiveCookieJar } from '../hooks/useActiveCookieJar';
@@ -130,7 +130,7 @@ export function CommandPaletteDialog({ onClose }: { onClose: () => void }) {
       {
         key: 'environment.create',
         label: 'Create Environment',
-        onSelect: () => createEnvironmentAndActivate.mutate(baseEnvironment),
+        onSelect: () => createSubEnvironmentAndActivate.mutate(baseEnvironment),
       },
       {
         key: 'sidebar.toggle',
