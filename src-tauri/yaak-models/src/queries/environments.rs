@@ -37,8 +37,7 @@ impl<'a> DbContext<'a> {
 
     /// Lists environments and will create a base environment if one doesn't exist
     pub fn list_environments_ensure_base(&self, workspace_id: &str) -> Result<Vec<Environment>> {
-        let mut environments =
-            self.find_many::<Environment>(EnvironmentIden::WorkspaceId, workspace_id, None)?;
+        let mut environments = self.list_environments_dangerous(workspace_id)?;
 
         let base_environment = environments.iter().find(|e| e.parent_model == "workspace");
 
@@ -57,6 +56,11 @@ impl<'a> DbContext<'a> {
         }
 
         Ok(environments)
+    }
+
+    /// List environments for a workspace. Prefer list_environments_ensure_base()
+    fn list_environments_dangerous(&self, workspace_id: &str) -> Result<Vec<Environment>> {
+        Ok(self.find_many::<Environment>(EnvironmentIden::WorkspaceId, workspace_id, None)?)
     }
 
     pub fn delete_environment(
@@ -93,7 +97,7 @@ impl<'a> DbContext<'a> {
             return Vec::new();
         }
 
-        self.list_environments_ensure_base(&environment.workspace_id)
+        self.list_environments_dangerous(&environment.workspace_id)
             .unwrap_or_default()
             .into_iter()
             .filter(|e| {
@@ -131,8 +135,9 @@ impl<'a> DbContext<'a> {
         let mut name = environment.name.clone();
         match (environment.parent_model.as_str(), environment.parent_id.as_deref()) {
             ("folder", Some(folder_id)) => {
-                let folder = self.get_folder(folder_id)?;
-                name = format!("{} Environment", folder.name);
+                if let Ok(folder) = self.get_folder(folder_id) {
+                    name = format!("{} Environment", folder.name);
+                }
             }
             _ => {}
         }
