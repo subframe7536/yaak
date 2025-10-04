@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import FocusTrap from 'focus-trap-react';
+import { FocusTrap } from 'focus-trap-react';
 import * as m from 'motion/react-m';
 import type { ReactNode } from 'react';
 import React from 'react';
@@ -47,7 +47,11 @@ export function Overlay({
   return (
     <Portal name={portalName}>
       {open && (
-        <FocusTrap>
+        <FocusTrap
+          focusTrapOptions={{
+            allowOutsideClick: true, // So we can still click toasts and things
+          }}
+        >
           <m.div
             className={classNames('fixed inset-0', zIndexes[zIndex])}
             initial={{ opacity: 0 }}
