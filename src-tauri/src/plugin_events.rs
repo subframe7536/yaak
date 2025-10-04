@@ -163,6 +163,7 @@ pub(crate) async fn handle_plugin_event<R: Runtime>(
                     &InternalEventPayload::ShowToastRequest(ShowToastRequest {
                         message: format!("Reloaded plugin {}@{}", info.name, info.version),
                         icon: Some(Icon::Info),
+                        timeout: Some(3000),
                         ..Default::default()
                     }),
                     None,
