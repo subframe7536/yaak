@@ -84,8 +84,9 @@ impl<'de> Deserialize<'de> for SyncModel {
 }
 
 fn migrate_environment(obj: &mut Mapping) {
-    match obj.get("base") {
-        Some(Value::Bool(base)) => {
+    match (obj.get("base"), obj.get("parentModel")) {
+        (Some(Value::Bool(base)), None) => {
+            println!("Migrating legacy environment {}", serde_yaml::to_string(obj).unwrap());
             if *base {
                 obj.insert("parentModel".into(), "workspace".into());
             } else {
@@ -220,7 +221,7 @@ impl TryFrom<AnyModel> for SyncModel {
 }
 
 #[cfg(test)]
-mod placeholder_tests {
+mod migration_tests {
     use crate::error::Result;
     use crate::models::SyncModel;
 
@@ -269,6 +270,30 @@ color: null
                 assert_eq!(env.parent_id, None);
             }
             _ => panic!("expected sub environment"),
+        }
+
+        let raw = r#"
+type: environment
+model: environment
+id: ev_fAUS49FUN2
+parentId: fld_123
+parentModel: folder
+workspaceId: wk_kfSI3JDHd7
+createdAt: 2025-01-11T17:02:58.012792
+updatedAt: 2025-07-23T20:00:46.049649
+name: Folder Environment
+public: true
+base: false
+variables: []
+color: null
+"#;
+        let m: SyncModel = serde_yaml::from_str(raw)?;
+        match m {
+            SyncModel::Environment(env) => {
+                assert_eq!(env.parent_model, "folder".to_string());
+                assert_eq!(env.parent_id, Some("fld_123".to_string()));
+            }
+            _ => panic!("expected folder environment"),
         }
 
         Ok(())
