@@ -49,7 +49,7 @@ use yaak_plugins::plugin_meta::PluginMetadata;
 use yaak_plugins::template_callback::PluginTemplateCallback;
 use yaak_sse::sse::ServerSentEvent;
 use yaak_templates::format::format_json;
-use yaak_templates::{Tokens, transform_args};
+use yaak_templates::{Tokens, transform_args, RenderOptions, RenderErrorBehavior};
 
 mod commands;
 mod encoding;
@@ -126,6 +126,9 @@ async fn cmd_render_template<R: Runtime>(
             &PluginWindowContext::new(&window),
             RenderPurpose::Preview,
         ),
+        &RenderOptions {
+            error_behavior: RenderErrorBehavior::Throw,
+        },
     )
     .await?;
     Ok(result)
@@ -167,6 +170,9 @@ async fn cmd_grpc_reflect<R: Runtime>(
             &PluginWindowContext::new(&window),
             RenderPurpose::Send,
         ),
+        &RenderOptions {
+            error_behavior: RenderErrorBehavior::Throw,
+        },
     )
     .await?;
 
@@ -213,6 +219,9 @@ async fn cmd_grpc_go<R: Runtime>(
             &PluginWindowContext::new(&window),
             RenderPurpose::Send,
         ),
+        &RenderOptions {
+            error_behavior: RenderErrorBehavior::Throw,
+        },
     )
     .await?;
 
@@ -335,6 +344,9 @@ async fn cmd_grpc_go<R: Runtime>(
                                     &PluginWindowContext::new(&window),
                                     RenderPurpose::Send,
                                 ),
+                                &RenderOptions {
+                                    error_behavior: RenderErrorBehavior::Throw,
+                                },
                             )
                             .await
                             .expect("Failed to render template")
@@ -404,6 +416,9 @@ async fn cmd_grpc_go<R: Runtime>(
                 &PluginWindowContext::new(&window),
                 RenderPurpose::Send,
             ),
+            &RenderOptions {
+                error_behavior: RenderErrorBehavior::Throw,
+            },
         )
         .await?;
 

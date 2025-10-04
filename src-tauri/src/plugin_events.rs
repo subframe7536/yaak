@@ -23,6 +23,7 @@ use yaak_plugins::events::{
 use yaak_plugins::manager::PluginManager;
 use yaak_plugins::plugin_handle::PluginHandle;
 use yaak_plugins::template_callback::PluginTemplateCallback;
+use yaak_templates::{RenderErrorBehavior, RenderOptions};
 
 pub(crate) async fn handle_plugin_event<R: Runtime>(
     app_handle: &AppHandle<R>,
@@ -80,7 +81,10 @@ pub(crate) async fn handle_plugin_event<R: Runtime>(
                 .resolve_environments(&workspace.id, None, environment_id.as_deref())
                 .expect("Failed to resolve environments");
             let cb = PluginTemplateCallback::new(app_handle, &window_context, req.purpose);
-            let grpc_request = render_grpc_request(&req.grpc_request, environment_chain, &cb)
+            let opt = RenderOptions {
+                error_behavior: RenderErrorBehavior::Throw,
+            };
+            let grpc_request = render_grpc_request(&req.grpc_request, environment_chain, &cb, &opt)
                 .await
                 .expect("Failed to render grpc request");
             Some(InternalEventPayload::RenderGrpcRequestResponse(RenderGrpcRequestResponse {
@@ -99,7 +103,10 @@ pub(crate) async fn handle_plugin_event<R: Runtime>(
                 .resolve_environments(&workspace.id, None, environment_id.as_deref())
                 .expect("Failed to resolve environments");
             let cb = PluginTemplateCallback::new(app_handle, &window_context, req.purpose);
-            let http_request = render_http_request(&req.http_request, environment_chain, &cb)
+            let opt = &RenderOptions {
+                error_behavior: RenderErrorBehavior::Throw,
+            };
+            let http_request = render_http_request(&req.http_request, environment_chain, &cb, &opt)
                 .await
                 .expect("Failed to render http request");
             Some(InternalEventPayload::RenderHttpRequestResponse(RenderHttpRequestResponse {
@@ -118,7 +125,10 @@ pub(crate) async fn handle_plugin_event<R: Runtime>(
                 .resolve_environments(&workspace.id, None, environment_id.as_deref())
                 .expect("Failed to resolve environments");
             let cb = PluginTemplateCallback::new(app_handle, &window_context, req.purpose);
-            let data = render_json_value(req.data, environment_chain, &cb)
+            let opt = RenderOptions {
+                error_behavior: RenderErrorBehavior::Throw,
+            };
+            let data = render_json_value(req.data, environment_chain, &cb, &opt)
                 .await
                 .expect("Failed to render template");
             Some(InternalEventPayload::TemplateRenderResponse(TemplateRenderResponse { data }))

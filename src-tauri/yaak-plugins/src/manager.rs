@@ -39,7 +39,7 @@ use yaak_models::render::make_vars_hashmap;
 use yaak_models::util::generate_id;
 use yaak_templates::error::Error::RenderError;
 use yaak_templates::error::Result as TemplateResult;
-use yaak_templates::render_json_value_raw;
+use yaak_templates::{RenderErrorBehavior, RenderOptions, render_json_value_raw};
 
 #[derive(Clone)]
 pub struct PluginManager {
@@ -601,7 +601,11 @@ impl PluginManager {
             &PluginWindowContext::new(&window),
             RenderPurpose::Preview,
         );
-        let rendered_values = render_json_value_raw(json!(values), vars, &cb).await?;
+        // We don't want to fail for this op because the UI will not be able to list any auth types then
+        let render_opt = RenderOptions {
+            error_behavior: RenderErrorBehavior::ReturnEmpty,
+        };
+        let rendered_values = render_json_value_raw(json!(values), vars, &cb, &render_opt).await?;
         let context_id = format!("{:x}", md5::compute(request_id.to_string()));
         let event = self
             .send_to_plugin_and_wait(
@@ -643,6 +647,9 @@ impl PluginManager {
                 &PluginWindowContext::new(&window),
                 RenderPurpose::Preview,
             ),
+            &RenderOptions {
+                error_behavior: RenderErrorBehavior::Throw,
+            },
         )
         .await?;
         let results = self.get_http_authentication_summaries(window).await?;
