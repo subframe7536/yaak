@@ -123,6 +123,9 @@ pub enum InternalEventPayload {
     RenderGrpcRequestRequest(RenderGrpcRequestRequest),
     RenderGrpcRequestResponse(RenderGrpcRequestResponse),
 
+    TemplateRenderRequest(TemplateRenderRequest),
+    TemplateRenderResponse(TemplateRenderResponse),
+
     GetKeyValueRequest(GetKeyValueRequest),
     GetKeyValueResponse(GetKeyValueResponse),
     SetKeyValueRequest(SetKeyValueRequest),
@@ -134,9 +137,6 @@ pub enum InternalEventPayload {
     WindowNavigateEvent(WindowNavigateEvent),
     WindowCloseEvent,
     CloseWindowRequest(CloseWindowRequest),
-
-    TemplateRenderRequest(TemplateRenderRequest),
-    TemplateRenderResponse(TemplateRenderResponse),
 
     ShowToastRequest(ShowToastRequest),
     ShowToastResponse(EmptyPayload),

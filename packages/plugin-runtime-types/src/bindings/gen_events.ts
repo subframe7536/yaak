@@ -437,7 +437,7 @@ export type SetKeyValueRequest = { key: string, value: string, };
 
 export type SetKeyValueResponse = {};
 
-export type ShowToastRequest = { message: string, color?: Color, icon?: Icon, };
+export type ShowToastRequest = { message: string, color?: Color, icon?: Icon, timeout?: number, };
 
 export type TemplateFunction = { name: string, description?: string, 
 /**

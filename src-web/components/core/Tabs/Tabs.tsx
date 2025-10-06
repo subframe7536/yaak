@@ -84,7 +84,8 @@ export function Tabs({
         className={classNames(
           tabListClassName,
           addBorders && '!-ml-1',
-          'flex items-center hide-scrollbars mb-2',
+          addBorders && layout === 'vertical' && 'mb-2',
+          'flex items-center hide-scrollbars',
           layout === 'horizontal' && 'h-full overflow-auto p-2 -mr-2',
           layout === 'vertical' && 'overflow-x-auto overflow-y-visible ',
           // Give space for button focus states within overflow boundary.

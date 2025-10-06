@@ -454,6 +454,8 @@ export class PluginInstance {
         show: async (args) => {
           await this.#sendAndWaitForReply(windowContext, {
             type: 'show_toast_request',
+            // Handle default here because null/undefined both convert to None in Rust translation
+            timeout: args.timeout === undefined ? 5000 : args.timeout,
             ...args,
           });
         },

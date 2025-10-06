@@ -1,6 +1,7 @@
 extern crate core;
 use crate::encoding::read_response_body;
 use crate::error::Error::GenericError;
+use crate::error::Result;
 use crate::grpc::{build_metadata, metadata_to_map, resolve_grpc_request};
 use crate::http_request::{resolve_http_request, send_http_request};
 use crate::import::import_data;
@@ -49,7 +50,7 @@ use yaak_plugins::plugin_meta::PluginMetadata;
 use yaak_plugins::template_callback::PluginTemplateCallback;
 use yaak_sse::sse::ServerSentEvent;
 use yaak_templates::format::format_json;
-use yaak_templates::{Tokens, transform_args, RenderOptions, RenderErrorBehavior};
+use yaak_templates::{RenderErrorBehavior, RenderOptions, Tokens, transform_args};
 
 mod commands;
 mod encoding;
@@ -1499,7 +1500,27 @@ fn monitor_plugin_events<R: Runtime>(app_handle: &AppHandle<R>) {
             // We might have recursive back-and-forth calls between app and plugin, so we don't
             // want to block here
             tauri::async_runtime::spawn(async move {
-                plugin_events::handle_plugin_event(&app_handle, &event, &plugin).await;
+                let ev = plugin_events::handle_plugin_event(&app_handle, &event, &plugin).await;
+
+                let ev = match ev {
+                    Ok(Some(ev)) => ev,
+                    Ok(None) => return,
+                    Err(e) => {
+                        warn!("Failed to handle plugin event: {e:?}");
+                        let _ = app_handle.emit("show_toast", InternalEventPayload::ShowToastRequest(ShowToastRequest {
+                            message: e.to_string(),
+                            color: Some(Color::Danger),
+                            icon: None,
+                            timeout: Some(30000),
+                        }));
+                        return;
+                    },
+                };
+
+                let plugin_manager: State<'_, PluginManager> = app_handle.state();
+                if let Err(e) = plugin_manager.reply(&event, &ev).await {
+                    warn!("Failed to reply to plugin manager: {:?}", e)
+                }
             });
         }
         plugin_manager.unsubscribe(rx_id.as_str()).await;
@@ -1534,11 +1555,16 @@ async fn call_frontend<R: Runtime>(
 fn get_window_from_window_context<R: Runtime>(
     app_handle: &AppHandle<R>,
     window_context: &PluginWindowContext,
-) -> Option<WebviewWindow<R>> {
+) -> Result<WebviewWindow<R>> {
     let label = match window_context {
         PluginWindowContext::Label { label, .. } => label,
         PluginWindowContext::None => {
-            return app_handle.webview_windows().iter().next().map(|(_, w)| w.to_owned());
+            return app_handle
+                .webview_windows()
+                .iter()
+                .next()
+                .map(|(_, w)| w.to_owned())
+                .ok_or(GenericError("No windows open".to_string()));
         }
     };
 
@@ -1551,7 +1577,7 @@ fn get_window_from_window_context<R: Runtime>(
         error!("Failed to find window by {window_context:?}");
     }
 
-    window
+    Ok(window.ok_or(GenericError(format!("Failed to find window for {}", label)))?)
 }
 
 fn workspace_from_window<R: Runtime>(window: &WebviewWindow<R>) -> Option<Workspace> {

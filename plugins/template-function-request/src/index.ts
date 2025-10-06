@@ -1,5 +1,6 @@
 import type { HttpUrlParameter } from '@yaakapp-internal/models';
 import type { CallTemplateFunctionArgs, Context, PluginDefinition } from '@yaakapp/api';
+import { resolvedModelName } from '@yaakapp/app/lib/resolvedModelName';
 
 export const plugin: PluginDefinition = {
   templateFunctions: [
@@ -94,6 +95,23 @@ export const plugin: PluginDefinition = {
           purpose: args.purpose,
         });
         return renderedValue;
+      },
+    },
+    {
+      name: 'request.name',
+      args: [
+        {
+          name: 'requestId',
+          label: 'Http Request',
+          type: 'http_request',
+        },
+      ],
+      async onRender(ctx: Context, args: CallTemplateFunctionArgs): Promise<string | null> {
+        const requestId = String(args.values.requestId ?? 'n/a');
+        const httpRequest = await ctx.httpRequest.getById({ id: requestId });
+        if (httpRequest == null) return null;
+
+        return resolvedModelName(httpRequest);
       },
     },
   ],
