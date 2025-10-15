@@ -28,7 +28,6 @@ export function TreeDragOverlay<T extends { id: string }>({
           children: draggingItems
             .map((id) => {
               const child = selectableItems.find((i2) => {
-                console.log('i2', i2);
                 return i2.node.item.id === id;
               })?.node;
               return child == null ? null : { ...child, children: undefined };
