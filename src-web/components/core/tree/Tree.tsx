@@ -300,7 +300,7 @@ function TreeInner<T extends { id: string }>(
 
   const clearDragState = useCallback(() => {
     jotaiStore.set(hoveredParentFamily(treeId), { parentId: null, index: null });
-    // jotaiStore.set(draggingIdsFamily(treeId), []);
+    jotaiStore.set(draggingIdsFamily(treeId), []);
   }, [treeId]);
 
   const handleDragEnd = useCallback(

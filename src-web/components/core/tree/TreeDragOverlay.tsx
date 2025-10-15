@@ -25,13 +25,15 @@ export function TreeDragOverlay<T extends { id: string }>({
         node={{
           item: { ...root.item, id: `${root.item.id}_dragging` },
           parent: null,
-          children: draggingItems.map((id) => {
-            const child = selectableItems.find((i2) => {
-              return i2.node.item.id === id;
-            })!.node;
-            return { ...child, children: undefined };
-            // Remove children so we don't render them in the drag preview
-          }),
+          children: draggingItems
+            .map((id) => {
+              const child = selectableItems.find((i2) => {
+                console.log('i2', i2);
+                return i2.node.item.id === id;
+              })?.node;
+              return child == null ? null : { ...child, children: undefined };
+            })
+            .filter((c) => c != null),
         }}
         getItemKey={getItemKey}
         ItemInner={ItemInner}
