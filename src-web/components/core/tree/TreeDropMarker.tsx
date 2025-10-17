@@ -27,7 +27,7 @@ export const TreeDropMarker = memo(function TreeDropMarker({
   if (collapsed) return null;
 
   return (
-    <div style={{ paddingLeft: `${parentDepth}rem` }}>
+    <div className="drop-marker" style={{ paddingLeft: `${parentDepth}rem` }}>
       <DropMarker className={classNames(className)} />
     </div>
   );

@@ -432,10 +432,13 @@ function TreeInner<T extends { id: string }>(
               '[&:focus-within]:[&_.tree-item.selected]:bg-surface-active',
               '[&:not(:focus-within)]:[&_.tree-item.selected]:bg-surface-highlight',
 
-              // Round the items, but only if the ends of the selection
+              // Round the items, but only if the ends of the selection.
+              // Also account for the drop marker being in between items
               '[&_.tree-item]:rounded-md',
               '[&_.tree-item.selected+.tree-item.selected]:rounded-t-none',
+              '[&_.tree-item.selected+.drop-marker+.tree-item.selected]:rounded-t-none',
               '[&_.tree-item.selected:has(+.tree-item.selected)]:rounded-b-none',
+              '[&_.tree-item.selected:has(+.drop-marker+.tree-item.selected)]:rounded-b-none',
             )}
           >
             <TreeItemList nodes={selectableItems} treeId={treeId} {...treeItemListProps} />
