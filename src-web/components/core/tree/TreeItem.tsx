@@ -51,7 +51,7 @@ function TreeItem_<T extends { id: string }>({
   const isCollapsed = useAtomValue(isCollapsedFamily({ treeId, itemId: node.item.id }));
   const isLastSelected = useAtomValue(isLastFocusedFamily({ treeId, itemId: node.item.id }));
   const [editing, setEditing] = useState<boolean>(false);
-  const [isDropHover, setIsDropHover] = useState<boolean>(false);
+  const [dropHover, setDropHover] = useState<null | 'drop' | 'animate'>(null);
   const startedHoverTimeout = useRef<NodeJS.Timeout>(undefined);
 
   const isAncestorCollapsedAtom = useMemo(
@@ -147,29 +147,35 @@ function TreeItem_<T extends { id: string }>({
     }
   }, [getEditOptions, node.children, toggleCollapsed]);
 
-  const clearHoverTimer = () => {
+  const clearDropHover = () => {
     if (startedHoverTimeout.current) {
-      setIsDropHover(false); // NEW
-      clearTimeout(startedHoverTimeout.current); // NEW
-      startedHoverTimeout.current = undefined; // NEW
+      clearTimeout(startedHoverTimeout.current);
+      startedHoverTimeout.current = undefined;
     }
+    setDropHover(null);
   };
 
   // Toggle auto-expand of folders when hovering over them
   useDndMonitor({
+    onDragEnd() {
+      clearDropHover();
+    },
     onDragMove(e: DragMoveEvent) {
       const side = computeSideForDragMove(node, e);
-      const isFolderWithChildren = (node.children?.length ?? 0) > 0;
+      const isFolder = node.children != null;
+      const hasChildren = (node.children?.length ?? 0) > 0;
       const isCollapsed = jotaiStore.get(isCollapsedFamily({ treeId, itemId: node.item.id }));
-      if (isCollapsed && isFolderWithChildren && side === 'below') {
-        setIsDropHover(true);
+      if (isCollapsed && isFolder && hasChildren && side === 'below') {
+        setDropHover('animate');
         clearTimeout(startedHoverTimeout.current);
         startedHoverTimeout.current = setTimeout(() => {
           jotaiStore.set(isCollapsedFamily({ treeId, itemId: node.item.id }), false);
-          setIsDropHover(false);
+          clearDropHover();
         }, HOVER_CLOSED_FOLDER_DELAY);
+      } else if (isFolder && !hasChildren && side === 'below') {
+        setDropHover('drop');
       } else {
-        clearHoverTimer();
+        clearDropHover();
       }
     },
   });
@@ -227,6 +233,9 @@ function TreeItem_<T extends { id: string }>({
         'tree-item',
         'h-sm',
         'grid grid-cols-[auto_minmax(0,1fr)]',
+        editing && 'ring-1 focus-within:ring-focus',
+        dropHover != null && 'relative z-10 ring-2 ring-primary',
+        dropHover === 'animate' && 'animate-blinkRing',
         isSelected && 'selected',
       )}
     >
@@ -235,10 +244,7 @@ function TreeItem_<T extends { id: string }>({
         className={classNames(
           'tree-item-selectable',
           'text-text-subtle',
-          isSelected && 'selected',
           'grid grid-cols-[auto_minmax(0,1fr)] items-center rounded-md',
-          editing && 'ring-1 focus-within:ring-focus',
-          isDropHover && 'relative z-10 ring-2 ring-primary animate-blinkRing',
         )}
       >
         {showContextMenu && (
@@ -251,14 +257,12 @@ function TreeItem_<T extends { id: string }>({
         {node.children != null ? (
           <button tabIndex={-1} className="h-full pl-[0.5rem]" onClick={toggleCollapsed}>
             <Icon
-              icon="chevron_right"
+              icon={node.children.length === 0 ? 'dot' : 'chevron_right'}
               className={classNames(
                 'transition-transform text-text-subtlest',
                 'ml-auto',
                 'w-[1rem] h-[1rem]',
-                // node.children.length == 0 && 'opacity-0',
-                !isCollapsed && 'rotate-90',
-                // isHoveredAsParent && '!text-text',
+                !isCollapsed && node.children.length > 0 && 'rotate-90',
               )}
             />
           </button>

@@ -32,7 +32,7 @@ function TreeItemList_<T extends { id: string }>({
 }: TreeItemListProps<T>) {
   return (
     <ul role="tree" style={style} className={className}>
-      <TreeDropMarker itemId={null} treeId={treeId} index={0} />
+      <TreeDropMarker node={null} treeId={treeId} index={0} />
       {nodes.map((child, i) => (
         <Fragment key={getItemKey(child.node.item)}>
           <TreeItem
@@ -46,7 +46,7 @@ function TreeItemList_<T extends { id: string }>({
             getItemKey={getItemKey}
             depth={forceDepth == null ? child.depth : forceDepth}
           />
-          <TreeDropMarker itemId={child.node.item.id} treeId={treeId} index={i+1} />
+          <TreeDropMarker node={child.node} treeId={treeId} index={i+1} />
         </Fragment>
       ))}
     </ul>
