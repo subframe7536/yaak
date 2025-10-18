@@ -24,8 +24,8 @@ export const TreeDropMarker = memo(function TreeDropMarker<T extends { id: strin
   // Only show if we're hovering over this index
   if (!isHovered) return null;
 
-  // Don't show if we're right under a collapsed folder, or empty folder. We have a separate delayed expansion
-  // animation for that.
+  // Don't show if we're right under a collapsed folder, or empty folder. We have a separate
+  // delayed expansion animation for that.
   if (collapsed || node?.children?.length === 0) return null;
 
   return (

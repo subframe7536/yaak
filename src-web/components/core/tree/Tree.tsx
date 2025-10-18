@@ -265,17 +265,13 @@ function TreeInner<T extends { id: string }>(
       let hoveredChildIndex = selectableItem.index + (side === 'above' ? 0 : 1);
 
       const collapsedMap = jotaiStore.get(collapsedFamily(treeId));
-      const isHoveredItemCollapsed = hovered != null ? collapsedMap[hovered.item.id] : false;
+      const isHoveredItemCollapsed =
+        hovered != null ? hovered.children?.length === 0 || collapsedMap[hovered.item.id] : false;
 
-      if (hovered?.children != null && side === 'below') {
+      if (hovered?.children != null && side === 'below' && isHoveredItemCollapsed) {
         // Move into the folder if it's open and we're moving below it
-        if (isHoveredItemCollapsed) {
-          hoveredParent = hovered;
-          hoveredChildIndex = 0;
-        } else {
-          hoveredParent = hovered;
-          hoveredChildIndex = 0;
-        }
+        hoveredParent = hovered;
+        hoveredChildIndex = 0;
       }
 
       const parentId = hoveredParent?.item.id ?? null;
