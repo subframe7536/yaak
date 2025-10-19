@@ -7,7 +7,7 @@ import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { useFormatText } from '../../hooks/useFormatText';
 import { useResponseBodyText } from '../../hooks/useResponseBodyText';
 import type { EditorProps } from '../core/Editor/Editor';
-import { Editor } from '../core/Editor/Editor';
+import { Editor } from '../core/Editor/LazyEditor';
 import { hyperlink } from '../core/Editor/hyperlink/extension';
 import { IconButton } from '../core/IconButton';
 import { Input } from '../core/Input';

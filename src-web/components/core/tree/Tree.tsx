@@ -14,6 +14,7 @@ import { forwardRef, memo, useCallback, useImperativeHandle, useMemo, useRef } f
 import { useKey, useKeyPressEvent } from 'react-use';
 import type { HotkeyAction, HotKeyOptions } from '../../../hooks/useHotKey';
 import { useHotKey } from '../../../hooks/useHotKey';
+import { computeSideForDragMove } from '../../../lib/dnd';
 import { jotaiStore } from '../../../lib/jotai';
 import type { ContextMenuProps } from '../Dropdown';
 import {
@@ -24,7 +25,7 @@ import {
   selectedIdsFamily,
 } from './atoms';
 import type { SelectableTreeNode, TreeNode } from './common';
-import { computeSideForDragMove, equalSubtree, getSelectedItems, hasAncestor } from './common';
+import { equalSubtree, getSelectedItems, hasAncestor } from './common';
 import { TreeDragOverlay } from './TreeDragOverlay';
 import type { TreeItemProps } from './TreeItem';
 import type { TreeItemListProps } from './TreeItemList';
@@ -255,7 +256,7 @@ function TreeInner<T extends { id: string }>(
       }
       const node = selectableItem.node;
 
-      const side = computeSideForDragMove(node, e);
+      const side = computeSideForDragMove(node.item.id, e);
 
       const item = node.item;
       let hoveredParent = node.parent;

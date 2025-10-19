@@ -73,7 +73,6 @@ export function Tabs({
       className={classNames(
         className,
         'tabs-container',
-        'transform-gpu',
         'h-full grid',
         layout === 'horizontal' && 'grid-rows-1 grid-cols-[auto_minmax(0,1fr)]',
         layout === 'vertical' && 'grid-rows-[auto_minmax(0,1fr)] grid-cols-1',

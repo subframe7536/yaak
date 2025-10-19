@@ -5,13 +5,13 @@ import { useAtomValue } from 'jotai';
 import { selectAtom } from 'jotai/utils';
 import type { MouseEvent, PointerEvent } from 'react';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { computeSideForDragMove } from '../../../lib/dnd';
 import { jotaiStore } from '../../../lib/jotai';
 import type { ContextMenuProps, DropdownItem } from '../Dropdown';
 import { ContextMenu } from '../Dropdown';
 import { Icon } from '../Icon';
 import { collapsedFamily, isCollapsedFamily, isLastFocusedFamily, isSelectedFamily } from './atoms';
 import type { TreeNode } from './common';
-import { computeSideForDragMove } from './common';
 import type { TreeProps } from './Tree';
 import { TreeIndentGuide } from './TreeIndentGuide';
 
@@ -161,7 +161,7 @@ function TreeItem_<T extends { id: string }>({
       clearDropHover();
     },
     onDragMove(e: DragMoveEvent) {
-      const side = computeSideForDragMove(node, e);
+      const side = computeSideForDragMove(node.item.id, e);
       const isFolder = node.children != null;
       const hasChildren = (node.children?.length ?? 0) > 0;
       const isCollapsed = jotaiStore.get(isCollapsedFamily({ treeId, itemId: node.item.id }));

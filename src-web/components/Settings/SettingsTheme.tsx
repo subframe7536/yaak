@@ -1,17 +1,18 @@
 import { patchModel, settingsAtom } from '@yaakapp-internal/models';
 import { useAtomValue } from 'jotai';
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { activeWorkspaceAtom } from '../../hooks/useActiveWorkspace';
 import { useResolvedAppearance } from '../../hooks/useResolvedAppearance';
 import { useResolvedTheme } from '../../hooks/useResolvedTheme';
 import type { ButtonProps } from '../core/Button';
-import { Editor } from '../core/Editor/Editor';
 import type { IconProps } from '../core/Icon';
 import { Icon } from '../core/Icon';
 import { IconButton } from '../core/IconButton';
 import type { SelectProps } from '../core/Select';
 import { Select } from '../core/Select';
 import { HStack, VStack } from '../core/Stacks';
+
+const Editor = lazy(() => import('../core/Editor/Editor').then((m) => ({ default: m.Editor })));
 
 const buttonColors: ButtonProps['color'][] = [
   'primary',
@@ -144,17 +145,19 @@ export function SettingsTheme() {
             />
           ))}
         </HStack>
-        <Editor
-          defaultValue={[
-            'let foo = { // Demo code editor',
-            '  foo: ("bar" || "baz" ?? \'qux\'),',
-            '  baz: [1, 10.2, null, false, true],',
-            '};',
-          ].join('\n')}
-          heightMode="auto"
-          language="javascript"
-          stateKey={null}
-        />
+        <Suspense>
+          <Editor
+            defaultValue={[
+              'let foo = { // Demo code editor',
+              '  foo: ("bar" || "baz" ?? \'qux\'),',
+              '  baz: [1, 10.2, null, false, true],',
+              '};',
+            ].join('\n')}
+            heightMode="auto"
+            language="javascript"
+            stateKey={null}
+          />
+        </Suspense>
       </VStack>
     </VStack>
   );

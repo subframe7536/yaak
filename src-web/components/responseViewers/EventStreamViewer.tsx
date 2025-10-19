@@ -9,7 +9,7 @@ import { AutoScroller } from '../core/AutoScroller';
 import { Banner } from '../core/Banner';
 import { Button } from '../core/Button';
 import type { EditorProps } from '../core/Editor/Editor';
-import { Editor } from '../core/Editor/Editor';
+import { Editor } from '../core/Editor/LazyEditor';
 import { Icon } from '../core/Icon';
 import { InlineCode } from '../core/InlineCode';
 import { Separator } from '../core/Separator';

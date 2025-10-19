@@ -17,7 +17,7 @@ import { copyToClipboard } from '../lib/copy';
 import { AutoScroller } from './core/AutoScroller';
 import { Banner } from './core/Banner';
 import { Button } from './core/Button';
-import { Editor } from './core/Editor/Editor';
+import { Editor } from './core/Editor/LazyEditor';
 import { HotKeyList } from './core/HotKeyList';
 import { Icon } from './core/Icon';
 import { IconButton } from './core/IconButton';

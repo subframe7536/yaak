@@ -17,7 +17,7 @@ import { showDialog } from '../lib/dialog';
 import { pluralizeCount } from '../lib/pluralize';
 import { Button } from './core/Button';
 import type { EditorProps } from './core/Editor/Editor';
-import { Editor } from './core/Editor/Editor';
+import { Editor } from './core/Editor/LazyEditor';
 import { FormattedError } from './core/FormattedError';
 import { InlineCode } from './core/InlineCode';
 import { VStack } from './core/Stacks';

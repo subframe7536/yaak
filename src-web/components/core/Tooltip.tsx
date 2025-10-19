@@ -1,13 +1,22 @@
 import classNames from 'classnames';
-import type { CSSProperties, KeyboardEvent, ReactNode } from 'react';
-import React, { useRef, useState } from 'react';
+import type {
+  CSSProperties,
+  KeyboardEvent,
+  ReactNode} from 'react';
+import React, {
+  lazy,
+  Suspense,
+  useRef,
+  useState,
+} from 'react';
 import { generateId } from '../../lib/generateId';
-import { Portal } from '../Portal';
+
+const Portal = lazy(() => import('../Portal').then((m) => ({ default: m.Portal })));
 
 export interface TooltipProps {
   children: ReactNode;
   content: ReactNode;
-  tabIndex?: number,
+  tabIndex?: number;
   size?: 'md' | 'lg';
 }
 
@@ -66,7 +75,7 @@ export function Tooltip({ children, content, tabIndex, size = 'md' }: TooltipPro
   const id = useRef(`tooltip-${generateId()}`);
 
   return (
-    <>
+    <Suspense>
       <Portal name="tooltip">
         <div
           ref={tooltipRef}
@@ -105,7 +114,7 @@ export function Tooltip({ children, content, tabIndex, size = 'md' }: TooltipPro
       >
         {children}
       </span>
-    </>
+    </Suspense>
   );
 }
 

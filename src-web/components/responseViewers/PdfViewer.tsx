@@ -3,9 +3,18 @@ import 'react-pdf/dist/Page/AnnotationLayer.css';
 import { convertFileSrc } from '@tauri-apps/api/core';
 import './PdfViewer.css';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-import React, { useRef, useState } from 'react';
-import { Document, Page } from 'react-pdf';
+import React, { lazy, useRef, useState } from 'react';
 import { useContainerSize } from '../../hooks/useContainerQuery';
+
+const Document = lazy(() => import('react-pdf').then((m) => ({ default: m.Document })));
+const Page = lazy(() => import('react-pdf').then((m) => ({ default: m.Page })));
+
+import('react-pdf').then(({ pdfjs }) => {
+  pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+    'pdfjs-dist/build/pdf.worker.min.mjs',
+    import.meta.url,
+  ).toString();
+});
 
 interface Props {
   bodyPath: string;

@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import { useRef, useState } from 'react';
 import type { EditorProps } from './core/Editor/Editor';
-import { Editor } from './core/Editor/Editor';
+import { Editor } from './core/Editor/LazyEditor';
 import { SegmentedControl } from './core/SegmentedControl';
 import { Markdown } from './Markdown';
 

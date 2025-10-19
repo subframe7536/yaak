@@ -53,9 +53,6 @@ export function HeadersEditor({
                 disabled
                 disableDrag
                 className="py-1"
-                onChange={() => {}}
-                onEnd={() => {}}
-                onMove={() => {}}
                 pair={ensurePairId(pair)}
                 stateKey={null}
                 nameAutocompleteFunctions

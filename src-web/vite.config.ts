@@ -1,5 +1,5 @@
 // @ts-ignore
-import { TanStackRouterVite } from '@tanstack/router-plugin/vite';
+import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import react from '@vitejs/plugin-react';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import { internalIpV4 } from 'internal-ip';
@@ -26,7 +26,8 @@ export default defineConfig(async () => ({
   plugins: [
     wasm(),
     reactRefresh.configs.vite,
-    TanStackRouterVite({
+    tanstackRouter({
+      target: 'react',
       routesDirectory: './routes',
       generatedRouteTree: './routeTree.gen.ts',
       autoCodeSplitting: true,
@@ -44,6 +45,14 @@ export default defineConfig(async () => ({
   build: {
     outDir: '../dist',
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        // Make chunk names readable
+        chunkFileNames: 'assets/chunk-[name]-[hash].js',
+        entryFileNames: 'assets/entry-[name]-[hash].js',
+        assetFileNames: 'assets/asset-[name]-[hash][extname]',
+      },
+    },
   },
   clearScreen: false,
   server: {
