@@ -10,7 +10,6 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import { arrayMove } from '@dnd-kit/sortable';
 import classNames from 'classnames';
 import {
   forwardRef,
@@ -261,7 +260,13 @@ export const PairEditor = forwardRef<PairEditorRef, PairEditorProps>(function Pa
       const to = hoveredIndex ?? (baseTo === -1 ? from : baseTo);
 
       if (from !== -1 && to !== -1 && from !== to) {
-        setPairsAndSave((ps) => arrayMove(ps, from, to > from ? to - 1 : to));
+        setPairsAndSave((ps) => {
+          const next = [...ps];
+          const [moved] = next.splice(from, 1);
+          if (moved === undefined) return ps; // Make TS happy
+          next.splice(to > from ? to - 1 : to, 0, moved);
+          return next;
+        });
       }
     },
     [pairs, hoveredIndex, setPairsAndSave],
