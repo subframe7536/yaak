@@ -96,11 +96,7 @@ pub async fn search_plugins<R: Runtime>(
 }
 
 fn build_url(path: &str) -> Url {
-    let base_url = if is_dev() {
-        "http://localhost:9444/api/v1/plugins"
-    } else {
-        "https://api.yaak.app/api/v1/plugins"
-    };
+    let base_url = "https://api.yaak.app/api/v1/plugins";
     Url::from_str(&format!("{base_url}{path}")).unwrap()
 }
 

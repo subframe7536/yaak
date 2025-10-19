@@ -44,7 +44,6 @@ export function SettingsPlugins() {
         label="Plugins"
         onChangeValue={setTab}
         addBorders
-        tabListClassName="!-ml-3"
         tabs={[
           { label: 'Discover', value: 'search' },
           {
@@ -243,7 +242,7 @@ function PluginSearch() {
           defaultValue={query}
         />
       </HStack>
-      <div className="w-full h-full">
+      <div className="w-full h-full overflow-y-auto">
         {results.data == null ? (
           <EmptyStateText>
             <LoadingIcon size="xl" className="text-text-subtlest" />
