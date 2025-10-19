@@ -25,8 +25,9 @@ import { activeCookieJarAtom } from '../hooks/useActiveCookieJar';
 import { activeEnvironmentAtom } from '../hooks/useActiveEnvironment';
 import { activeFolderIdAtom } from '../hooks/useActiveFolderId';
 import { activeRequestIdAtom } from '../hooks/useActiveRequestId';
-import { activeWorkspaceAtom } from '../hooks/useActiveWorkspace';
+import { activeWorkspaceAtom, activeWorkspaceIdAtom } from '../hooks/useActiveWorkspace';
 import { allRequestsAtom } from '../hooks/useAllRequests';
+import { getCreateDropdownItems } from '../hooks/useCreateDropdownItems';
 import { getGrpcRequestActions } from '../hooks/useGrpcRequestActions';
 import { useHotKey } from '../hooks/useHotKey';
 import { getHttpRequestActions } from '../hooks/useHttpRequestActions';
@@ -52,80 +53,9 @@ import { Tree } from './core/tree/Tree';
 import type { TreeItemProps } from './core/tree/TreeItem';
 import { GitDropdown } from './GitDropdown';
 
-type Model = Workspace | Folder | HttpRequest | GrpcRequest | WebsocketRequest;
+type SidebarModel = Workspace | Folder | HttpRequest | GrpcRequest | WebsocketRequest;
 
-const opacitySubtle = 'opacity-80';
-
-function getItemKey(item: Model) {
-  const responses = jotaiStore.get(httpResponsesAtom);
-  const latestResponse = responses.find((r) => r.requestId === item.id) ?? null;
-  const url = 'url' in item ? item.url : 'n/a';
-  const method = 'method' in item ? item.method : 'n/a';
-  return [
-    item.id,
-    item.name,
-    url,
-    method,
-    latestResponse?.elapsed,
-    latestResponse?.id ?? 'n/a',
-  ].join('::');
-}
-
-const SidebarLeftSlot = memo(function SidebarLeftSlot({
-  treeId,
-  item,
-}: {
-  treeId: string;
-  item: Model;
-}) {
-  if (item.model === 'folder') {
-    return <Icon icon="folder" />;
-  } else if (item.model === 'workspace') {
-    return null;
-  } else {
-    const isSelected = jotaiStore.get(isSelectedFamily({ treeId, itemId: item.id }));
-    return (
-      <HttpMethodTag
-        short
-        className={classNames('text-xs', !isSelected && opacitySubtle)}
-        request={item}
-      />
-    );
-  }
-});
-
-const SidebarInnerItem = memo(function SidebarInnerItem({ item }: { treeId: string; item: Model }) {
-  const response = useAtomValue(
-    useMemo(
-      () =>
-        selectAtom(
-          atom((get) => [
-            ...get(grpcConnectionsAtom),
-            ...get(httpResponsesAtom),
-            ...get(websocketConnectionsAtom),
-          ]),
-          (responses) => responses.find((r) => r.requestId === item.id),
-          (a, b) => a?.state === b?.state && a?.id === b?.id, // Only update when the response state changes updated
-        ),
-      [item.id],
-    ),
-  );
-
-  return (
-    <div className="flex items-center gap-2 min-w-0 h-full w-full text-left">
-      <div className="truncate">{resolvedModelName(item)}</div>
-      {response != null && (
-        <div className="ml-auto">
-          {response.state !== 'closed' ? (
-            <LoadingIcon size="sm" className="text-text-subtlest" />
-          ) : response.model === 'http_response' ? (
-            <HttpStatusTag short className="text-xs" response={response} />
-          ) : null}
-        </div>
-      )}
-    </div>
-  );
-});
+const OPACITY_SUBTLE = 'opacity-80';
 
 function NewSidebar({ className }: { className?: string }) {
   const [hidden, setHidden] = useSidebarHidden();
@@ -161,13 +91,13 @@ function NewSidebar({ className }: { className?: string }) {
     children,
     insertAt,
   }: {
-    items: Model[];
-    parent: Model;
-    children: Model[];
+    items: SidebarModel[];
+    parent: SidebarModel;
+    children: SidebarModel[];
     insertAt: number;
   }) {
-    const prev = children[insertAt - 1] as Exclude<Model, Workspace>;
-    const next = children[insertAt] as Exclude<Model, Workspace>;
+    const prev = children[insertAt - 1] as Exclude<SidebarModel, Workspace>;
+    const next = children[insertAt] as Exclude<SidebarModel, Workspace>;
     const folderId = parent.model === 'folder' ? parent.id : null;
 
     const beforePriority = prev?.sortPriority ?? 0;
@@ -248,8 +178,8 @@ const activeIdAtom = atom<string | null>((get) => {
 });
 
 function getEditOptions(
-  item: Model,
-): ReturnType<NonNullable<TreeItemProps<Model>['getEditOptions']>> {
+  item: SidebarModel,
+): ReturnType<NonNullable<TreeItemProps<SidebarModel>['getEditOptions']>> {
   return {
     onChange: handleSubmitEdit,
     defaultValue: resolvedModelName(item),
@@ -257,18 +187,18 @@ function getEditOptions(
   };
 }
 
-async function handleSubmitEdit(item: Model, text: string) {
+async function handleSubmitEdit(item: SidebarModel, text: string) {
   await patchModel(item, { name: text });
 }
 
-function handleActivate(item: Model) {
+function handleActivate(item: SidebarModel) {
   // TODO: Add folder layout support
   if (item.model !== 'folder' && item.model !== 'workspace') {
     navigateToRequestOrFolderOrWorkspace(item.id, item.model);
   }
 }
 
-const allPotentialChildrenAtom = atom<Model[]>((get) => {
+const allPotentialChildrenAtom = atom<SidebarModel[]>((get) => {
   const requests = get(allRequestsAtom);
   const folders = get(foldersAtom);
   return [...requests, ...folders];
@@ -280,7 +210,7 @@ const sidebarTreeAtom = atom((get) => {
   const allModels = get(memoAllPotentialChildrenAtom);
   const activeWorkspace = get(activeWorkspaceAtom);
 
-  const childrenMap: Record<string, Exclude<Model, Workspace>[]> = {};
+  const childrenMap: Record<string, Exclude<SidebarModel, Workspace>[]> = {};
   for (const item of allModels) {
     if ('folderId' in item && item.folderId == null) {
       childrenMap[item.workspaceId] = childrenMap[item.workspaceId] ?? [];
@@ -291,14 +221,14 @@ const sidebarTreeAtom = atom((get) => {
     }
   }
 
-  const treeParentMap: Record<string, TreeNode<Model>> = {};
+  const treeParentMap: Record<string, TreeNode<SidebarModel>> = {};
 
   if (activeWorkspace == null) {
     return null;
   }
 
   // Put requests and folders into a tree structure
-  const next = (node: TreeNode<Model>, depth: number): TreeNode<Model> => {
+  const next = (node: TreeNode<SidebarModel>, depth: number): TreeNode<SidebarModel> => {
     const childItems = childrenMap[node.item.id] ?? [];
 
     // Recurse to children
@@ -326,10 +256,10 @@ const sidebarTreeAtom = atom((get) => {
 });
 
 const actions = {
-  'sidebar.delete_selected_item': async function (items: Model[]) {
+  'sidebar.delete_selected_item': async function (items: SidebarModel[]) {
     await deleteModelWithConfirm(items);
   },
-  'model.duplicate': async function (items: Model[]) {
+  'model.duplicate': async function (items: SidebarModel[]) {
     if (items.length === 1) {
       const item = items[0]!;
       const newId = await duplicateModel(item);
@@ -338,22 +268,29 @@ const actions = {
       await Promise.all(items.map(duplicateModel));
     }
   },
-  'request.send': async function (items: Model[]) {
+  'request.send': async function (items: SidebarModel[]) {
     await Promise.all(
       items.filter((i) => i.model === 'http_request').map((i) => sendAnyHttpRequest.mutate(i.id)),
     );
   },
 } as const;
 
-const hotkeys: TreeProps<Model>['hotkeys'] = {
+const hotkeys: TreeProps<SidebarModel>['hotkeys'] = {
   priority: 10, // So these ones take precedence over global hotkeys when the sidebar is focused
   actions,
   enable: () => isSidebarFocused(),
 };
 
-async function getContextMenu(items: Model[]): Promise<DropdownItem[]> {
+async function getContextMenu(items: SidebarModel[]): Promise<DropdownItem[]> {
+  const workspaceId = jotaiStore.get(activeWorkspaceIdAtom);
   const child = items[0];
-  if (child == null) return [];
+
+  // No children means we're in the root
+  if (child == null) {
+    console.log('HELLO', child);
+    return getCreateDropdownItems({ workspaceId, activeRequest: null, folderId: null });
+  }
+
   const workspaces = jotaiStore.get(workspacesAtom);
   const onlyHttpRequests = items.every((i) => i.model === 'http_request');
 
@@ -411,7 +348,13 @@ async function getContextMenu(items: Model[]): Promise<DropdownItem[]> {
       },
     })),
   ];
-
+  const modelCreationItems: DropdownItem[] =
+    items.length === 1 && child.model === 'folder'
+      ? [
+          { type: 'separator' },
+          ...getCreateDropdownItems({ workspaceId, activeRequest: null, folderId: child.id }),
+        ]
+      : [];
   const menuItems: ContextMenuProps['items'] = [
     ...initialItems,
     { type: 'separator', hidden: initialItems.filter((v) => !v.hidden).length === 0 },
@@ -455,6 +398,83 @@ async function getContextMenu(items: Model[]): Promise<DropdownItem[]> {
       leftSlot: <Icon icon="trash" />,
       onSelect: () => actions['sidebar.delete_selected_item'](items),
     },
+    ...modelCreationItems,
   ];
   return menuItems;
 }
+
+function getItemKey(item: SidebarModel) {
+  const responses = jotaiStore.get(httpResponsesAtom);
+  const latestResponse = responses.find((r) => r.requestId === item.id) ?? null;
+  const url = 'url' in item ? item.url : 'n/a';
+  const method = 'method' in item ? item.method : 'n/a';
+  return [
+    item.id,
+    item.name,
+    url,
+    method,
+    latestResponse?.elapsed,
+    latestResponse?.id ?? 'n/a',
+  ].join('::');
+}
+
+const SidebarLeftSlot = memo(function SidebarLeftSlot({
+  treeId,
+  item,
+}: {
+  treeId: string;
+  item: SidebarModel;
+}) {
+  if (item.model === 'folder') {
+    return <Icon icon="folder" />;
+  } else if (item.model === 'workspace') {
+    return null;
+  } else {
+    const isSelected = jotaiStore.get(isSelectedFamily({ treeId, itemId: item.id }));
+    return (
+      <HttpMethodTag
+        short
+        className={classNames('text-xs', !isSelected && OPACITY_SUBTLE)}
+        request={item}
+      />
+    );
+  }
+});
+
+const SidebarInnerItem = memo(function SidebarInnerItem({
+  item,
+}: {
+  treeId: string;
+  item: SidebarModel;
+}) {
+  const response = useAtomValue(
+    useMemo(
+      () =>
+        selectAtom(
+          atom((get) => [
+            ...get(grpcConnectionsAtom),
+            ...get(httpResponsesAtom),
+            ...get(websocketConnectionsAtom),
+          ]),
+          (responses) => responses.find((r) => r.requestId === item.id),
+          (a, b) => a?.state === b?.state && a?.id === b?.id, // Only update when the response state changes updated
+        ),
+      [item.id],
+    ),
+  );
+
+  return (
+    <div className="flex items-center gap-2 min-w-0 h-full w-full text-left">
+      <div className="truncate">{resolvedModelName(item)}</div>
+      {response != null && (
+        <div className="ml-auto">
+          {response.state !== 'closed' ? (
+            <LoadingIcon size="sm" className="text-text-subtlest" />
+          ) : response.model === 'http_response' ? (
+            <HttpStatusTag short className="text-xs" response={response} />
+          ) : null}
+        </div>
+      )}
+    </div>
+  );
+});

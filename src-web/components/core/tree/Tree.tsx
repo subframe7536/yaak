@@ -9,14 +9,23 @@ import {
 } from '@dnd-kit/core';
 import { type } from '@tauri-apps/plugin-os';
 import classNames from 'classnames';
-import type { ComponentType, ReactElement, Ref, RefAttributes } from 'react';
-import { forwardRef, memo, useCallback, useImperativeHandle, useMemo, useRef } from 'react';
+import type { ComponentType, MouseEvent, ReactElement, Ref, RefAttributes } from 'react';
+import React, {
+  forwardRef,
+  memo,
+  useCallback,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useKey, useKeyPressEvent } from 'react-use';
 import type { HotkeyAction, HotKeyOptions } from '../../../hooks/useHotKey';
 import { useHotKey } from '../../../hooks/useHotKey';
 import { computeSideForDragMove } from '../../../lib/dnd';
 import { jotaiStore } from '../../../lib/jotai';
-import type { ContextMenuProps } from '../Dropdown';
+import type { ContextMenuProps, DropdownItem } from '../Dropdown';
+import { ContextMenu } from '../Dropdown';
 import {
   collapsedFamily,
   draggingIdsFamily,
@@ -73,6 +82,15 @@ function TreeInner<T extends { id: string }>(
 ) {
   const treeRef = useRef<HTMLDivElement>(null);
   const selectableItems = useSelectableItems(root);
+  const [showContextMenu, setShowContextMenu] = useState<{
+    items: DropdownItem[];
+    x: number;
+    y: number;
+  } | null>(null);
+
+  const handleCloseContextMenu = useCallback(() => {
+    setShowContextMenu(null);
+  }, []);
 
   const tryFocus = useCallback(() => {
     treeRef.current?.querySelector<HTMLButtonElement>('.tree-item button[tabindex="0"]')?.focus();
@@ -403,11 +421,30 @@ function TreeInner<T extends { id: string }>(
     ItemLeftSlot,
   };
 
+  const handleContextMenu = useCallback(
+    async (e: MouseEvent<HTMLElement>) => {
+      if (getContextMenu == null) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      const items = await getContextMenu([]);
+      setShowContextMenu({ items, x: e.clientX, y: e.clientY });
+    },
+    [getContextMenu],
+  );
+
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
   return (
     <>
       <TreeHotKeys treeId={treeId} hotkeys={hotkeys} selectableItems={selectableItems} />
+      {showContextMenu && (
+        <ContextMenu
+          items={showContextMenu.items}
+          triggerPosition={showContextMenu}
+          onClose={handleCloseContextMenu}
+        />
+      )}
       <DndContext
         sensors={sensors}
         collisionDetection={pointerWithin}
@@ -429,8 +466,6 @@ function TreeInner<T extends { id: string }>(
         >
           <div
             className={classNames(
-              '[&_.tree-item-inner]:bg-surface',
-              '[&_.tree-item-selectable.selected]:text-text',
               '[&:focus-within]:[&_.tree-item.selected]:bg-surface-active',
               '[&:not(:focus-within)]:[&_.tree-item.selected]:bg-surface-highlight',
 
@@ -446,7 +481,7 @@ function TreeInner<T extends { id: string }>(
             <TreeItemList nodes={selectableItems} treeId={treeId} {...treeItemListProps} />
           </div>
           {/* Assign root ID so we can reuse our same move/end logic */}
-          <DropRegionAfterList id={root.item.id} />
+          <DropRegionAfterList id={root.item.id} onContextMenu={handleContextMenu} />
         </div>
         <TreeDragOverlay
           treeId={treeId}
@@ -476,9 +511,15 @@ export const Tree = memo(
   },
 ) as typeof Tree_;
 
-function DropRegionAfterList({ id }: { id: string }) {
+function DropRegionAfterList({
+  id,
+  onContextMenu,
+}: {
+  id: string;
+  onContextMenu?: (e: MouseEvent<HTMLDivElement>) => void;
+}) {
   const { setNodeRef } = useDroppable({ id });
-  return <div ref={setNodeRef} />;
+  return <div ref={setNodeRef} onContextMenu={onContextMenu} />;
 }
 
 interface TreeHotKeyProps<T extends { id: string }> extends HotKeyOptions {

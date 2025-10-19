@@ -242,7 +242,6 @@ function TreeItem_<T extends { id: string }>({
       <TreeIndentGuide treeId={treeId} depth={depth} />
       <div
         className={classNames(
-          'tree-item-selectable',
           'text-text-subtle',
           'grid grid-cols-[auto_minmax(0,1fr)] items-center rounded-md',
         )}
