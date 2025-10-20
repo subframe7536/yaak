@@ -45,8 +45,14 @@ export const hoveredParentFamily = atomFamily((_treeId: string) => {
   });
 });
 
+export const isParentHoveredFamily = atomFamily(
+  ({ treeId, parentId }: { treeId: string; parentId: string | null }) =>
+    selectAtom(hoveredParentFamily(treeId), (v) => v.parentId === parentId, Object.is),
+  (a, b) => a.treeId === b.treeId && a.parentId === b.parentId,
+);
+
 export const isIndexHoveredFamily = atomFamily(
-  ({ treeId, index }: { treeId: string; index: number}) =>
+  ({ treeId, index }: { treeId: string; index: number }) =>
     selectAtom(hoveredParentFamily(treeId), (v) => v.index === index, Object.is),
   (a, b) => a.treeId === b.treeId && a.index === b.index,
 );
@@ -55,8 +61,8 @@ export const hoveredParentDepthFamily = atomFamily((treeId: string) =>
   selectAtom(
     hoveredParentFamily(treeId),
     (s) => s.parentDepth,
-    (a, b) => Object.is(a, b) // prevents re-render unless the value changes
-  )
+    (a, b) => Object.is(a, b), // prevents re-render unless the value changes
+  ),
 );
 
 export const collapsedFamily = atomFamily((workspaceId: string) => {

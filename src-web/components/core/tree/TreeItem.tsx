@@ -239,7 +239,7 @@ function TreeItem_<T extends { id: string }>({
         isSelected && 'selected',
       )}
     >
-      <TreeIndentGuide treeId={treeId} depth={depth} />
+      <TreeIndentGuide treeId={treeId} depth={depth} parentId={node.parent?.item.id ?? null} />
       <div
         className={classNames(
           'text-text-subtle',
