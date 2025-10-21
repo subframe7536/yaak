@@ -22,7 +22,6 @@ sha2 = { workspace = true }
 tauri = { workspace = true }
 tauri-plugin-dialog = { workspace = true }
 thiserror = { workspace = true }
-tokio = { workspace = true }
 ts-rs = { workspace = true, features = ["chrono-impl", "serde-json-impl"] }
 yaak-common = { workspace = true }
 

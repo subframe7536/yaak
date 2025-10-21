@@ -10,7 +10,7 @@ import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';
 import { xml } from '@codemirror/lang-xml';
 import type { LanguageSupport } from '@codemirror/language';
-import {
+import  { bracketMatching ,
   codeFolding,
   foldGutter,
   foldKeymap,
@@ -258,6 +258,7 @@ export const multiLineExtensions = ({ hideGutter }: { hideGutter?: boolean }) =>
   indentOnInput(),
   rectangularSelection(),
   crosshairCursor(),
+  bracketMatching(),
   highlightActiveLineGutter(),
   keymap.of([...searchKeymap, ...foldKeymap, ...lintKeymap]),
 ];
