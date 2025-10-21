@@ -24,6 +24,7 @@
     "plugins/importer-insomnia",
     "plugins/importer-openapi",
     "plugins/importer-postman",
+    "plugins/importer-postman-environment",
     "plugins/importer-yaak",
     "plugins/template-function-cookie",
     "plugins/template-function-encode",
