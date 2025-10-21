@@ -466,6 +466,7 @@ function TreeInner<T extends { id: string }>(
         >
           <div
             className={classNames(
+              '[&_.tree-item.selected_.tree-item-inner]:text-text',
               '[&:focus-within]:[&_.tree-item.selected]:bg-surface-active',
               '[&:not(:focus-within)]:[&_.tree-item.selected]:bg-surface-highlight',
 
