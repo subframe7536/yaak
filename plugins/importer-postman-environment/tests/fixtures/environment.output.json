@@ -1,5 +1,6 @@
 {
   "resources": {
+    "workspaces": [],
     "environments": [
       {
         "id": "GENERATE_ID::ENVIRONMENT_0",
