@@ -503,10 +503,22 @@ impl PluginManager {
             .iter()
             .find(|r| r.functions.iter().any(|f| f.name == fn_name))
             .ok_or_else(|| PluginNotFoundErr(fn_name.into()))?;
-        let plugin = self
-            .get_plugin_by_ref_id(&r.plugin_ref_id)
-            .await
-            .ok_or_else(|| PluginNotFoundErr(r.plugin_ref_id.clone()))?;
+
+        let plugin = match self.get_plugin_by_ref_id(&r.plugin_ref_id).await {
+            None => {
+                // It's probably a native function, so just fallback to the summary
+                let function = r
+                    .functions
+                    .iter()
+                    .find(|f| f.name == fn_name)
+                    .ok_or_else(|| PluginNotFoundErr(fn_name.into()))?;
+                return Ok(GetTemplateFunctionConfigResponse {
+                    function: function.clone(),
+                    plugin_ref_id: r.plugin_ref_id.clone(),
+                });
+            }
+            Some(v) => v,
+        };
 
         let window_context = &PluginWindowContext::new(&window);
         let vars = &make_vars_hashmap(environment_chain);
