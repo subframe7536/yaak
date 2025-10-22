@@ -29,7 +29,7 @@ import { Button } from './Button';
 import type { DropdownItem } from './Dropdown';
 import { Dropdown } from './Dropdown';
 import type { EditorProps } from './Editor/Editor';
-import { Editor } from './Editor/Editor';
+import { Editor } from './Editor/LazyEditor';
 import type { IconProps } from './Icon';
 import { Icon } from './Icon';
 import { IconButton } from './IconButton';
@@ -160,11 +160,12 @@ const BaseInput = forwardRef<EditorView, InputProps>(function InputBase(
     onFocus?.();
   }, [onFocus, readOnly]);
 
-  const handleBlur = useCallback(() => {
+  const handleBlur = useCallback(async () => {
     setFocused(false);
     // Move selection to the end on blur
+    const anchor = editorRef.current?.state.doc.length ?? 0;
     editorRef.current?.dispatch({
-      selection: { anchor: editorRef.current.state.doc.length },
+      selection: { anchor, head: anchor },
     });
     onBlur?.();
   }, [onBlur]);

@@ -48,10 +48,6 @@
     }
   }
 
-  .select-all * {
-    /*@apply select-all;*/
-  }
-
   a,
   a[href] * {
     @apply cursor-pointer !important;

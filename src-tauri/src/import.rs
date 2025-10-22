@@ -28,7 +28,7 @@ pub(crate) async fn import_data<R: Runtime>(
         .workspaces
         .into_iter()
         .map(|mut v| {
-            v.id = maybe_gen_id::<Workspace>(v.id.as_str(), &mut id_map);
+            v.id = maybe_gen_id::<Workspace, R>(window, v.id.as_str(), &mut id_map);
             v
         })
         .collect();
@@ -37,11 +37,12 @@ pub(crate) async fn import_data<R: Runtime>(
         .environments
         .into_iter()
         .map(|mut v| {
-            v.id = maybe_gen_id::<Environment>(v.id.as_str(), &mut id_map);
-            v.workspace_id = maybe_gen_id::<Workspace>(v.workspace_id.as_str(), &mut id_map);
+            v.id = maybe_gen_id::<Environment, R>(window, v.id.as_str(), &mut id_map);
+            v.workspace_id =
+                maybe_gen_id::<Workspace, R>(window, v.workspace_id.as_str(), &mut id_map);
             match (v.parent_model.as_str(), v.parent_id.clone().as_deref()) {
                 ("folder", Some(parent_id)) => {
-                    v.parent_id = Some(maybe_gen_id::<Folder>(&parent_id, &mut id_map));
+                    v.parent_id = Some(maybe_gen_id::<Folder, R>(window, &parent_id, &mut id_map));
                 }
                 ("", _) => {
                     // Fix any empty ones
@@ -60,9 +61,10 @@ pub(crate) async fn import_data<R: Runtime>(
         .folders
         .into_iter()
         .map(|mut v| {
-            v.id = maybe_gen_id::<Folder>(v.id.as_str(), &mut id_map);
-            v.workspace_id = maybe_gen_id::<Workspace>(v.workspace_id.as_str(), &mut id_map);
-            v.folder_id = maybe_gen_id_opt::<Folder>(v.folder_id, &mut id_map);
+            v.id = maybe_gen_id::<Folder, R>(window, v.id.as_str(), &mut id_map);
+            v.workspace_id =
+                maybe_gen_id::<Workspace, R>(window, v.workspace_id.as_str(), &mut id_map);
+            v.folder_id = maybe_gen_id_opt::<Folder, R>(window, v.folder_id, &mut id_map);
             v
         })
         .collect();
@@ -71,9 +73,10 @@ pub(crate) async fn import_data<R: Runtime>(
         .http_requests
         .into_iter()
         .map(|mut v| {
-            v.id = maybe_gen_id::<HttpRequest>(v.id.as_str(), &mut id_map);
-            v.workspace_id = maybe_gen_id::<Workspace>(v.workspace_id.as_str(), &mut id_map);
-            v.folder_id = maybe_gen_id_opt::<Folder>(v.folder_id, &mut id_map);
+            v.id = maybe_gen_id::<HttpRequest, R>(window, v.id.as_str(), &mut id_map);
+            v.workspace_id =
+                maybe_gen_id::<Workspace, R>(window, v.workspace_id.as_str(), &mut id_map);
+            v.folder_id = maybe_gen_id_opt::<Folder, R>(window, v.folder_id, &mut id_map);
             v
         })
         .collect();
@@ -82,9 +85,10 @@ pub(crate) async fn import_data<R: Runtime>(
         .grpc_requests
         .into_iter()
         .map(|mut v| {
-            v.id = maybe_gen_id::<GrpcRequest>(v.id.as_str(), &mut id_map);
-            v.workspace_id = maybe_gen_id::<Workspace>(v.workspace_id.as_str(), &mut id_map);
-            v.folder_id = maybe_gen_id_opt::<Folder>(v.folder_id, &mut id_map);
+            v.id = maybe_gen_id::<GrpcRequest, R>(window, v.id.as_str(), &mut id_map);
+            v.workspace_id =
+                maybe_gen_id::<Workspace, R>(window, v.workspace_id.as_str(), &mut id_map);
+            v.folder_id = maybe_gen_id_opt::<Folder, R>(window, v.folder_id, &mut id_map);
             v
         })
         .collect();
@@ -93,9 +97,10 @@ pub(crate) async fn import_data<R: Runtime>(
         .websocket_requests
         .into_iter()
         .map(|mut v| {
-            v.id = maybe_gen_id::<WebsocketRequest>(v.id.as_str(), &mut id_map);
-            v.workspace_id = maybe_gen_id::<Workspace>(v.workspace_id.as_str(), &mut id_map);
-            v.folder_id = maybe_gen_id_opt::<Folder>(v.folder_id, &mut id_map);
+            v.id = maybe_gen_id::<WebsocketRequest, R>(window, v.id.as_str(), &mut id_map);
+            v.workspace_id =
+                maybe_gen_id::<Workspace, R>(window, v.workspace_id.as_str(), &mut id_map);
+            v.folder_id = maybe_gen_id_opt::<Folder, R>(window, v.folder_id, &mut id_map);
             v
         })
         .collect();

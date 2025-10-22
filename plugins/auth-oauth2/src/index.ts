@@ -6,8 +6,8 @@ import type {
   PluginDefinition,
 } from '@yaakapp/api';
 import {
-  genPkceCodeVerifier,
   DEFAULT_PKCE_METHOD,
+  genPkceCodeVerifier,
   getAuthorizationCode,
   PKCE_PLAIN,
   PKCE_SHA256,
@@ -123,17 +123,6 @@ export const plugin: PluginDefinition = {
         label: 'Clear Window Session',
         async onSelect(ctx, { contextId }) {
           await resetDataDirKey(ctx, contextId);
-        },
-      },
-      {
-        label: 'Toggle Debug Logs',
-        async onSelect(ctx) {
-          const enableLogs = !(await ctx.store.get('enable_logs'));
-          await ctx.store.set('enable_logs', enableLogs);
-          await ctx.toast.show({
-            message: `Debug logs ${enableLogs ? 'enabled' : 'disabled'}`,
-            color: 'info',
-          });
         },
       },
     ],
@@ -273,6 +262,12 @@ export const plugin: PluginDefinition = {
           { type: 'text', name: 'scope', label: 'Scope', optional: true },
           {
             type: 'text',
+            name: 'headerName',
+            label: 'Header Name',
+            defaultValue: 'Authorization',
+          },
+          {
+            type: 'text',
             name: 'headerPrefix',
             label: 'Header Prefix',
             optional: true,
@@ -397,15 +392,9 @@ export const plugin: PluginDefinition = {
         throw new Error('Invalid grant type ' + grantType);
       }
 
+      const headerName = stringArg(values, 'headerName') || 'Authorization';
       const headerValue = `${headerPrefix} ${token.response[tokenName]}`.trim();
-      return {
-        setHeaders: [
-          {
-            name: 'Authorization',
-            value: headerValue,
-          },
-        ],
-      };
+      return { setHeaders: [{ name: headerName, value: headerValue }] };
     },
   },
 };

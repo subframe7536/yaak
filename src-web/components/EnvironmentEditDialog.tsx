@@ -3,7 +3,7 @@ import { duplicateModel, patchModel } from '@yaakapp-internal/models';
 import classNames from 'classnames';
 import type { ReactNode } from 'react';
 import React, { useCallback, useState } from 'react';
-import { createEnvironmentAndActivate } from '../commands/createEnvironment';
+import { createSubEnvironmentAndActivate } from '../commands/createEnvironment';
 import { useEnvironmentsBreakdown } from '../hooks/useEnvironmentsBreakdown';
 import { deleteModelWithConfirm } from '../lib/deleteModelWithConfirm';
 import { isBaseEnvironment } from '../lib/model_util';
@@ -42,7 +42,7 @@ export const EnvironmentEditDialog = function ({ initialEnvironment }: Props) {
 
   const handleCreateEnvironment = async () => {
     if (baseEnvironment == null) return;
-    const id = await createEnvironmentAndActivate.mutateAsync(baseEnvironment);
+    const id = await createSubEnvironmentAndActivate.mutateAsync(baseEnvironment);
     if (id != null) setSelectedEnvironmentId(id);
   };
 

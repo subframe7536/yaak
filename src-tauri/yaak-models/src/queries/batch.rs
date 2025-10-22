@@ -49,15 +49,7 @@ impl<'a> DbContext<'a> {
             info!("Upserted {} websocket_requests", imported_resources.websocket_requests.len());
         }
 
-        if environments.len() > 0 {
-            for x in environments {
-                let x = self.upsert_environment(&x, source)?;
-                imported_resources.environments.push(x.clone());
-            }
-            info!("Upserted {} environments", imported_resources.environments.len());
-        }
-
-        // Do folders last so it doesn't cause the UI to render empty folders before populating
+        // Do folders after their children so the UI doesn't render empty folders before populating
         // immediately after.
         if folders.len() > 0 {
             for v in folders {
@@ -65,6 +57,15 @@ impl<'a> DbContext<'a> {
                 imported_resources.folders.push(x.clone());
             }
             info!("Upserted {} folders", imported_resources.folders.len());
+        }
+
+        // Do environments last because they can depend on many models (requests, folders, etc)
+        if environments.len() > 0 {
+            for x in environments {
+                let x = self.upsert_environment(&x, source)?;
+                imported_resources.environments.push(x.clone());
+            }
+            info!("Upserted {} environments", imported_resources.environments.len());
         }
 
         Ok(imported_resources)

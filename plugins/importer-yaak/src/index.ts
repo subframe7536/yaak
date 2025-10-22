@@ -68,11 +68,11 @@ export function migrateImport(contents: string) {
 
   // Migrate v4 to v5
   for (const environment of parsed.resources.environments ?? []) {
-    if ('base' in environment && environment.base) {
+    if ('base' in environment && environment.base && environment.parentModel == null) {
       environment.parentModel = 'workspace';
       environment.parentId = null;
       delete environment.base;
-    } else if ('base' in environment && !environment.base) {
+    } else if ('base' in environment && !environment.base && environment.parentModel == null) {
       environment.parentModel = 'environment';
       environment.parentId = null;
       delete environment.base;

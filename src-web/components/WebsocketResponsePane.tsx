@@ -17,7 +17,7 @@ import { copyToClipboard } from '../lib/copy';
 import { AutoScroller } from './core/AutoScroller';
 import { Banner } from './core/Banner';
 import { Button } from './core/Button';
-import { Editor } from './core/Editor/Editor';
+import { Editor } from './core/Editor/LazyEditor';
 import { HotKeyList } from './core/HotKeyList';
 import { Icon } from './core/Icon';
 import { IconButton } from './core/IconButton';
@@ -72,7 +72,7 @@ export function WebsocketResponsePane({ activeRequest }: Props) {
       firstSlot={() =>
         activeConnection == null ? (
           <HotKeyList
-            hotkeys={['http_request.send', 'http_request.create', 'sidebar.focus', 'url_bar.focus']}
+            hotkeys={['request.send', 'model.create', 'sidebar.focus', 'url_bar.focus']}
           />
         ) : (
           <div className="w-full grid grid-rows-[auto_minmax(0,1fr)] items-center">

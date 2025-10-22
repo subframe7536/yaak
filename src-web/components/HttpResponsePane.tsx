@@ -1,7 +1,7 @@
 import type { HttpResponse } from '@yaakapp-internal/models';
 import classNames from 'classnames';
-import type { CSSProperties, ReactNode } from 'react';
-import React, { useCallback, useMemo } from 'react';
+import type { CSSProperties, ReactNode} from 'react';
+import React, { Suspense , lazy, useCallback, useMemo } from 'react';
 import { useLocalStorage } from 'react-use';
 import { useCancelHttpResponse } from '../hooks/useCancelHttpResponse';
 import { usePinnedHttpResponse } from '../hooks/usePinnedHttpResponse';
@@ -28,11 +28,14 @@ import { CsvViewer } from './responseViewers/CsvViewer';
 import { EventStreamViewer } from './responseViewers/EventStreamViewer';
 import { HTMLOrTextViewer } from './responseViewers/HTMLOrTextViewer';
 import { ImageViewer } from './responseViewers/ImageViewer';
-import { PdfViewer } from './responseViewers/PdfViewer';
 import { SvgViewer } from './responseViewers/SvgViewer';
 import { VideoViewer } from './responseViewers/VideoViewer';
 import { ErrorBoundary } from './ErrorBoundary';
 import { Button } from './core/Button';
+
+const PdfViewer = lazy(() =>
+  import('./responseViewers/PdfViewer').then((m) => ({ default: m.PdfViewer })),
+);
 
 interface Props {
   style?: CSSProperties;
@@ -106,9 +109,7 @@ export function HttpResponsePane({ style, className, activeRequestId }: Props) {
       )}
     >
       {activeResponse == null ? (
-        <HotKeyList
-          hotkeys={['http_request.send', 'http_request.create', 'sidebar.focus', 'url_bar.focus']}
-        />
+        <HotKeyList hotkeys={['request.send', 'model.create', 'sidebar.focus', 'url_bar.focus']} />
       ) : (
         <div className="h-full w-full grid grid-rows-[auto_minmax(0,1fr)] grid-cols-1">
           <HStack
@@ -161,41 +162,46 @@ export function HttpResponsePane({ style, className, activeRequestId }: Props) {
             >
               <TabContent value={TAB_BODY}>
                 <ErrorBoundary name="Http Response Viewer">
-                  <ConfirmLargeResponse response={activeResponse}>
-                    {activeResponse.state === 'initialized' ? (
-                      <EmptyStateText>
-                        <VStack space={3}>
-                          <HStack space={3}>
-                            <LoadingIcon className="text-text-subtlest" />
-                            Sending Request
-                          </HStack>
-                          <Button size="sm" variant="border" onClick={() => cancel.mutate()}>Cancel</Button>
-                        </VStack>
-                      </EmptyStateText>
-                    ) : activeResponse.state === 'closed' && activeResponse.contentLength === 0 ? (
-                      <EmptyStateText>Empty </EmptyStateText>
-                    ) : mimeType?.match(/^text\/event-stream/i) && viewMode === 'pretty' ? (
-                      <EventStreamViewer response={activeResponse} />
-                    ) : mimeType?.match(/^image\/svg/) ? (
-                      <SvgViewer response={activeResponse} />
-                    ) : mimeType?.match(/^image/i) ? (
-                      <EnsureCompleteResponse response={activeResponse} render={ImageViewer} />
-                    ) : mimeType?.match(/^audio/i) ? (
-                      <EnsureCompleteResponse response={activeResponse} render={AudioViewer} />
-                    ) : mimeType?.match(/^video/i) ? (
-                      <EnsureCompleteResponse response={activeResponse} render={VideoViewer} />
-                    ) : mimeType?.match(/pdf/i) ? (
-                      <EnsureCompleteResponse response={activeResponse} render={PdfViewer} />
-                    ) : mimeType?.match(/csv|tab-separated/i) ? (
-                      <CsvViewer className="pb-2" response={activeResponse} />
-                    ) : (
-                      <HTMLOrTextViewer
-                        textViewerClassName="-mr-2 bg-surface" // Pull to the right
-                        response={activeResponse}
-                        pretty={viewMode === 'pretty'}
-                      />
-                    )}
-                  </ConfirmLargeResponse>
+                  <Suspense>
+                    <ConfirmLargeResponse response={activeResponse}>
+                      {activeResponse.state === 'initialized' ? (
+                        <EmptyStateText>
+                          <VStack space={3}>
+                            <HStack space={3}>
+                              <LoadingIcon className="text-text-subtlest" />
+                              Sending Request
+                            </HStack>
+                            <Button size="sm" variant="border" onClick={() => cancel.mutate()}>
+                              Cancel
+                            </Button>
+                          </VStack>
+                        </EmptyStateText>
+                      ) : activeResponse.state === 'closed' &&
+                        activeResponse.contentLength === 0 ? (
+                        <EmptyStateText>Empty </EmptyStateText>
+                      ) : mimeType?.match(/^text\/event-stream/i) && viewMode === 'pretty' ? (
+                        <EventStreamViewer response={activeResponse} />
+                      ) : mimeType?.match(/^image\/svg/) ? (
+                        <SvgViewer response={activeResponse} />
+                      ) : mimeType?.match(/^image/i) ? (
+                        <EnsureCompleteResponse response={activeResponse} render={ImageViewer} />
+                      ) : mimeType?.match(/^audio/i) ? (
+                        <EnsureCompleteResponse response={activeResponse} render={AudioViewer} />
+                      ) : mimeType?.match(/^video/i) ? (
+                        <EnsureCompleteResponse response={activeResponse} render={VideoViewer} />
+                      ) : mimeType?.match(/pdf/i) ? (
+                        <EnsureCompleteResponse response={activeResponse} render={PdfViewer} />
+                      ) : mimeType?.match(/csv|tab-separated/i) ? (
+                        <CsvViewer className="pb-2" response={activeResponse} />
+                      ) : (
+                        <HTMLOrTextViewer
+                          textViewerClassName="-mr-2 bg-surface" // Pull to the right
+                          response={activeResponse}
+                          pretty={viewMode === 'pretty'}
+                        />
+                      )}
+                    </ConfirmLargeResponse>
+                  </Suspense>
                 </ErrorBoundary>
               </TabContent>
               <TabContent value={TAB_HEADERS}>

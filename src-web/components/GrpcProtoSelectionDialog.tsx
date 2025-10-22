@@ -60,7 +60,7 @@ function GrpcProtoSelectionDialogWithRequest({ request }: Props & { request: Grp
             await grpc.reflect.refetch();
           }}
         >
-          Add Files
+          Add Proto Files
         </Button>
         <Button
           variant="border"
@@ -76,7 +76,7 @@ function GrpcProtoSelectionDialogWithRequest({ request }: Props & { request: Grp
             await grpc.reflect.refetch();
           }}
         >
-          Add Directories
+          Add Import Folders
         </Button>
         <Button
           isLoading={grpc.reflect.isFetching}

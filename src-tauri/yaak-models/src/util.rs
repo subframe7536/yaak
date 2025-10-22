@@ -3,6 +3,7 @@ use crate::models::{
     AnyModel, Environment, Folder, GrpcRequest, HttpRequest, UpsertModelInfo, WebsocketRequest,
     Workspace, WorkspaceIden,
 };
+use yaak_common::window::WorkspaceWindowTrait;
 use crate::query_manager::QueryManagerExt;
 use chrono::{NaiveDateTime, Utc};
 use log::warn;
@@ -158,7 +159,17 @@ pub fn get_workspace_export_resources<R: Runtime>(
     Ok(data)
 }
 
-pub fn maybe_gen_id<M: UpsertModelInfo>(id: &str, ids: &mut BTreeMap<String, String>) -> String {
+pub fn maybe_gen_id<M: UpsertModelInfo, R: Runtime>(
+    window: &WebviewWindow<R>,
+    id: &str,
+    ids: &mut BTreeMap<String, String>,
+) -> String {
+    if id == "CURRENT_WORKSPACE" {
+        if let Some(wid) = window.workspace_id() {
+            return wid.to_string();
+        }
+    }
+
     if !id.starts_with("GENERATE_ID::") {
         return id.to_string();
     }
@@ -173,12 +184,13 @@ pub fn maybe_gen_id<M: UpsertModelInfo>(id: &str, ids: &mut BTreeMap<String, Str
     }
 }
 
-pub fn maybe_gen_id_opt<M: UpsertModelInfo>(
+pub fn maybe_gen_id_opt<M: UpsertModelInfo, R: Runtime>(
+    window: &WebviewWindow<R>,
     id: Option<String>,
     ids: &mut BTreeMap<String, String>,
 ) -> Option<String> {
     match id {
-        Some(id) => Some(maybe_gen_id::<M>(id.as_str(), ids)),
+        Some(id) => Some(maybe_gen_id::<M, R>(window, id.as_str(), ids)),
         None => None,
     }
 }

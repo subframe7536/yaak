@@ -19,6 +19,11 @@
       @apply text-surface !important;
     }
 
+    /* Matching bracket */
+    .cm-matchingBracket {
+      @apply bg-transparent border-b border-b-text-subtle;
+    }
+
     &:not(.cm-focused) {
       .cm-cursor, .cm-fat-cursor {
         @apply hidden;

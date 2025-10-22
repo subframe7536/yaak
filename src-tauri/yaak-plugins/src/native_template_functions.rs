@@ -78,6 +78,10 @@ pub fn template_function_secure_run<R: Runtime>(
                 _ => return Ok("".to_string()),
             };
 
+            if value.is_empty() {
+                return Ok("".to_string());
+            }
+
             let value = match value.strip_prefix("YENC_") {
                 None => {
                     return Err(RenderError("Could not decrypt non-encrypted value".to_string()));

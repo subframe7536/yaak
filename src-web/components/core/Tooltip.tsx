@@ -7,7 +7,7 @@ import { Portal } from '../Portal';
 export interface TooltipProps {
   children: ReactNode;
   content: ReactNode;
-  tabIndex?: number,
+  tabIndex?: number;
   size?: 'md' | 'lg';
 }
 

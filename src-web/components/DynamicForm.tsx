@@ -21,7 +21,7 @@ import { resolvedModelName } from '../lib/resolvedModelName';
 import { Banner } from './core/Banner';
 import { Checkbox } from './core/Checkbox';
 import { DetailsBanner } from './core/DetailsBanner';
-import { Editor } from './core/Editor/Editor';
+import { Editor } from './core/Editor/LazyEditor';
 import { IconButton } from './core/IconButton';
 import { Input } from './core/Input';
 import { Label } from './core/Label';

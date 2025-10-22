@@ -4,7 +4,7 @@ import type { GenericCompletionOption } from '@yaakapp-internal/plugins';
 import classNames from 'classnames';
 import { atom, useAtomValue } from 'jotai';
 import type { CSSProperties } from 'react';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useMemo, useState } from 'react';
 import { activeRequestIdAtom } from '../hooks/useActiveRequestId';
 import { allRequestsAtom } from '../hooks/useAllRequests';
 import { useAuthTab } from '../hooks/useAuthTab';
@@ -37,7 +37,7 @@ import { showToast } from '../lib/toast';
 import { BinaryFileEditor } from './BinaryFileEditor';
 import { ConfirmLargeRequestBody } from './ConfirmLargeRequestBody';
 import { CountBadge } from './core/CountBadge';
-import { Editor } from './core/Editor/Editor';
+import { Editor } from './core/Editor/LazyEditor';
 import type { GenericCompletionConfig } from './core/Editor/genericCompletion';
 import { InlineCode } from './core/InlineCode';
 import type { Pair } from './core/PairEditor';
@@ -53,7 +53,10 @@ import { MarkdownEditor } from './MarkdownEditor';
 import { RequestMethodDropdown } from './RequestMethodDropdown';
 import { UrlBar } from './UrlBar';
 import { UrlParametersEditor } from './UrlParameterEditor';
-import { GraphQLEditor } from './graphql/GraphQLEditor';
+
+const GraphQLEditor = lazy(() =>
+  import('./graphql/GraphQLEditor').then((m) => ({ default: m.GraphQLEditor })),
+);
 
 interface Props {
   style: CSSProperties;
@@ -160,7 +163,11 @@ export function HttpRequestPane({ style, fullHeight, className, activeRequest }:
             { label: 'GraphQL', value: BODY_TYPE_GRAPHQL },
             { label: 'JSON', value: BODY_TYPE_JSON },
             { label: 'XML', value: BODY_TYPE_XML },
-            { label: 'Other', value: BODY_TYPE_OTHER },
+            {
+              label: 'Other',
+              value: BODY_TYPE_OTHER,
+              shortLabel: nameOfContentTypeOr(contentType, 'Other'),
+            },
             { type: 'separator', label: 'Other' },
             { label: 'Binary File', value: BODY_TYPE_BINARY },
             { label: 'No Body', shortLabel: 'Body', value: BODY_TYPE_NONE },
@@ -229,6 +236,7 @@ export function HttpRequestPane({ style, fullHeight, className, activeRequest }:
     [
       activeRequest,
       authTab,
+      contentType,
       handleContentTypeChange,
       headersTab,
       numParams,
@@ -351,7 +359,7 @@ export function HttpRequestPane({ style, fullHeight, className, activeRequest }:
             label="Request"
             onChangeValue={setActiveTab}
             tabs={tabs}
-            tabListClassName="mt-1 !mb-1.5"
+            tabListClassName="mt-1 mb-1.5"
           >
             <TabContent value={TAB_AUTH}>
               <HttpAuthenticationEditor model={activeRequest} />
@@ -400,12 +408,14 @@ export function HttpRequestPane({ style, fullHeight, className, activeRequest }:
                     stateKey={`xml.${activeRequest.id}`}
                   />
                 ) : activeRequest.bodyType === BODY_TYPE_GRAPHQL ? (
-                  <GraphQLEditor
-                    forceUpdateKey={forceUpdateKey}
-                    baseRequest={activeRequest}
-                    request={activeRequest}
-                    onChange={handleBodyChange}
-                  />
+                  <Suspense>
+                    <GraphQLEditor
+                      forceUpdateKey={forceUpdateKey}
+                      baseRequest={activeRequest}
+                      request={activeRequest}
+                      onChange={handleBodyChange}
+                    />
+                  </Suspense>
                 ) : activeRequest.bodyType === BODY_TYPE_FORM_URLENCODED ? (
                   <FormUrlencodedEditor
                     forceUpdateKey={forceUpdateKey}
@@ -470,4 +480,12 @@ export function HttpRequestPane({ style, fullHeight, className, activeRequest }:
       )}
     </div>
   );
+}
+
+function nameOfContentTypeOr(contentType: string | null, fallback: string) {
+  const language = languageFromContentType(contentType);
+  if (language === 'markdown') {
+    return 'Markdown';
+  }
+  return fallback;
 }

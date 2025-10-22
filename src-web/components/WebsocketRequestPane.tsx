@@ -25,7 +25,7 @@ import { generateId } from '../lib/generateId';
 import { prepareImportQuerystring } from '../lib/prepareImportQuerystring';
 import { resolvedModelName } from '../lib/resolvedModelName';
 import { CountBadge } from './core/CountBadge';
-import { Editor } from './core/Editor/Editor';
+import { Editor } from './core/Editor/LazyEditor';
 import type { GenericCompletionConfig } from './core/Editor/genericCompletion';
 import { IconButton } from './core/IconButton';
 import type { Pair } from './core/PairEditor';
