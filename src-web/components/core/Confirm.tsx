@@ -44,7 +44,7 @@ export function Confirm({
           onChange={setConfirm}
           label={
             <>
-              Type <strong className="select-auto cursor-text">{requireTyping}</strong> to confirm
+              Type <strong className="!select-auto cursor-auto">{requireTyping}</strong> to confirm
             </>
           }
         />

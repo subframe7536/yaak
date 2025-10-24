@@ -184,6 +184,7 @@ function importEnvironment(
   workspaceId: string,
   isParent?: boolean,
 ): PartialImportResources['environments'][0] {
+  isParent ??= e.parentId === workspaceId;
   return {
     id: convertId(e._id),
     createdAt: e.created ? new Date(e.created).toISOString().replace('Z', '') : undefined,
@@ -192,7 +193,8 @@ function importEnvironment(
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
     sortPriority: e.metaSortKey, // Will be added to Yaak later
-    base: isParent ?? e.parentId === workspaceId,
+    parentModel: isParent ? 'workspace' : 'environment',
+    parentId: null,
     model: 'environment',
     name: e.name,
     variables: Object.entries(e.data).map(([name, value]) => ({
