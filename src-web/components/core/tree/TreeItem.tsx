@@ -296,7 +296,7 @@ function TreeItemInner<T extends { id: string }>({
           onClick={handleClick}
           onDoubleClick={handleDoubleClick}
           disabled={editing}
-          className="tree-item-inner px-2 focus:outline-none flex items-center gap-2 h-full whitespace-nowrap"
+          className="cursor-default tree-item-inner px-2 focus:outline-none flex items-center gap-2 h-full whitespace-nowrap"
           {...attributes}
           {...listeners}
           tabIndex={isLastSelected ? 0 : -1}

@@ -1,4 +1,3 @@
-import { activeRequestAtom } from '../hooks/useActiveRequest';
 import { useSubscribeActiveWorkspaceId } from '../hooks/useActiveWorkspace';
 import { useActiveWorkspaceChangedToast } from '../hooks/useActiveWorkspaceChangedToast';
 import { useHotKey, useSubscribeHotKeys } from '../hooks/useHotKey';

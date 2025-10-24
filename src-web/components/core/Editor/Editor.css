@@ -238,15 +238,15 @@
 
 .cm-tooltip.cm-tooltip-hover {
   @apply shadow-lg bg-surface rounded text-text-subtle border border-border-subtle z-50 pointer-events-auto text-sm;
-  @apply px-2 py-1;
+  @apply p-1.5;
+
+  /* Style the tooltip for popping up "open in browser" and other stuff */
+  a, button {
+    @apply text-text hover:bg-surface-highlight w-full h-sm flex items-center px-2 rounded;
+  }
 
   a {
-    @apply text-text;
-
-    &:hover {
-      @apply underline;
-    }
-
+    @apply cursor-default !important;
     &::after {
       @apply text-text bg-text h-3 w-3 ml-1;
       content: '';
