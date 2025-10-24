@@ -57,16 +57,17 @@ export const plugin: PluginDefinition = {
         }
       }
 
-      // TODO: Support body signing here
-      headers['x-amz-content-sha256'] = 'UNSIGNED-PAYLOAD';
+      if (args.method !== 'GET') {
+        headers['x-amz-content-sha256'] = 'UNSIGNED-PAYLOAD';
+      }
 
       const signature = aws4.sign(
         {
           host: url.host,
           method: args.method,
-          path: url.pathname + (url.search || '') || undefined,
-          service: String(values.service || 'sts') || undefined,
-          region: String(values.region || 'us-east-1') || undefined,
+          path: url.pathname + (url.search || ''),
+          service: String(values.service || 'sts'),
+          region: values.region ? String(values.region) : undefined,
           headers,
         },
         {
@@ -80,8 +81,6 @@ export const plugin: PluginDefinition = {
       //  - opts.headers["Authorization"]
       //  - opts.headers["X-Amz-Date"]
       //  - optionally content sha256 header etc
-
-      console.log('ADDING STUFF', signature);
 
       if (signature.headers == null) {
         return {};
