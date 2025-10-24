@@ -1,7 +1,11 @@
-import xmlFormat from 'xml-formatter';
+import XmlBeautify from 'xml-beautify';
 import { invokeCmd } from './tauri';
 
 const INDENT = '  ';
+
+const xmlBeautifier = new XmlBeautify({
+  INDENT,
+});
 
 export async function tryFormatJson(text: string): Promise<string> {
   if (text === '') return text;
@@ -16,9 +20,8 @@ export async function tryFormatJson(text: string): Promise<string> {
 
   try {
     return JSON.stringify(JSON.parse(text), null, 2);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (err) {
-    // Nothing
+    console.log("JSON beautify failed", err);
   }
 
   return text;
@@ -28,9 +31,9 @@ export async function tryFormatXml(text: string): Promise<string> {
   if (text === '') return text;
 
   try {
-    return xmlFormat(text, { throwOnFailure: true, strictMode: false, indentation: INDENT });
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    return xmlBeautifier.beautify(text);
   } catch (err) {
+    console.log("XML beautify failed", err);
     return text;
   }
 }
