@@ -3,8 +3,8 @@ import { useDndMonitor, useDraggable, useDroppable } from '@dnd-kit/core';
 import classNames from 'classnames';
 import { useAtomValue } from 'jotai';
 import { selectAtom } from 'jotai/utils';
-import type { MouseEvent, PointerEvent, ReactElement, RefAttributes } from 'react';
-import React, { forwardRef, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { MouseEvent, PointerEvent } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { computeSideForDragMove } from '../../../lib/dnd';
 import { jotaiStore } from '../../../lib/jotai';
 import type { ContextMenuProps, DropdownItem } from '../Dropdown';
@@ -40,7 +40,7 @@ export interface TreeItemHandle {
 
 const HOVER_CLOSED_FOLDER_DELAY = 800;
 
-function TreeItemInner<T extends { id: string }>({
+function TreeItem_<T extends { id: string }>({
   treeId,
   node,
   ItemInner,
@@ -324,11 +324,6 @@ function TreeItemInner<T extends { id: string }>({
     </li>
   );
 }
-
-// 1) Preserve generics through forwardRef:
-const TreeItem_ = forwardRef(TreeItemInner) as <T extends { id: string }>(
-  props: TreeItemProps<T> & RefAttributes<TreeItemHandle>,
-) => ReactElement | null;
 
 export const TreeItem = memo(
   TreeItem_,

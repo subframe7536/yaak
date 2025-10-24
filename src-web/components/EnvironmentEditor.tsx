@@ -1,6 +1,7 @@
 import type { Environment } from '@yaakapp-internal/models';
 import { patchModel } from '@yaakapp-internal/models';
 import type { GenericCompletionOption } from '@yaakapp-internal/plugins';
+import classNames from 'classnames';
 import React, { useCallback, useMemo } from 'react';
 import { useEnvironmentsBreakdown } from '../hooks/useEnvironmentsBreakdown';
 import { useIsEncryptionEnabled } from '../hooks/useIsEncryptionEnabled';
@@ -19,7 +20,6 @@ import { Heading } from './core/Heading';
 import type { PairWithId } from './core/PairEditor';
 import { ensurePairId } from './core/PairEditor.util';
 import { PairOrBulkEditor } from './core/PairOrBulkEditor';
-import { VStack } from './core/Stacks';
 import { EnvironmentColorIndicator } from './EnvironmentColorIndicator';
 import { EnvironmentSharableTooltip } from './EnvironmentSharableTooltip';
 
@@ -98,7 +98,7 @@ export function EnvironmentEditor({
   };
 
   return (
-    <VStack space={4} className={className}>
+    <div className={classNames(className, 'h-full grid grid-rows-[auto_auto_minmax(0,1fr)] gap-2')}>
       <Heading className="w-full flex items-center gap-0.5">
         <EnvironmentColorIndicator clickToEdit environment={environment ?? null} />
         {!hideName && <div className="mr-2">{environment?.name}</div>}
@@ -127,7 +127,7 @@ export function EnvironmentEditor({
           {environment.public ? 'Sharable' : 'Private'}
         </BadgeButton>
       </Heading>
-      {environment.public && (!isEncryptionEnabled || !allVariableAreEncrypted) && (
+      {environment.public && (!isEncryptionEnabled || !allVariableAreEncrypted) ? (
         <DismissibleBanner
           id={`warn-unencrypted-${environment.id}`}
           color="notice"
@@ -142,24 +142,25 @@ export function EnvironmentEditor({
         >
           This sharable environment contains plain-text secrets
         </DismissibleBanner>
+      ) : (
+        <span />
       )}
-      <div className="h-full pr-2 pb-2 grid grid-rows-[minmax(0,1fr)] overflow-auto">
-        <PairOrBulkEditor
-          allowMultilineValues
-          preferenceName="environment"
-          nameAutocomplete={nameAutocomplete}
-          namePlaceholder="VAR_NAME"
-          nameValidate={validateName}
-          valueType={valueType}
-          valueAutocompleteVariables='environment'
-          valueAutocompleteFunctions
-          forceUpdateKey={`${environment.id}::${forceUpdateKey}`}
-          pairs={environment.variables}
-          onChange={handleChange}
-          stateKey={`environment.${environment.id}`}
-          forcedEnvironmentId={environment.id}
-        />
-      </div>
-    </VStack>
+      <PairOrBulkEditor
+        className="h-full"
+        allowMultilineValues
+        preferenceName="environment"
+        nameAutocomplete={nameAutocomplete}
+        namePlaceholder="VAR_NAME"
+        nameValidate={validateName}
+        valueType={valueType}
+        valueAutocompleteVariables="environment"
+        valueAutocompleteFunctions
+        forceUpdateKey={`${environment.id}::${forceUpdateKey}`}
+        pairs={environment.variables}
+        onChange={handleChange}
+        stateKey={`environment.${environment.id}`}
+        forcedEnvironmentId={environment.id}
+      />
+    </div>
   );
 }
