@@ -1,5 +1,5 @@
 import type { DragMoveEvent } from '@dnd-kit/core';
-import { useDndMonitor, useDraggable, useDroppable } from '@dnd-kit/core';
+import { useDndContext, useDndMonitor, useDraggable, useDroppable } from '@dnd-kit/core';
 import classNames from 'classnames';
 import { useAtomValue } from 'jotai';
 import { selectAtom } from 'jotai/utils';
@@ -72,22 +72,28 @@ function TreeItem_<T extends { id: string }>({
     });
   }, [addRef, editing, getEditOptions, node.item]);
 
+  const ancestorIds = useMemo(() => {
+    const ids: string[] = [];
+    let p = node.parent;
+
+    while (p) {
+      ids.push(p.item.id);
+      p = p.parent;
+    }
+
+    return ids;
+  }, [node]);
+
   const isAncestorCollapsedAtom = useMemo(
     () =>
       selectAtom(
         collapsedFamily(treeId),
-        (collapsed) => {
-          const next = (n: TreeNode<T>) => {
-            if (n.parent == null) return false;
-            if (collapsed[n.parent.item.id]) return true;
-            return next(n.parent);
-          };
-          return next(node);
-        },
-        (a, b) => a === b, // re-render only when boolean flips
+        (collapsed) => ancestorIds.some((id) => collapsed[id]),
+        (a, b) => a === b,
       ),
-    [node, treeId],
+    [ancestorIds, treeId],
   );
+  const isAncestorCollapsed = useAtomValue(isAncestorCollapsedAtom);
 
   const [showContextMenu, setShowContextMenu] = useState<{
     items: DropdownItem[];
@@ -176,6 +182,8 @@ function TreeItem_<T extends { id: string }>({
     setDropHover(null);
   };
 
+  const dndContext = useDndContext();
+
   // Toggle auto-expand of folders when hovering over them
   useDndMonitor({
     onDragEnd() {
@@ -192,6 +200,12 @@ function TreeItem_<T extends { id: string }>({
         startedHoverTimeout.current = setTimeout(() => {
           jotaiStore.set(isCollapsedFamily({ treeId, itemId: node.item.id }), false);
           clearDropHover();
+          // Force re-measure everything because all containers below the folder have been pushed down
+          requestAnimationFrame(() => {
+            dndContext.measureDroppableContainers(
+              dndContext.droppableContainers.toArray().map((c) => c.id),
+            );
+          });
         }, HOVER_CLOSED_FOLDER_DELAY);
       } else if (isFolder && !hasChildren && side === 'below') {
         setDropHover('drop');
@@ -239,8 +253,6 @@ function TreeItem_<T extends { id: string }>({
     [setDraggableRef, setDroppableRef],
   );
 
-  if (useAtomValue(isAncestorCollapsedAtom)) return null;
-
   return (
     <li
       ref={listItemRef}
@@ -254,13 +266,14 @@ function TreeItem_<T extends { id: string }>({
         'tree-item',
         'h-sm',
         'grid grid-cols-[auto_minmax(0,1fr)]',
+        isAncestorCollapsed && 'hidden',
         editing && 'ring-1 focus-within:ring-focus',
         dropHover != null && 'relative z-10 ring-2 ring-primary',
         dropHover === 'animate' && 'animate-blinkRing',
         isSelected && 'selected',
       )}
     >
-      <TreeIndentGuide treeId={treeId} depth={depth} parentId={node.parent?.item.id ?? null} />
+      <TreeIndentGuide treeId={treeId} depth={depth} ancestorIds={ancestorIds} />
       <div
         className={classNames(
           'text-text-subtle',

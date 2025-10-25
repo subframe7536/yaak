@@ -173,7 +173,8 @@ function handleKeyDown(e: KeyboardEvent) {
   if (e.metaKey) currentKeysWithModifiers.add('Meta');
   if (e.shiftKey) currentKeysWithModifiers.add('Shift');
 
-  outer: for (const [hkAction, hkKeys] of Object.entries(hotkeys) as [HotkeyAction, string[]][]) {
+  const executed: string[] = [];
+  outer: for (const { action, callback, options } of jotaiStore.get(sortedCallbacksAtom)) {
     if (
       (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) &&
       currentKeysWithModifiers.size === 1 &&
@@ -184,8 +185,7 @@ function handleKeyDown(e: KeyboardEvent) {
       continue;
     }
 
-    const executed: string[] = [];
-    for (const { action, callback, options } of jotaiStore.get(sortedCallbacksAtom)) {
+    for (const [hkAction, hkKeys] of Object.entries(hotkeys) as [HotkeyAction, string[]][]) {
       if (hkAction !== action) {
         continue;
       }
@@ -207,12 +207,12 @@ function handleKeyDown(e: KeyboardEvent) {
         }
       }
     }
-    if (executed.length > 0) {
-      console.log('Executed hotkey', executed.join(', '));
-      jotaiStore.set(currentKeysAtom, new Set([]));
-    }
   }
 
+  if (executed.length > 0) {
+    console.log('Executed hotkey', executed.join(', '));
+    jotaiStore.set(currentKeysAtom, new Set([]));
+  }
   clearCurrentKeysDebounced();
 }
 
@@ -272,7 +272,13 @@ const resolveHotkeyKey = (key: string) => {
 
 function compareKeys(keysA: string[], keysB: string[]) {
   if (keysA.length !== keysB.length) return false;
-  const sortedA = keysA.map((k) => k.toLowerCase()).sort().join('::');
-  const sortedB = keysB.map((k) => k.toLowerCase()).sort().join('::');
+  const sortedA = keysA
+    .map((k) => k.toLowerCase())
+    .sort()
+    .join('::');
+  const sortedB = keysB
+    .map((k) => k.toLowerCase())
+    .sort()
+    .join('::');
   return sortedA === sortedB;
 }

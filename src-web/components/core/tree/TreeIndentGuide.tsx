@@ -1,19 +1,19 @@
 import classNames from 'classnames';
 import { useAtomValue } from 'jotai';
 import { memo } from 'react';
-import { hoveredParentDepthFamily, isParentHoveredFamily } from './atoms';
+import { hoveredParentDepthFamily, isAncestorHoveredFamily } from './atoms';
 
 export const TreeIndentGuide = memo(function TreeIndentGuide({
   treeId,
   depth,
-  parentId,
+  ancestorIds,
 }: {
   treeId: string;
   depth: number;
-  parentId: string | null;
+  ancestorIds: string[];
 }) {
   const parentDepth = useAtomValue(hoveredParentDepthFamily(treeId));
-  const isHovered = useAtomValue(isParentHoveredFamily({ treeId, parentId }));
+  const isHovered = useAtomValue(isAncestorHoveredFamily({ treeId, ancestorIds }));
 
   return (
     <div className="flex">

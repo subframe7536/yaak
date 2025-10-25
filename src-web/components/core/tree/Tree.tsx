@@ -26,13 +26,7 @@ import { computeSideForDragMove } from '../../../lib/dnd';
 import { jotaiStore } from '../../../lib/jotai';
 import type { ContextMenuProps, DropdownItem } from '../Dropdown';
 import { ContextMenu } from '../Dropdown';
-import {
-  collapsedFamily,
-  draggingIdsFamily,
-  focusIdsFamily,
-  hoveredParentFamily,
-  selectedIdsFamily,
-} from './atoms';
+import { draggingIdsFamily, focusIdsFamily, hoveredParentFamily, selectedIdsFamily } from './atoms';
 import type { SelectableTreeNode, TreeNode } from './common';
 import { equalSubtree, getSelectedItems, hasAncestor } from './common';
 import { TreeDragOverlay } from './TreeDragOverlay';
@@ -294,8 +288,8 @@ function TreeInner<T extends { id: string }>(
       if (selectableItem == null) {
         return;
       }
-      const node = selectableItem.node;
 
+      const node = selectableItem.node;
       const side = computeSideForDragMove(node.item.id, e);
 
       const item = node.item;
@@ -305,12 +299,8 @@ function TreeInner<T extends { id: string }>(
       const hoveredIndex = dragIndex + (side === 'above' ? 0 : 1);
       let hoveredChildIndex = selectableItem.index + (side === 'above' ? 0 : 1);
 
-      const collapsedMap = jotaiStore.get(collapsedFamily(treeId));
-      const isHoveredItemCollapsed =
-        hovered != null ? hovered.children?.length === 0 || collapsedMap[hovered.item.id] : false;
-
-      if (hovered?.children != null && side === 'below' && isHoveredItemCollapsed) {
-        // Move into the folder if it's open and we're moving below it
+      // Move into the folder if it's open and we're moving below it
+      if (hovered?.children != null && side === 'below') {
         hoveredParent = hovered;
         hoveredChildIndex = 0;
       }
@@ -328,12 +318,7 @@ function TreeInner<T extends { id: string }>(
           childIndex === existing.childIndex
         )
       ) {
-        jotaiStore.set(hoveredParentFamily(treeId), {
-          parentId: hoveredParent?.item.id ?? null,
-          parentDepth: hoveredParent?.depth ?? null,
-          index: hoveredIndex,
-          childIndex: hoveredChildIndex,
-        });
+        jotaiStore.set(hoveredParentFamily(treeId), { parentId, parentDepth, index, childIndex });
       }
     },
     [root.depth, root.item.id, selectableItems, treeId],
@@ -341,20 +326,23 @@ function TreeInner<T extends { id: string }>(
 
   const handleDragStart = useCallback(
     function handleDragStart(e: DragStartEvent) {
-      const item = selectableItems.find((i) => i.node.item.id === e.active.id)?.node.item ?? null;
-      if (item == null) return;
-
       const selectedItems = getSelectedItems(treeId, selectableItems);
-      const isDraggingSelectedItem = selectedItems.find((i) => i.id === item.id);
+      const isDraggingSelectedItem = selectedItems.find((i) => i.id === e.active.id);
+
+      // If we started dragging an already-selected item, we'll use that
       if (isDraggingSelectedItem) {
         jotaiStore.set(
           draggingIdsFamily(treeId),
           selectedItems.map((i) => i.id),
         );
       } else {
-        jotaiStore.set(draggingIdsFamily(treeId), [item.id]);
-        // Also update selection to just be this one
-        handleSelect(item, { shiftKey: false, metaKey: false, ctrlKey: false });
+        // If we started dragging a non-selected item, only drag that item
+        const activeItem = selectableItems.find((i) => i.node.item.id === e.active.id)?.node.item;
+        if (activeItem != null) {
+          jotaiStore.set(draggingIdsFamily(treeId), [activeItem.id]);
+          // Also update selection to just be this one
+          handleSelect(activeItem, { shiftKey: false, metaKey: false, ctrlKey: false });
+        }
       }
     },
     [handleSelect, selectableItems, treeId],
