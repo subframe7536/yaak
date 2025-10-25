@@ -27,6 +27,55 @@ describe('exporter-curl', () => {
       ),
     ).toEqual([`grpcurl -H 'aaa: AAA'`, `-H 'bbb: BBB'`, `yaak.app`].join(` \\\n  `));
   });
+  test('Basic auth', async () => {
+    expect(
+      await convert(
+        {
+          url: 'https://yaak.app',
+          authenticationType: 'basic',
+          authentication: {
+            username: 'user',
+            password: 'pass',
+          },
+        },
+        [],
+      ),
+    ).toEqual([`grpcurl -H 'Authorization: Basic dXNlcjpwYXNz'`, `yaak.app`].join(` \\\n  `));
+  });
+
+  test('API key auth', async () => {
+    expect(
+      await convert(
+        {
+          url: 'https://yaak.app',
+          authenticationType: 'apikey',
+          authentication: {
+            key: 'X-Token',
+            value: 'tok',
+          },
+        },
+        [],
+      ),
+    ).toEqual([`grpcurl -H 'X-Token: tok'`, `yaak.app`].join(` \\\n  `));
+  });
+
+  test('API key auth', async () => {
+    expect(
+      await convert(
+        {
+          url: 'https://yaak.app',
+          authenticationType: 'apikey',
+          authentication: {
+            location: 'query',
+            key: 'token',
+            value: 'tok 1',
+          },
+        },
+        [],
+      ),
+    ).toEqual([`grpcurl`, `yaak.app?token=tok%201`].join(` \\\n  `));
+  });
+
   test('Single proto file', async () => {
     expect(await convert({ url: 'https://yaak.app' }, ['/foo/bar/baz.proto'])).toEqual(
       [

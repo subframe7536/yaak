@@ -68,16 +68,37 @@ export async function convert(request: Partial<GrpcRequest>, allProtoFiles: stri
   }
 
   // Add basic authentication
-  if (request.authenticationType === 'basic') {
-    const user = request.authentication?.username ?? '';
-    const pass = request.authentication?.password ?? '';
-    const encoded = btoa(`${user}:${pass}`);
-    xs.push('-H', quote(`Authorization: Basic ${encoded}`));
-    xs.push(NEWLINE);
-  } else if (request.authenticationType === 'bearer') {
-    // Add bearer authentication
-    xs.push('-H', quote(`Authorization: Bearer ${request.authentication?.token ?? ''}`));
-    xs.push(NEWLINE);
+  if (request.authentication?.disabled !== true) {
+    if (request.authenticationType === 'basic') {
+      const user = request.authentication?.username ?? '';
+      const pass = request.authentication?.password ?? '';
+      const encoded = btoa(`${user}:${pass}`);
+      xs.push('-H', quote(`Authorization: Basic ${encoded}`));
+      xs.push(NEWLINE);
+    } else if (request.authenticationType === 'bearer') {
+      // Add bearer authentication
+      xs.push('-H', quote(`Authorization: Bearer ${request.authentication?.token ?? ''}`));
+      xs.push(NEWLINE);
+    } else if (request.authenticationType === 'apikey') {
+      if (request.authentication?.location === 'query') {
+        const sep = request.url?.includes('?') ? '&' : '?';
+        request.url = [
+          request.url,
+          sep,
+          encodeURIComponent(request.authentication?.key ?? 'token'),
+          '=',
+          encodeURIComponent(request.authentication?.value ?? ''),
+        ].join('');
+      } else {
+        xs.push(
+          '-H',
+          quote(
+            `${request.authentication?.key ?? 'X-Api-Key'}: ${request.authentication?.value ?? ''}`,
+          ),
+        );
+      }
+      xs.push(NEWLINE);
+    }
   }
 
   // Add form params
