@@ -118,7 +118,7 @@ export function useHotKey(
       return [...without, newCb];
     });
     return () => {
-      jotaiStore.set(callbacksAtom, (prev) => prev.filter((cb) => cb.action !== action));
+      jotaiStore.set(callbacksAtom, (prev) => prev.filter((cb) => cb.callback !== callback));
     };
   }, [action, callback, options]);
 }

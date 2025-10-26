@@ -98,6 +98,8 @@ export const EnvironmentEditDialog = function ({ initialEnvironment }: Props) {
                   <IconButton
                     size="sm"
                     iconSize="md"
+                    hotkeyAction="model.create"
+                    hotkeyPriority={999}
                     title="Add sub environment"
                     icon="plus_circle"
                     iconClassName="text-text-subtlest group-hover:text-text-subtle"
