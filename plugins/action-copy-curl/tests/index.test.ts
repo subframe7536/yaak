@@ -170,6 +170,20 @@ describe('exporter-curl', () => {
     ).toEqual([`curl 'https://yaak.app'`, `--user 'user:pass'`].join(` \\\n  `));
   });
 
+  test('Basic auth disabled', async () => {
+    expect(
+      await convertToCurl({
+        url: 'https://yaak.app',
+        authenticationType: 'basic',
+        authentication: {
+          disabled: true,
+          username: 'user',
+          password: 'pass',
+        },
+      }),
+    ).toEqual([`curl 'https://yaak.app'`].join(` \\\n  `));
+  });
+
   test('Broken basic auth', async () => {
     expect(
       await convertToCurl({
@@ -244,6 +258,51 @@ describe('exporter-curl', () => {
         },
       }),
     ).toEqual([`curl 'https://yaak.app'`, `--header 'Authorization: Bearer'`].join(` \\\n  `));
+  });
+
+  test('AWS v4 auth', async () => {
+    expect(
+      await convertToCurl({
+        url: 'https://yaak.app',
+        authenticationType: 'auth-aws-sig-v4',
+        authentication: {
+          accessKeyId: 'ak',
+          secretAccessKey: 'sk',
+          sessionToken: '',
+          region: 'us-east-1',
+          service: 's3',
+        },
+      }),
+    ).toEqual(
+      [
+        `curl 'https://yaak.app'`,
+        `--aws-sigv4 aws:amz:us-east-1:s3`,
+        `--user 'ak:sk'`,
+      ].join(` \\\n  `),
+    );
+  });
+
+  test('AWS v4 auth with session', async () => {
+    expect(
+      await convertToCurl({
+        url: 'https://yaak.app',
+        authenticationType: 'auth-aws-sig-v4',
+        authentication: {
+          accessKeyId: 'ak',
+          secretAccessKey: 'sk',
+          sessionToken: 'st',
+          region: 'us-east-1',
+          service: 's3',
+        },
+      }),
+    ).toEqual(
+      [
+        `curl 'https://yaak.app'`,
+        `--aws-sigv4 aws:amz:us-east-1:s3`,
+        `--user 'ak:sk'`,
+        `--header 'X-Amz-Security-Token: st'`,
+      ].join(` \\\n  `),
+    );
   });
 
   test('Stale body data', async () => {

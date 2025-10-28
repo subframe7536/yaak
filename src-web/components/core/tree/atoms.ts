@@ -51,6 +51,16 @@ export const isParentHoveredFamily = atomFamily(
   (a, b) => a.treeId === b.treeId && a.parentId === b.parentId,
 );
 
+export const isAncestorHoveredFamily = atomFamily(
+  ({ treeId, ancestorIds }: { treeId: string; ancestorIds: string[] }) =>
+    selectAtom(
+      hoveredParentFamily(treeId),
+      (v) => v.parentId && ancestorIds.includes(v.parentId),
+      Object.is,
+    ),
+  (a, b) => a.treeId === b.treeId && a.ancestorIds.join(',') === b.ancestorIds.join(','),
+);
+
 export const isIndexHoveredFamily = atomFamily(
   ({ treeId, index }: { treeId: string; index: number }) =>
     selectAtom(hoveredParentFamily(treeId), (v) => v.index === index, Object.is),

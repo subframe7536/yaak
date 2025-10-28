@@ -45,6 +45,7 @@ use yaak_plugins::template_callback::PluginTemplateCallback;
 use yaak_sse::sse::ServerSentEvent;
 use yaak_templates::format::format_json;
 use yaak_templates::{RenderErrorBehavior, RenderOptions, Tokens, transform_args};
+use yaak_templates::format_xml::format_xml;
 
 mod commands;
 mod encoding;
@@ -60,6 +61,7 @@ mod updates;
 mod uri_scheme;
 mod window;
 mod window_menu;
+mod dns;
 
 #[derive(serde::Serialize)]
 #[serde(default, rename_all = "camelCase")]
@@ -739,6 +741,11 @@ async fn cmd_format_json(text: &str) -> YaakResult<String> {
 }
 
 #[tauri::command]
+async fn cmd_format_xml(text: &str) -> YaakResult<String> {
+    Ok(format_xml(text, "  "))
+}
+
+#[tauri::command]
 async fn cmd_http_response_body<R: Runtime>(
     window: WebviewWindow<R>,
     plugin_manager: State<'_, PluginManager>,
@@ -1415,6 +1422,7 @@ pub fn run() {
             cmd_export_data,
             cmd_http_response_body,
             cmd_format_json,
+            cmd_format_xml,
             cmd_get_http_authentication_summaries,
             cmd_get_http_authentication_config,
             cmd_get_sse_events,

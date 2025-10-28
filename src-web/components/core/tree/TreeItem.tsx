@@ -1,5 +1,5 @@
 import type { DragMoveEvent } from '@dnd-kit/core';
-import { useDndMonitor, useDraggable, useDroppable } from '@dnd-kit/core';
+import { useDndContext, useDndMonitor, useDraggable, useDroppable } from '@dnd-kit/core';
 import classNames from 'classnames';
 import { useAtomValue } from 'jotai';
 import { selectAtom } from 'jotai/utils';
@@ -12,10 +12,11 @@ import { ContextMenu } from '../Dropdown';
 import { Icon } from '../Icon';
 import { collapsedFamily, isCollapsedFamily, isLastFocusedFamily, isSelectedFamily } from './atoms';
 import type { TreeNode } from './common';
+import { getNodeKey } from './common';
 import type { TreeProps } from './Tree';
 import { TreeIndentGuide } from './TreeIndentGuide';
 
-interface OnClickEvent {
+export interface TreeItemClickEvent {
   shiftKey: boolean;
   ctrlKey: boolean;
   metaKey: boolean;
@@ -27,10 +28,16 @@ export type TreeItemProps<T extends { id: string }> = Pick<
 > & {
   node: TreeNode<T>;
   className?: string;
-  onClick?: (item: T, e: OnClickEvent) => void;
+  onClick?: (item: T, e: TreeItemClickEvent) => void;
   getContextMenu?: (item: T) => Promise<ContextMenuProps['items']>;
   depth: number;
+  addRef?: (item: T, n: TreeItemHandle | null) => void;
 };
+
+export interface TreeItemHandle {
+  rename: () => void;
+  isRenaming: boolean;
+}
 
 const HOVER_CLOSED_FOLDER_DELAY = 800;
 
@@ -44,8 +51,9 @@ function TreeItem_<T extends { id: string }>({
   getEditOptions,
   className,
   depth,
+  addRef,
 }: TreeItemProps<T>) {
-  const ref = useRef<HTMLLIElement>(null);
+  const listItemRef = useRef<HTMLLIElement>(null);
   const draggableRef = useRef<HTMLButtonElement>(null);
   const isSelected = useAtomValue(isSelectedFamily({ treeId, itemId: node.item.id }));
   const isCollapsed = useAtomValue(isCollapsedFamily({ treeId, itemId: node.item.id }));
@@ -54,22 +62,39 @@ function TreeItem_<T extends { id: string }>({
   const [dropHover, setDropHover] = useState<null | 'drop' | 'animate'>(null);
   const startedHoverTimeout = useRef<NodeJS.Timeout>(undefined);
 
+  useEffect(() => {
+    addRef?.(node.item, {
+      rename: () => {
+        if (getEditOptions != null) {
+          setEditing(true);
+        }
+      },
+      isRenaming: editing,
+    });
+  }, [addRef, editing, getEditOptions, node.item]);
+
+  const ancestorIds = useMemo(() => {
+    const ids: string[] = [];
+    let p = node.parent;
+
+    while (p) {
+      ids.push(p.item.id);
+      p = p.parent;
+    }
+
+    return ids;
+  }, [node]);
+
   const isAncestorCollapsedAtom = useMemo(
     () =>
       selectAtom(
         collapsedFamily(treeId),
-        (collapsed) => {
-          const next = (n: TreeNode<T>) => {
-            if (n.parent == null) return false;
-            if (collapsed[n.parent.item.id]) return true;
-            return next(n.parent);
-          };
-          return next(node);
-        },
-        (a, b) => a === b, // re-render only when boolean flips
+        (collapsed) => ancestorIds.some((id) => collapsed[id]),
+        (a, b) => a === b,
       ),
-    [node, treeId],
+    [ancestorIds, treeId],
   );
+  const isAncestorCollapsed = useAtomValue(isAncestorCollapsedAtom);
 
   const [showContextMenu, setShowContextMenu] = useState<{
     items: DropdownItem[];
@@ -80,7 +105,7 @@ function TreeItem_<T extends { id: string }>({
   useEffect(
     function scrollIntoViewWhenSelected() {
       return jotaiStore.sub(isSelectedFamily({ treeId, itemId: node.item.id }), () => {
-        ref.current?.scrollIntoView({ block: 'nearest' });
+        listItemRef.current?.scrollIntoView({ block: 'nearest' });
       });
     },
     [node.item.id, treeId],
@@ -103,10 +128,11 @@ function TreeItem_<T extends { id: string }>({
   const handleSubmitNameEdit = useCallback(
     async function submitNameEdit(el: HTMLInputElement) {
       getEditOptions?.(node.item).onChange(node.item, el.value);
+      onClick?.(node.item, { shiftKey: false, ctrlKey: false, metaKey: false });
       // Slight delay for the model to propagate to the local store
       setTimeout(() => setEditing(false), 200);
     },
-    [getEditOptions, node.item],
+    [getEditOptions, node.item, onClick],
   );
 
   const handleEditFocus = useCallback(function handleEditFocus(el: HTMLInputElement | null) {
@@ -126,16 +152,20 @@ function TreeItem_<T extends { id: string }>({
       e.stopPropagation();
       switch (e.key) {
         case 'Enter':
-          e.preventDefault();
-          await handleSubmitNameEdit(e.currentTarget);
+          if (editing) {
+            e.preventDefault();
+            await handleSubmitNameEdit(e.currentTarget);
+          }
           break;
         case 'Escape':
-          e.preventDefault();
-          setEditing(false);
+          if (editing) {
+            e.preventDefault();
+            setEditing(false);
+          }
           break;
       }
     },
-    [handleSubmitNameEdit],
+    [editing, handleSubmitNameEdit],
   );
 
   const handleDoubleClick = useCallback(() => {
@@ -155,6 +185,8 @@ function TreeItem_<T extends { id: string }>({
     setDropHover(null);
   };
 
+  const dndContext = useDndContext();
+
   // Toggle auto-expand of folders when hovering over them
   useDndMonitor({
     onDragEnd() {
@@ -171,6 +203,12 @@ function TreeItem_<T extends { id: string }>({
         startedHoverTimeout.current = setTimeout(() => {
           jotaiStore.set(isCollapsedFamily({ treeId, itemId: node.item.id }), false);
           clearDropHover();
+          // Force re-measure everything because all containers below the folder have been pushed down
+          requestAnimationFrame(() => {
+            dndContext.measureDroppableContainers(
+              dndContext.droppableContainers.toArray().map((c) => c.id),
+            );
+          });
         }, HOVER_CLOSED_FOLDER_DELAY);
       } else if (isFolder && !hasChildren && side === 'below') {
         setDropHover('drop');
@@ -218,11 +256,11 @@ function TreeItem_<T extends { id: string }>({
     [setDraggableRef, setDroppableRef],
   );
 
-  if (useAtomValue(isAncestorCollapsedAtom)) return null;
+  if (node.hidden || isAncestorCollapsed) return null;
 
   return (
     <li
-      ref={ref}
+      ref={listItemRef}
       role="treeitem"
       aria-level={depth + 1}
       aria-expanded={node.children == null ? undefined : !isCollapsed}
@@ -239,7 +277,7 @@ function TreeItem_<T extends { id: string }>({
         isSelected && 'selected',
       )}
     >
-      <TreeIndentGuide treeId={treeId} depth={depth} parentId={node.parent?.item.id ?? null} />
+      <TreeIndentGuide treeId={treeId} depth={depth} ancestorIds={ancestorIds} />
       <div
         className={classNames(
           'text-text-subtle',
@@ -275,7 +313,7 @@ function TreeItem_<T extends { id: string }>({
           onClick={handleClick}
           onDoubleClick={handleDoubleClick}
           disabled={editing}
-          className="tree-item-inner px-2 focus:outline-none flex items-center gap-2 h-full whitespace-nowrap"
+          className="cursor-default tree-item-inner px-2 focus:outline-none flex items-center gap-2 h-full whitespace-nowrap"
           {...attributes}
           {...listeners}
           tabIndex={isLastSelected ? 0 : -1}
@@ -316,6 +354,9 @@ export const TreeItem = memo(
     if (nonEqualKeys.length > 0) {
       return false;
     }
-    return nextProps.getItemKey(prevNode.item) === nextProps.getItemKey(nextNode.item);
+
+    return (
+      getNodeKey(prevNode, prevProps.getItemKey) === getNodeKey(nextNode, nextProps.getItemKey)
+    );
   },
 ) as typeof TreeItem_;

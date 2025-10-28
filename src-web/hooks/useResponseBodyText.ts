@@ -10,6 +10,7 @@ export function useResponseBodyText({
   filter: string | null;
 }) {
   return useQuery({
+    placeholderData: (prev) => prev, // Keep previous data on refetch
     queryKey: [
       'response_body_text',
       response.id,

@@ -6,7 +6,9 @@ import { resolveAppearance } from './appearance';
 export async function getThemes() {
   const themes = (await invokeCmd<GetThemesResponse[]>('cmd_get_themes')).flatMap((t) => t.themes);
   themes.sort((a, b) => a.label.localeCompare(b.label));
-  return { themes: [yaakDark, yaakLight, ...themes] };
+  // Remove duplicates, in case multiple plugins provide the same theme
+  const uniqueThemes = Array.from(new Map(themes.map((t) => [t.id, t])).values());
+  return { themes: [yaakDark, yaakLight, ...uniqueThemes] };
 }
 
 export async function getResolvedTheme(

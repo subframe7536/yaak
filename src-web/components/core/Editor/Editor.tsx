@@ -151,7 +151,7 @@ export const Editor = forwardRef<EditorView | undefined, EditorProps>(function E
   }, [allEnvironmentVariables, autocompleteVariables]);
   // Track a local key for updates. If the default value is changed when the input is not in focus,
   // regenerate this to force the field to update.
-  const [focusedUpdateKey, regenerateFocusedUpdateKey] = useRandomKey();
+  const [focusedUpdateKey, regenerateFocusedUpdateKey] = useRandomKey('initial');
   const forceUpdateKey = `${forceUpdateKeyFromAbove}::${focusedUpdateKey}`;
 
   if (settings && wrapLines === undefined) {
@@ -352,17 +352,6 @@ export const Editor = forwardRef<EditorView | undefined, EditorProps>(function E
     [],
   );
 
-  // Force input to update when receiving change and not in focus
-  useLayoutEffect(() => {
-    const currDoc = cm.current?.view.state.doc.toString() || '';
-    const nextDoc = defaultValue || '';
-    const notFocused = !cm.current?.view.hasFocus;
-    const hasChanged = currDoc !== nextDoc;
-    if (notFocused && hasChanged) {
-      regenerateFocusedUpdateKey();
-    }
-  }, [defaultValue, regenerateFocusedUpdateKey]);
-
   const [, { focusParamValue }] = useRequestEditor();
   const onClickPathParameter = useCallback(
     async (name: string) => {
@@ -487,31 +476,22 @@ export const Editor = forwardRef<EditorView | undefined, EditorProps>(function E
   // For read-only mode, update content when `defaultValue` changes
   useEffect(
     function updateReadOnlyEditor() {
-      if (!readOnly || cm.current?.view == null || defaultValue == null) return;
-
-      // Replace codemirror contents
-      const currentDoc = cm.current.view.state.doc.toString();
-      if (defaultValue.startsWith(currentDoc)) {
-        // If we're just appending, append only the changes. This preserves
-        // things like scroll position.
-        cm.current.view.dispatch({
-          changes: cm.current.view.state.changes({
-            from: currentDoc.length,
-            insert: defaultValue.slice(currentDoc.length),
-          }),
-        });
-      } else {
-        // If we're replacing everything, reset the entire content
-        cm.current.view.dispatch({
-          changes: cm.current.view.state.changes({
-            from: 0,
-            to: currentDoc.length,
-            insert: defaultValue,
-          }),
-        });
+      if (readOnly && cm.current?.view != null) {
+        updateContents(cm.current.view, defaultValue || '');
       }
     },
     [defaultValue, readOnly],
+  );
+
+  // Force input to update when receiving change and not in focus
+  useLayoutEffect(
+    function updateNonFocusedEditor() {
+      const notFocused = !cm.current?.view.hasFocus;
+      if (notFocused && cm.current != null) {
+        updateContents(cm.current.view, defaultValue || '');
+      }
+    },
+    [defaultValue, readOnly, regenerateFocusedUpdateKey],
   );
 
   // Add bg classes to actions, so they appear over the text
@@ -719,4 +699,31 @@ function getCachedEditorState(doc: string, stateKey: string | null) {
 
 function computeFullStateKey(stateKey: string): string {
   return `editor.${stateKey}`;
+}
+
+function updateContents(view: EditorView, text: string) {
+  // Replace codemirror contents
+  const currentDoc = view.state.doc.toString();
+
+  if (currentDoc === text) {
+    return;
+  } else if (text.startsWith(currentDoc)) {
+    // If we're just appending, append only the changes. This preserves
+    // things like scroll position.
+    view.dispatch({
+      changes: view.state.changes({
+        from: currentDoc.length,
+        insert: text.slice(currentDoc.length),
+      }),
+    });
+  } else {
+    // If we're replacing everything, reset the entire content
+    view.dispatch({
+      changes: view.state.changes({
+        from: 0,
+        to: currentDoc.length,
+        insert: text,
+      }),
+    });
+  }
 }

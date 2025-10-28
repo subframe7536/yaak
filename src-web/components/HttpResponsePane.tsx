@@ -1,7 +1,7 @@
 import type { HttpResponse } from '@yaakapp-internal/models';
 import classNames from 'classnames';
-import type { CSSProperties, ReactNode} from 'react';
-import React, { Suspense , lazy, useCallback, useMemo } from 'react';
+import type { ComponentType, CSSProperties } from 'react';
+import React, { lazy, Suspense, useCallback, useMemo } from 'react';
 import { useLocalStorage } from 'react-use';
 import { useCancelHttpResponse } from '../hooks/useCancelHttpResponse';
 import { usePinnedHttpResponse } from '../hooks/usePinnedHttpResponse';
@@ -10,16 +10,18 @@ import { getMimeTypeFromContentType } from '../lib/contentType';
 import { getContentTypeFromHeaders } from '../lib/model_util';
 import { ConfirmLargeResponse } from './ConfirmLargeResponse';
 import { Banner } from './core/Banner';
+import { Button } from './core/Button';
 import { CountBadge } from './core/CountBadge';
-import { HttpResponseDurationTag } from './core/HttpResponseDurationTag';
 import { HotKeyList } from './core/HotKeyList';
+import { HttpResponseDurationTag } from './core/HttpResponseDurationTag';
+import { HttpStatusTag } from './core/HttpStatusTag';
 import { LoadingIcon } from './core/LoadingIcon';
 import { SizeTag } from './core/SizeTag';
 import { HStack, VStack } from './core/Stacks';
-import { HttpStatusTag } from './core/HttpStatusTag';
-import type { TabItem } from './core/Tabs/Tabs';
-import { TabContent, Tabs } from './core/Tabs/Tabs';
+import type { TabItem} from './core/Tabs/Tabs';
+import { Tabs , TabContent} from './core/Tabs/Tabs';
 import { EmptyStateText } from './EmptyStateText';
+import { ErrorBoundary } from './ErrorBoundary';
 import { RecentHttpResponsesDropdown } from './RecentHttpResponsesDropdown';
 import { ResponseHeaders } from './ResponseHeaders';
 import { ResponseInfo } from './ResponseInfo';
@@ -30,8 +32,6 @@ import { HTMLOrTextViewer } from './responseViewers/HTMLOrTextViewer';
 import { ImageViewer } from './responseViewers/ImageViewer';
 import { SvgViewer } from './responseViewers/SvgViewer';
 import { VideoViewer } from './responseViewers/VideoViewer';
-import { ErrorBoundary } from './ErrorBoundary';
-import { Button } from './core/Button';
 
 const PdfViewer = lazy(() =>
   import('./responseViewers/PdfViewer').then((m) => ({ default: m.PdfViewer })),
@@ -184,13 +184,13 @@ export function HttpResponsePane({ style, className, activeRequestId }: Props) {
                       ) : mimeType?.match(/^image\/svg/) ? (
                         <SvgViewer response={activeResponse} />
                       ) : mimeType?.match(/^image/i) ? (
-                        <EnsureCompleteResponse response={activeResponse} render={ImageViewer} />
+                        <EnsureCompleteResponse response={activeResponse} Component={ImageViewer} />
                       ) : mimeType?.match(/^audio/i) ? (
-                        <EnsureCompleteResponse response={activeResponse} render={AudioViewer} />
+                        <EnsureCompleteResponse response={activeResponse} Component={AudioViewer} />
                       ) : mimeType?.match(/^video/i) ? (
-                        <EnsureCompleteResponse response={activeResponse} render={VideoViewer} />
+                        <EnsureCompleteResponse response={activeResponse} Component={VideoViewer} />
                       ) : mimeType?.match(/pdf/i) ? (
-                        <EnsureCompleteResponse response={activeResponse} render={PdfViewer} />
+                        <EnsureCompleteResponse response={activeResponse} Component={PdfViewer} />
                       ) : mimeType?.match(/csv|tab-separated/i) ? (
                         <CsvViewer className="pb-2" response={activeResponse} />
                       ) : (
@@ -220,10 +220,10 @@ export function HttpResponsePane({ style, className, activeRequestId }: Props) {
 
 function EnsureCompleteResponse({
   response,
-  render,
+  Component,
 }: {
   response: HttpResponse;
-  render: (v: { bodyPath: string }) => ReactNode;
+  Component: ComponentType<{ bodyPath: string }>;
 }) {
   if (response.bodyPath === null) {
     return <div>Empty response body</div>;
@@ -238,5 +238,5 @@ function EnsureCompleteResponse({
     );
   }
 
-  return render({ bodyPath: response.bodyPath });
+  return <Component bodyPath={response.bodyPath} />;
 }

@@ -1,6 +1,7 @@
 import type { DragEndEvent, DragMoveEvent, DragStartEvent } from '@dnd-kit/core';
 import {
   DndContext,
+  MeasuringStrategy,
   PointerSensor,
   pointerWithin,
   useDroppable,
@@ -24,6 +25,7 @@ import type { HotkeyAction, HotKeyOptions } from '../../../hooks/useHotKey';
 import { useHotKey } from '../../../hooks/useHotKey';
 import { computeSideForDragMove } from '../../../lib/dnd';
 import { jotaiStore } from '../../../lib/jotai';
+import { isSidebarFocused } from '../../../lib/scopes';
 import type { ContextMenuProps, DropdownItem } from '../Dropdown';
 import { ContextMenu } from '../Dropdown';
 import {
@@ -31,27 +33,41 @@ import {
   draggingIdsFamily,
   focusIdsFamily,
   hoveredParentFamily,
+  isCollapsedFamily,
   selectedIdsFamily,
 } from './atoms';
 import type { SelectableTreeNode, TreeNode } from './common';
 import { equalSubtree, getSelectedItems, hasAncestor } from './common';
 import { TreeDragOverlay } from './TreeDragOverlay';
-import type { TreeItemProps } from './TreeItem';
+import type { TreeItemClickEvent, TreeItemHandle, TreeItemProps } from './TreeItem';
 import type { TreeItemListProps } from './TreeItemList';
 import { TreeItemList } from './TreeItemList';
 import { useSelectableItems } from './useSelectableItems';
+
+/** So we re-calculate after expanding a folder during drag */
+const measuring = { droppable: { strategy: MeasuringStrategy.Always } };
 
 export interface TreeProps<T extends { id: string }> {
   root: TreeNode<T>;
   treeId: string;
   getItemKey: (item: T) => string;
-  getContextMenu?: (items: T[]) => Promise<ContextMenuProps['items']>;
+  getContextMenu?: (t: TreeHandle, items: T[]) => Promise<ContextMenuProps['items']>;
   ItemInner: ComponentType<{ treeId: string; item: T }>;
   ItemLeftSlot?: ComponentType<{ treeId: string; item: T }>;
   className?: string;
   onActivate?: (item: T) => void;
   onDragEnd?: (opt: { items: T[]; parent: T; children: T[]; insertAt: number }) => void;
-  hotkeys?: { actions: Partial<Record<HotkeyAction, (items: T[]) => void>> } & HotKeyOptions;
+  hotkeys?: {
+    actions: Partial<
+      Record<
+        HotkeyAction,
+        {
+          cb: (h: TreeHandle, items: T[]) => void;
+          enable?: boolean | ((h: TreeHandle) => boolean);
+        } & Omit<HotKeyOptions, 'enable'>
+      >
+    >;
+  };
   getEditOptions?: (item: T) => {
     defaultValue: string;
     placeholder?: string;
@@ -62,6 +78,7 @@ export interface TreeProps<T extends { id: string }> {
 export interface TreeHandle {
   focus: () => void;
   selectItem: (id: string) => void;
+  renameItem: (id: string) => void;
 }
 
 function TreeInner<T extends { id: string }>(
@@ -87,6 +104,14 @@ function TreeInner<T extends { id: string }>(
     x: number;
     y: number;
   } | null>(null);
+  const treeItemRefs = useRef<Record<string, TreeItemHandle>>({});
+  const handleAddTreeItemRef = useCallback((item: T, r: TreeItemHandle | null) => {
+    if (r == null) {
+      delete treeItemRefs.current[item.id];
+    } else {
+      treeItemRefs.current[item.id] = r;
+    }
+  }, []);
 
   const handleCloseContextMenu = useCallback(() => {
     setShowContextMenu(null);
@@ -105,17 +130,19 @@ function TreeInner<T extends { id: string }>(
     [treeId, tryFocus],
   );
 
-  useImperativeHandle(
-    ref,
-    (): TreeHandle => ({
+  const treeHandle = useMemo<TreeHandle>(
+    () => ({
       focus: tryFocus,
-      selectItem(id) {
+      renameItem: (id) => treeItemRefs.current[id]?.rename(),
+      selectItem: (id) => {
         setSelected([id], false);
         jotaiStore.set(focusIdsFamily(treeId), { anchorId: id, lastId: id });
       },
     }),
     [setSelected, treeId, tryFocus],
   );
+
+  useImperativeHandle(ref, (): TreeHandle => treeHandle, [treeHandle]);
 
   const handleGetContextMenu = useMemo(() => {
     if (getContextMenu == null) return;
@@ -124,16 +151,16 @@ function TreeInner<T extends { id: string }>(
       const isSelected = items.find((i) => i.id === item.id);
       if (isSelected) {
         // If right-clicked an item that was in the multiple-selection, use the entire selection
-        return getContextMenu(items);
+        return getContextMenu(treeHandle, items);
       } else {
         // If right-clicked an item that was NOT in the multiple-selection, just use that one
         // Also update the selection with it
         jotaiStore.set(selectedIdsFamily(treeId), [item.id]);
         jotaiStore.set(focusIdsFamily(treeId), (prev) => ({ ...prev, lastId: item.id }));
-        return getContextMenu([item]);
+        return getContextMenu(treeHandle, [item]);
       }
     };
-  }, [getContextMenu, selectableItems, treeId]);
+  }, [getContextMenu, selectableItems, treeHandle, treeId]);
 
   const handleSelect = useCallback<NonNullable<TreeItemProps<T>['onClick']>>(
     (item, { shiftKey, metaKey, ctrlKey }) => {
@@ -141,7 +168,7 @@ function TreeInner<T extends { id: string }>(
       const selectedIdsAtom = selectedIdsFamily(treeId);
       const selectedIds = jotaiStore.get(selectedIdsAtom);
 
-      // Mark item as the last one selected
+      // Mark the item as the last one selected
       jotaiStore.set(focusIdsFamily(treeId), (prev) => ({ ...prev, lastId: item.id }));
 
       if (shiftKey) {
@@ -154,16 +181,17 @@ function TreeInner<T extends { id: string }>(
           return;
         }
 
+        const validSelectableItems = getValidSelectableItems(treeId, selectableItems);
         if (currIndex > anchorIndex) {
           // Selecting down
-          const itemsToSelect = selectableItems.slice(anchorIndex, currIndex + 1);
+          const itemsToSelect = validSelectableItems.slice(anchorIndex, currIndex + 1);
           setSelected(
             itemsToSelect.map((v) => v.node.item.id),
             true,
           );
         } else if (currIndex < anchorIndex) {
           // Selecting up
-          const itemsToSelect = selectableItems.slice(currIndex, anchorIndex + 1);
+          const itemsToSelect = validSelectableItems.slice(currIndex, anchorIndex + 1);
           setSelected(
             itemsToSelect.map((v) => v.node.item.id),
             true,
@@ -201,15 +229,50 @@ function TreeInner<T extends { id: string }>(
     [handleSelect, onActivate],
   );
 
+  const selectPrevItem = useCallback(
+    (e: TreeItemClickEvent) => {
+      const lastSelectedId = jotaiStore.get(focusIdsFamily(treeId)).lastId;
+      const validSelectableItems = getValidSelectableItems(treeId, selectableItems);
+      const index = validSelectableItems.findIndex((i) => i.node.item.id === lastSelectedId);
+      const item = validSelectableItems[index - 1];
+      if (item != null) {
+        handleSelect(item.node.item, e);
+      }
+    },
+    [handleSelect, selectableItems, treeId],
+  );
+
+  const selectNextItem = useCallback(
+    (e: TreeItemClickEvent) => {
+      const lastSelectedId = jotaiStore.get(focusIdsFamily(treeId)).lastId;
+      const validSelectableItems = getValidSelectableItems(treeId, selectableItems);
+      const index = validSelectableItems.findIndex((i) => i.node.item.id === lastSelectedId);
+      const item = validSelectableItems[index + 1];
+      if (item != null) {
+        handleSelect(item.node.item, e);
+      }
+    },
+    [handleSelect, selectableItems, treeId],
+  );
+
+  const selectParentItem = useCallback(
+    (e: TreeItemClickEvent) => {
+      const lastSelectedId = jotaiStore.get(focusIdsFamily(treeId)).lastId;
+      const lastSelectedItem =
+        selectableItems.find((i) => i.node.item.id === lastSelectedId)?.node ?? null;
+      if (lastSelectedItem?.parent != null) {
+        handleSelect(lastSelectedItem.parent.item, e);
+      }
+    },
+    [handleSelect, selectableItems, treeId],
+  );
+
   useKey(
     'ArrowUp',
     (e) => {
-      if (!treeRef.current?.contains(document.activeElement)) return;
+      if (!isSidebarFocused()) return;
       e.preventDefault();
-      const lastSelectedId = jotaiStore.get(focusIdsFamily(treeId)).lastId;
-      const index = selectableItems.findIndex((i) => i.node.item.id === lastSelectedId);
-      const item = selectableItems[index - 1];
-      if (item != null) handleSelect(item.node.item, e);
+      selectPrevItem(e);
     },
     undefined,
     [selectableItems, handleSelect],
@@ -218,12 +281,60 @@ function TreeInner<T extends { id: string }>(
   useKey(
     'ArrowDown',
     (e) => {
-      if (!treeRef.current?.contains(document.activeElement)) return;
+      if (!isSidebarFocused()) return;
       e.preventDefault();
+      selectNextItem(e);
+    },
+    undefined,
+    [selectableItems, handleSelect],
+  );
+
+  // If the selected item is a collapsed folder, expand it. Otherwise, select next item
+  useKey(
+    'ArrowRight',
+    (e) => {
+      if (!isSidebarFocused()) return;
+      e.preventDefault();
+
+      const collapsed = jotaiStore.get(collapsedFamily(treeId));
       const lastSelectedId = jotaiStore.get(focusIdsFamily(treeId)).lastId;
-      const index = selectableItems.findIndex((i) => i.node.item.id === lastSelectedId);
-      const item = selectableItems[index + 1];
-      if (item != null) handleSelect(item.node.item, e);
+      const lastSelectedItem = selectableItems.find((i) => i.node.item.id === lastSelectedId);
+
+      if (
+        lastSelectedId &&
+        lastSelectedItem?.node.children != null &&
+        collapsed[lastSelectedItem.node.item.id] === true
+      ) {
+        jotaiStore.set(isCollapsedFamily({ treeId, itemId: lastSelectedId }), false);
+      } else {
+        selectNextItem(e);
+      }
+    },
+    undefined,
+    [selectableItems, handleSelect],
+  );
+
+  // If the selected item is in a folder, select its parent.
+  // If the selected item is an expanded folder, collapse it.
+  useKey(
+    'ArrowLeft',
+    (e) => {
+      if (!isSidebarFocused()) return;
+      e.preventDefault();
+
+      const collapsed = jotaiStore.get(collapsedFamily(treeId));
+      const lastSelectedId = jotaiStore.get(focusIdsFamily(treeId)).lastId;
+      const lastSelectedItem = selectableItems.find((i) => i.node.item.id === lastSelectedId);
+
+      if (
+        lastSelectedId &&
+        lastSelectedItem?.node.children != null &&
+        collapsed[lastSelectedItem.node.item.id] !== true
+      ) {
+        jotaiStore.set(isCollapsedFamily({ treeId, itemId: lastSelectedId }), true);
+      } else {
+        selectParentItem(e);
+      }
     },
     undefined,
     [selectableItems, handleSelect],
@@ -272,8 +383,8 @@ function TreeInner<T extends { id: string }>(
       if (selectableItem == null) {
         return;
       }
-      const node = selectableItem.node;
 
+      const node = selectableItem.node;
       const side = computeSideForDragMove(node.item.id, e);
 
       const item = node.item;
@@ -283,12 +394,8 @@ function TreeInner<T extends { id: string }>(
       const hoveredIndex = dragIndex + (side === 'above' ? 0 : 1);
       let hoveredChildIndex = selectableItem.index + (side === 'above' ? 0 : 1);
 
-      const collapsedMap = jotaiStore.get(collapsedFamily(treeId));
-      const isHoveredItemCollapsed =
-        hovered != null ? hovered.children?.length === 0 || collapsedMap[hovered.item.id] : false;
-
-      if (hovered?.children != null && side === 'below' && isHoveredItemCollapsed) {
-        // Move into the folder if it's open and we're moving below it
+      // Move into the folder if it's open and we're moving below it
+      if (hovered?.children != null && side === 'below') {
         hoveredParent = hovered;
         hoveredChildIndex = 0;
       }
@@ -306,12 +413,7 @@ function TreeInner<T extends { id: string }>(
           childIndex === existing.childIndex
         )
       ) {
-        jotaiStore.set(hoveredParentFamily(treeId), {
-          parentId: hoveredParent?.item.id ?? null,
-          parentDepth: hoveredParent?.depth ?? null,
-          index: hoveredIndex,
-          childIndex: hoveredChildIndex,
-        });
+        jotaiStore.set(hoveredParentFamily(treeId), { parentId, parentDepth, index, childIndex });
       }
     },
     [root.depth, root.item.id, selectableItems, treeId],
@@ -319,20 +421,23 @@ function TreeInner<T extends { id: string }>(
 
   const handleDragStart = useCallback(
     function handleDragStart(e: DragStartEvent) {
-      const item = selectableItems.find((i) => i.node.item.id === e.active.id)?.node.item ?? null;
-      if (item == null) return;
-
       const selectedItems = getSelectedItems(treeId, selectableItems);
-      const isDraggingSelectedItem = selectedItems.find((i) => i.id === item.id);
+      const isDraggingSelectedItem = selectedItems.find((i) => i.id === e.active.id);
+
+      // If we started dragging an already-selected item, we'll use that
       if (isDraggingSelectedItem) {
         jotaiStore.set(
           draggingIdsFamily(treeId),
           selectedItems.map((i) => i.id),
         );
       } else {
-        jotaiStore.set(draggingIdsFamily(treeId), [item.id]);
-        // Also update selection to just be this one
-        handleSelect(item, { shiftKey: false, metaKey: false, ctrlKey: false });
+        // If we started dragging a non-selected item, only drag that item
+        const activeItem = selectableItems.find((i) => i.node.item.id === e.active.id)?.node.item;
+        if (activeItem != null) {
+          jotaiStore.set(draggingIdsFamily(treeId), [activeItem.id]);
+          // Also update selection to just be this one
+          handleSelect(activeItem, { shiftKey: false, metaKey: false, ctrlKey: false });
+        }
       }
     },
     [handleSelect, selectableItems, treeId],
@@ -427,17 +532,22 @@ function TreeInner<T extends { id: string }>(
 
       e.preventDefault();
       e.stopPropagation();
-      const items = await getContextMenu([]);
+      const items = await getContextMenu(treeHandle, []);
       setShowContextMenu({ items, x: e.clientX, y: e.clientY });
     },
-    [getContextMenu],
+    [getContextMenu, treeHandle],
   );
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
   return (
     <>
-      <TreeHotKeys treeId={treeId} hotkeys={hotkeys} selectableItems={selectableItems} />
+      <TreeHotKeys
+        treeHandle={treeHandle}
+        treeId={treeId}
+        hotkeys={hotkeys}
+        selectableItems={selectableItems}
+      />
       {showContextMenu && (
         <ContextMenu
           items={showContextMenu.items}
@@ -452,6 +562,7 @@ function TreeInner<T extends { id: string }>(
         onDragEnd={handleDragEnd}
         onDragCancel={clearDragState}
         onDragAbort={clearDragState}
+        measuring={measuring}
         onDragMove={handleDragMove}
         autoScroll
       >
@@ -479,7 +590,12 @@ function TreeInner<T extends { id: string }>(
               '[&_.tree-item.selected:has(+.drop-marker+.tree-item.selected)]:rounded-b-none',
             )}
           >
-            <TreeItemList nodes={selectableItems} treeId={treeId} {...treeItemListProps} />
+            <TreeItemList
+              addTreeItemRef={handleAddTreeItemRef}
+              nodes={selectableItems}
+              treeId={treeId}
+              {...treeItemListProps}
+            />
           </div>
           {/* Assign root ID so we can reuse our same move/end logic */}
           <DropRegionAfterList id={root.item.id} onContextMenu={handleContextMenu} />
@@ -523,11 +639,14 @@ function DropRegionAfterList({
   return <div ref={setNodeRef} onContextMenu={onContextMenu} />;
 }
 
-interface TreeHotKeyProps<T extends { id: string }> extends HotKeyOptions {
+interface TreeHotKeyProps<T extends { id: string }> {
   action: HotkeyAction;
   selectableItems: SelectableTreeNode<T>[];
   treeId: string;
-  onDone: (items: T[]) => void;
+  onDone: (h: TreeHandle, items: T[]) => void;
+  treeHandle: TreeHandle;
+  priority?: number;
+  enable?: boolean | ((h: TreeHandle) => boolean);
 }
 
 function TreeHotKey<T extends { id: string }>({
@@ -535,14 +654,23 @@ function TreeHotKey<T extends { id: string }>({
   action,
   onDone,
   selectableItems,
+  treeHandle,
+  enable,
   ...options
 }: TreeHotKeyProps<T>) {
   useHotKey(
     action,
     () => {
-      onDone(getSelectedItems(treeId, selectableItems));
+      onDone(treeHandle, getSelectedItems(treeId, selectableItems));
     },
-    options,
+    {
+      ...options,
+      enable: () => {
+        if (enable == null) return true;
+        if (typeof enable === 'function') return enable(treeHandle);
+        else return enable;
+      },
+    },
   );
   return null;
 }
@@ -551,26 +679,44 @@ function TreeHotKeys<T extends { id: string }>({
   treeId,
   hotkeys,
   selectableItems,
+  treeHandle,
 }: {
   treeId: string;
   hotkeys: TreeProps<T>['hotkeys'];
   selectableItems: SelectableTreeNode<T>[];
+  treeHandle: TreeHandle;
 }) {
   if (hotkeys == null) return null;
 
   return (
     <>
-      {Object.entries(hotkeys.actions).map(([hotkey, onDone]) => (
+      {Object.entries(hotkeys.actions).map(([hotkey, { cb, ...options }]) => (
         <TreeHotKey
           key={hotkey}
           action={hotkey as HotkeyAction}
-          priority={hotkeys.priority}
-          enable={hotkeys.enable}
           treeId={treeId}
-          onDone={onDone}
+          onDone={cb}
+          treeHandle={treeHandle}
           selectableItems={selectableItems}
+          {...options}
         />
       ))}
     </>
   );
+}
+
+function getValidSelectableItems<T extends { id: string }>(
+  treeId: string,
+  selectableItems: SelectableTreeNode<T>[],
+) {
+  const collapsed = jotaiStore.get(collapsedFamily(treeId));
+  return selectableItems.filter((i) => {
+    if (i.node.hidden) return false;
+    let p = i.node.parent;
+    while (p) {
+      if (collapsed[p.item.id]) return false;
+      p = p.parent;
+    }
+    return true;
+  });
 }

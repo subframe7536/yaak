@@ -1,7 +1,6 @@
 import xmlFormat from 'xml-formatter';
 import { jsonrepair } from "jsonrepair";
-
-const INDENT = '  ';
+import { invokeCmd } from './tauri';
 
 export async function tryFormatJson(text: string): Promise<string> {
   if (text === '') return text;
@@ -21,11 +20,13 @@ export async function tryFormatXml(text: string): Promise<string> {
   if (text === '') return text;
 
   try {
-    return xmlFormat(text, { throwOnFailure: true, strictMode: false, indentation: INDENT });
-  } catch (error) {
-    console.error('Failed to format XML:', error);
-    return text;
+    const result = await invokeCmd<string>('cmd_format_xml', { text });
+    return result;
+  } catch (err) {
+    console.warn('Failed to format XML', err);
   }
+
+  return text;
 }
 
 

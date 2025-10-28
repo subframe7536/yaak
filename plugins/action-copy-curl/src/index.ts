@@ -82,21 +82,49 @@ export async function convertToCurl(request: Partial<HttpRequest>) {
   }
 
   // Add basic/digest authentication
-  if (request.authenticationType === 'basic' || request.authenticationType === 'digest') {
-    if (request.authenticationType === 'digest') xs.push('--digest');
-    xs.push(
-      '--user',
-      quote(`${request.authentication?.username ?? ''}:${request.authentication?.password ?? ''}`),
-    );
-    xs.push(NEWLINE);
-  }
+  if (request.authentication?.disabled !== true) {
+    if (request.authenticationType === 'basic' || request.authenticationType === 'digest') {
+      if (request.authenticationType === 'digest') xs.push('--digest');
+      xs.push(
+        '--user',
+        quote(
+          `${request.authentication?.username ?? ''}:${request.authentication?.password ?? ''}`,
+        ),
+      );
+      xs.push(NEWLINE);
+    }
 
-  // Add bearer authentication
-  if (request.authenticationType === 'bearer') {
-    const value =
-      `${request.authentication?.prefix ?? 'Bearer'} ${request.authentication?.token ?? ''}`.trim();
-    xs.push('--header', quote(`Authorization: ${value}`));
-    xs.push(NEWLINE);
+    // Add bearer authentication
+    if (request.authenticationType === 'bearer') {
+      const value =
+        `${request.authentication?.prefix ?? 'Bearer'} ${request.authentication?.token ?? ''}`.trim();
+      xs.push('--header', quote(`Authorization: ${value}`));
+      xs.push(NEWLINE);
+    }
+
+    if (request.authenticationType === 'auth-aws-sig-v4') {
+      xs.push(
+        '--aws-sigv4',
+        [
+          'aws',
+          'amz',
+          request.authentication?.region ?? '',
+          request.authentication?.service ?? '',
+        ].join(':'),
+      );
+      xs.push(NEWLINE);
+      xs.push(
+        '--user',
+        quote(
+          `${request.authentication?.accessKeyId ?? ''}:${request.authentication?.secretAccessKey ?? ''}`,
+        ),
+      );
+      if (request.authentication?.sessionToken) {
+        xs.push(NEWLINE);
+        xs.push('--header', quote(`X-Amz-Security-Token: ${request.authentication.sessionToken}`));
+      }
+      xs.push(NEWLINE);
+    }
   }
 
   // Remove trailing newline

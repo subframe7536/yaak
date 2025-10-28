@@ -1,6 +1,7 @@
 import type { Environment } from '@yaakapp-internal/models';
 import { patchModel } from '@yaakapp-internal/models';
 import type { GenericCompletionOption } from '@yaakapp-internal/plugins';
+import classNames from 'classnames';
 import React, { useCallback, useMemo } from 'react';
 import { useEnvironmentsBreakdown } from '../hooks/useEnvironmentsBreakdown';
 import { useIsEncryptionEnabled } from '../hooks/useIsEncryptionEnabled';
@@ -19,7 +20,6 @@ import { Heading } from './core/Heading';
 import type { PairWithId } from './core/PairEditor';
 import { ensurePairId } from './core/PairEditor.util';
 import { PairOrBulkEditor } from './core/PairOrBulkEditor';
-import { VStack } from './core/Stacks';
 import { EnvironmentColorIndicator } from './EnvironmentColorIndicator';
 import { EnvironmentSharableTooltip } from './EnvironmentSharableTooltip';
 
@@ -98,68 +98,69 @@ export function EnvironmentEditor({
   };
 
   return (
-    <VStack space={4} className={className}>
-      <Heading className="w-full flex items-center gap-0.5">
-        <EnvironmentColorIndicator clickToEdit environment={environment ?? null} />
-        {!hideName && <div className="mr-2">{environment?.name}</div>}
-        {isEncryptionEnabled ? (
-          !allVariableAreEncrypted ? (
-            <BadgeButton color="notice" onClick={() => encryptEnvironment(environment)}>
-              Encrypt All Variables
-            </BadgeButton>
+    <div className={classNames(className, 'h-full grid grid-rows-[auto_minmax(0,1fr)] gap-2')}>
+      <div className="flex flex-col gap-4">
+        <Heading className="w-full flex items-center gap-0.5">
+          <EnvironmentColorIndicator clickToEdit environment={environment ?? null} />
+          {!hideName && <div className="mr-2">{environment?.name}</div>}
+          {isEncryptionEnabled ? (
+            !allVariableAreEncrypted ? (
+              <BadgeButton color="notice" onClick={() => encryptEnvironment(environment)}>
+                Encrypt All Variables
+              </BadgeButton>
+            ) : (
+              <BadgeButton color="secondary" onClick={setupOrConfigureEncryption}>
+                Encryption Settings
+              </BadgeButton>
+            )
           ) : (
-            <BadgeButton color="secondary" onClick={setupOrConfigureEncryption}>
-              Encryption Settings
+            <BadgeButton color="secondary" onClick={() => valueVisibility.set((v) => !v)}>
+              {valueVisibility.value ? 'Hide Values' : 'Show Values'}
             </BadgeButton>
-          )
-        ) : (
-          <BadgeButton color="secondary" onClick={() => valueVisibility.set((v) => !v)}>
-            {valueVisibility.value ? 'Hide Values' : 'Show Values'}
+          )}
+          <BadgeButton
+            color="secondary"
+            rightSlot={<EnvironmentSharableTooltip />}
+            onClick={async () => {
+              await patchModel(environment, { public: !environment.public });
+            }}
+          >
+            {environment.public ? 'Sharable' : 'Private'}
           </BadgeButton>
+        </Heading>
+        {environment.public && (!isEncryptionEnabled || !allVariableAreEncrypted) && (
+          <DismissibleBanner
+            id={`warn-unencrypted-${environment.id}`}
+            color="notice"
+            className="mr-3"
+            actions={[
+              {
+                label: 'Encrypt Variables',
+                onClick: () => encryptEnvironment(environment),
+                color: 'success',
+              },
+            ]}
+          >
+            This sharable environment contains plain-text secrets
+          </DismissibleBanner>
         )}
-        <BadgeButton
-          color="secondary"
-          rightSlot={<EnvironmentSharableTooltip />}
-          onClick={async () => {
-            await patchModel(environment, { public: !environment.public });
-          }}
-        >
-          {environment.public ? 'Sharable' : 'Private'}
-        </BadgeButton>
-      </Heading>
-      {environment.public && (!isEncryptionEnabled || !allVariableAreEncrypted) && (
-        <DismissibleBanner
-          id={`warn-unencrypted-${environment.id}`}
-          color="notice"
-          className="mr-3"
-          actions={[
-            {
-              label: 'Encrypt Variables',
-              onClick: () => encryptEnvironment(environment),
-              color: 'success',
-            },
-          ]}
-        >
-          This sharable environment contains plain-text secrets
-        </DismissibleBanner>
-      )}
-      <div className="h-full pr-2 pb-2 grid grid-rows-[minmax(0,1fr)] overflow-auto">
-        <PairOrBulkEditor
-          allowMultilineValues
-          preferenceName="environment"
-          nameAutocomplete={nameAutocomplete}
-          namePlaceholder="VAR_NAME"
-          nameValidate={validateName}
-          valueType={valueType}
-          valueAutocompleteVariables='environment'
-          valueAutocompleteFunctions
-          forceUpdateKey={`${environment.id}::${forceUpdateKey}`}
-          pairs={environment.variables}
-          onChange={handleChange}
-          stateKey={`environment.${environment.id}`}
-          forcedEnvironmentId={environment.id}
-        />
       </div>
-    </VStack>
+      <PairOrBulkEditor
+        className="h-full"
+        allowMultilineValues
+        preferenceName="environment"
+        nameAutocomplete={nameAutocomplete}
+        namePlaceholder="VAR_NAME"
+        nameValidate={validateName}
+        valueType={valueType}
+        valueAutocompleteVariables="environment"
+        valueAutocompleteFunctions
+        forceUpdateKey={`${environment.id}::${forceUpdateKey}`}
+        pairs={environment.variables}
+        onChange={handleChange}
+        stateKey={`environment.${environment.id}`}
+        forcedEnvironmentId={environment.id}
+      />
+    </div>
   );
 }

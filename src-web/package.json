@@ -26,7 +26,7 @@
     "@tanstack/react-query": "^5.90.5",
     "@tanstack/react-router": "^1.133.13",
     "@tanstack/react-virtual": "^3.13.12",
-    "@tauri-apps/api": "^2.8.0",
+    "@tauri-apps/api": "^2.9.0",
     "@tauri-apps/plugin-clipboard-manager": "^2.3.0",
     "@tauri-apps/plugin-dialog": "^2.4.0",
     "@tauri-apps/plugin-fs": "^2.4.2",
@@ -66,7 +66,7 @@
     "slugify": "^1.6.6",
     "uuid": "^11.1.0",
     "whatwg-mimetype": "^4.0.0",
-    "xml-formatter": "^3.6.3",
+    "xml-beautify": "^1.2.3",
     "yaml": "^2.6.1"
   },
   "devDependencies": {

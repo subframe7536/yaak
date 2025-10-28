@@ -177,7 +177,7 @@ export function CommandPaletteDialog({ onClose }: { onClose: () => void }) {
       });
 
       commands.push({
-        key: 'sidebar.delete_selected_item',
+        key: 'sidebar.selected.delete',
         label: 'Delete Request',
         onSelect: () => deleteModelWithConfirm(activeRequest),
       });

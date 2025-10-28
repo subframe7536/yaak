@@ -21,6 +21,7 @@ export type ButtonProps = Omit<HTMLAttributes<HTMLButtonElement>, 'color' | 'onC
   leftSlot?: ReactNode;
   rightSlot?: ReactNode;
   hotkeyAction?: HotkeyAction;
+  hotkeyPriority?: number;
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
@@ -39,6 +40,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     rightSlot,
     disabled,
     hotkeyAction,
+    hotkeyPriority,
     title,
     onClick,
     ...props
@@ -94,9 +96,13 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     () => buttonRef.current,
   );
 
-  useHotKey(hotkeyAction ?? null, () => {
-    buttonRef.current?.click();
-  });
+  useHotKey(
+    hotkeyAction ?? null,
+    () => {
+      buttonRef.current?.click();
+    },
+    { priority: hotkeyPriority },
+  );
 
   return (
     <button
