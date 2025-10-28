@@ -1,4 +1,3 @@
-import xmlFormat from 'xml-formatter';
 import { jsonrepair } from "jsonrepair";
 import { invokeCmd } from './tauri';
 
